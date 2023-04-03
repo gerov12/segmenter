@@ -247,9 +247,12 @@ Route::get('grafo/{aglomerado}','SegmentacionController@index')->name('index');
 Route::get('grafo/{aglomerado}/{radio}/','SegmentacionController@ver_grafo_legacy')->name('ver-grafo-redirect');
 Route::get('radio/{localidad}/{radio}/','SegmentacionController@ver_grafo')->name('ver-grafo');
 
+//----------ACTIVAR O DESACTIVAR BOTONES EDICION DE RADIOS
+Route::get('edit/si','editarconpermiso@editarSi')->name('editarSi');
+
 // ---------- ARCHIVOS --------
 Route::post('archivos','ArchivoController@index');
-Route::get('archivos','ArchivoController@index');
+Route::get('archivos','ArchivoController@index')->name('archivos');
 Route::get('archivo/{archivo}','ArchivoController@show');
 Route::post('archivo/{archivo}','ArchivoController@show');
 Route::delete('archivo/{archivo}','ArchivoController@destroy');
