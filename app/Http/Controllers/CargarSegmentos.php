@@ -42,7 +42,7 @@ class CargarSegmentos extends Controller
         // Insertar los datos en la base de datos
         CargarSegmentos::insertOrIgnore($nombreArchivo);
 
-        return redirect('/cargarSegmentos')->with('success', '¡Importación realizada con éxito!');
+        return view('segmentos.cargar',['data' => null])->with('success', '¡Importación realizada con éxito!');
     }
 
     public function insertOrIgnore($nombreArchivo)
