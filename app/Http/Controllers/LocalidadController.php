@@ -374,16 +374,15 @@ class LocalidadController extends Controller
 
     }
     public function eliminarRelacionLocalidad(Request $request,$localidad_id){
-
-        $localidad = Localidad::findorfail($localidad_id);
-    
+        $localidad = Localidad::findorfail($localidad_id); 
         $radio = Radio::findorfail($request-> input('radio_id'));
-    
-        $radio->localidades()->detach($localidad_id);
-         
-        flash ('Se eliminó relacion del radio ' . $radio->codigo . ' con la localidad ' .$localidad->nombre . ' (cod ' . $localidad->codigo . ")")->success();
-          
-        return back();
-
+        $cod_prov = substr($radio->codigo, 0, 2);
+        if (Auth::user()->can($cod_prov, 'filters')) { //podría ser tambien provincia->nombre (definir estandar)   
+            //$radio->localidades()->detach($localidad_id);           
+            flash ('Se eliminó relacion del radio ' . $radio->codigo . ' con la localidad ' .$localidad->nombre . ' (cod ' . $localidad->codigo . ")")->success();
+        } else {
+            flash ('No cuenta con la autorización para eliminar la relación del radio '. $radio->codigo .' con la localidad ' .$localidad->nombre . ' (cod ' . $localidad->codigo . ")" )->error();    
         }
+        return back();
+    }
 }

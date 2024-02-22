@@ -5,7 +5,7 @@ namespace Database\seeders;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 
-class FilterPermissionsSeeder extends Seeder
+class RadioPermissionsSeeder extends Seeder
 {
     /**
      * Crea los permisos necesarios para administrar los filtros del sistema.
@@ -14,7 +14,7 @@ class FilterPermissionsSeeder extends Seeder
      */
     public function run()
     {
-        $arrayOfPermissionNames = ['Eliminar Radios', 'Modificar Tipo Radios', 'Desvincular Radios Localidades'];
+        $arrayOfPermissionNames = ['Crear Filtros', 'Editar Filtros', 'Eliminar Filtros'];
         
         $permissions = collect($arrayOfPermissionNames)->map(function ($permission) {
             return ['name' => $permission, 'guard_name' => 'web'];

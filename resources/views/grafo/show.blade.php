@@ -2,13 +2,19 @@
 @section('content')
 
 <div class = "row center"><div class = "col-lg-12 text-center">
+@if(Session::has('info'))
+   <div class="alert alert-error alert-dismissible" role="alert">
+   <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+   {{Session::get('info')}}
+   </div>
+@endif
 <h4><a href = "{{ url("/aglo/{$aglomerado->id}") }}" > ({{ $aglomerado->codigo}}) {{ $aglomerado->nombre}}</a></h4>
 
 <h4>Radio: {{ substr($radio->codigo, 0, 2) }} {{ substr($radio->codigo, 2, 3) }} 
     <b>
         {{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}
     </b>
-      @can('Eliminar Radio')
+      @can('Eliminar Radios')
         @if($radio->localidades->count() == 1)
           <form action="/radio/{{$radio->id}}" id="EliminarRadio" method = "POST">
             @csrf
@@ -24,7 +30,7 @@
 
 @if($radio->tipo)	
     <p class = "text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
-    @can('Modificar Tipo Radio')
+    @can('Modificar Tipo Radios')
       <form action="/radio/{{$radio->id}}" id="formeditradio" method="POST">   
           @csrf
           @if($radio->tipo->nombre == "M")
@@ -56,7 +62,7 @@
           href = "{{ url("/localidad/{$loc->id}") }}" > 
           ({{$loc->codigo}}) {{ $loc->nombre}}
       </a>
-        @can('Desvincular Radio Localidad')
+        @can('Desvincular Radios Localidades')
           @if ($loc->id !== $localidad->id)
           <form action="/localidad/{{$loc->id}}" id="eliminarelacionlocalidad" method="POST">   
             @csrf
