@@ -101,8 +101,8 @@ class RadioController extends Controller
     {   
         $cod_prov = substr($radio->codigo, 0, 2);
         $id_localidad = $radio->localidades[0]->id;
-        if (Auth::user()->can($cod_prov, 'filters')) { //podría ser tambien provincia->nombre (definir estandar)
-            //$radio ->delete();
+        if (Auth::user()->hasPermissionTo($cod_prov, 'filters') or Auth::user()->hasRole('Super Admin')) { //podría ser tambien provincia->nombre (definir estandar)
+            $radio ->delete();
             return redirect()->route('Ver-Localidad', $id_localidad)->with('info','Se eliminó el radio '. $radio->codigo);
         } else {
             flash ('No cuenta con la autorización para eliminar el radio: '. $radio->codigo)->error();
@@ -144,12 +144,12 @@ class RadioController extends Controller
         $radio = Radio::findorfail($radio_id);
         $cod_prov = substr($radio->codigo, 0, 2);
         $tipoderadio = TipoRadio::where ('id', '=', $radio->tipo_de_radio_id)->first('nombre');
-        if (Auth::user()->can($cod_prov, 'filters')) { //podría ser tambien provincia->nombre (definir estandar)
+        if (Auth::user()->hasPermissionTo($cod_prov, 'filters') or Auth::user()->hasRole('Super Admin')) { //podría ser tambien provincia->nombre (definir estandar)
             if ($radio->localidades->count() > 1 and $tipoderadio->nombre == 'M'){
                 flash('No se puede cambiar el tipo de radio a urbano dado que contiene más de una localidad');
                 return back();
             }
-            //$radio->tipo()->associate(TipoRadio::where('nombre', '=', $request->input('tipo_nuevo'))->first('id'));
+            $radio->tipo()->associate(TipoRadio::where('nombre', '=', $request->input('tipo_nuevo'))->first('id'));
             $radio->save();
             flash ('Cambio de Tipo de Radio realizado a ' . $radio->codigo . ' ahora es ' .$request->input('tipo_nuevo') )->success();
         } else {
