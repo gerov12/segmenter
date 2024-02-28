@@ -15,7 +15,7 @@
         {{ substr($radio->codigo, 5, 2) }} {{ substr($radio->codigo, 7, 2) }}
     </b>
       @can('Eliminar Radios')
-        @if($radio->localidades->count() == 1)
+        @if($radio->localidades->count() == 1 and Auth::user()->hasPermissionTo(substr($radio->codigo, 0, 2), 'filters'))
           <form action="/radio/{{$radio->id}}" id="EliminarRadio" method = "POST">
             @csrf
             @method('DELETE')
@@ -31,16 +31,18 @@
 @if($radio->tipo)	
     <p class = "text-center">({{ $radio->tipo->nombre }}) {{ $radio->tipo->descripcion }} 
     @can('Modificar Tipo Radios')
-      <form action="/radio/{{$radio->id}}" id="formeditradio" method="POST">   
-          @csrf
-          @if($radio->tipo->nombre == "M")
-            <input type="hidden" value='U' name='tipo_nuevo'>
-            <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Urbano </button>
-          @elseif($radio->tipo->nombre == "U") 
-            <input type="hidden" value='M' name='tipo_nuevo'>
-            <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Mixto </button>
-          @endif              
-      </form>
+      @if (Auth::user()->hasPermissionTo(substr($radio->codigo, 0, 2), 'filters'))
+        <form action="/radio/{{$radio->id}}" id="formeditradio" method="POST">   
+            @csrf
+            @if($radio->tipo->nombre == "M")
+              <input type="hidden" value='U' name='tipo_nuevo'>
+              <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Urbano </button>
+            @elseif($radio->tipo->nombre == "U") 
+              <input type="hidden" value='M' name='tipo_nuevo'>
+              <button type="button" onclick="CambiarTipodeRadio()" class="btn btn-danger" id="cambiotipor" > Cambiar a Mixto </button>
+            @endif              
+        </form>
+     @endif  
     @endcan
     </p>    
 @endif
@@ -63,7 +65,7 @@
           ({{$loc->codigo}}) {{ $loc->nombre}}
       </a>
         @can('Desvincular Radios Localidades')
-          @if ($loc->id !== $localidad->id)
+          @if ($loc->id !== $localidad->id and Auth::user()->hasPermissionTo(substr($radio->codigo, 0, 2), 'filters'))
           <form action="/localidad/{{$loc->id}}" id="eliminarelacionlocalidad" method="POST">   
             @csrf
             <input type="hidden" value="{{$radio->id}}" name='radio_id'>

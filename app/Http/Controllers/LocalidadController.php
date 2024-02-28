@@ -377,7 +377,8 @@ class LocalidadController extends Controller
         $localidad = Localidad::findorfail($localidad_id); 
         $radio = Radio::findorfail($request-> input('radio_id'));
         $cod_prov = substr($radio->codigo, 0, 2);
-        if (Auth::user()->hasPermissionTo($cod_prov, 'filters') or Auth::user()->hasRole('Super Admin')) { 
+        if (Auth::user()->hasPermissionTo($cod_prov, 'filters')) { 
+             //agregar or Auth::user()->hasRole('Super Admin') solo para tests
             $radio->localidades()->detach($localidad_id);           
             flash ('Se eliminó relacion del radio ' . $radio->codigo . ' con la localidad ' .$localidad->nombre . ' (cod ' . $localidad->codigo . ")")->success();
         } else {
