@@ -48,12 +48,12 @@ public function model(array $row)
         Log::error('Error durante la importación: ' . $e);
         // Obtener información sobre el campo y el valor recibido
         $campo = $e->getMessage();
-        $valorRecibido = $row[$campo] ?? 'No proporcionado';
+        $valorRecibido = $row[$campo] ?? 'Incorrecto ';
         // Agregar un mensaje a la colección de errores
         $this->errores[] = "Error en el campo '$campo': valor recibido '$valorRecibido' no es válido.";
         // Retornar un valor nulo para omitir esta fila
         if (!$this->errorMostrado) { // Solo mostrar el error si no se ha mostrado antes
-            flash('Error en el campo '. $campo . ': valor recibido ' . $valorRecibido . ' no es válido')->error();
+            flash('Error en el campo '. $campo . ': valor recibido ' . $valorRecibido . ' no es válido')->error()->important();
             $this->errorMostrado = true; // Marcar que ya se ha mostrado un error
         }
         return null;

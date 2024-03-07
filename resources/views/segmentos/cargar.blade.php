@@ -42,6 +42,8 @@
         </div>
     </div>
 </div>
+
+<!--
 <h1>Cargar segmentos</h1>
 
 <form action="/cargarSegmentos" method="post" enctype="multipart/form-data">
@@ -51,7 +53,7 @@
 
     <button type="submit">Importar</button>
 </form>
-
+-->
 
 
 @if (session('success'))
