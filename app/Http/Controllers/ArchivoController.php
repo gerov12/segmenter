@@ -21,8 +21,9 @@ class ArchivoController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
-    {
-        $archivos = self::retrieveFiles();
+    {   
+        $user = Auth::user();
+        $archivos = self::retrieveFiles($user);
         $count_archivos = $archivos->count();
         if ($request->ajax()) {
             return Datatables::of($archivos)
@@ -41,20 +42,21 @@ class ArchivoController extends Controller
                         }
                         return $size;
                         })
-                ->addColumn('status', function($data){
+                ->addColumn('status', function($data) use ($user){
                     $info = '';
                     $unico = $checksumCalculado = $checksumOk = $storageOk = true;
+                    $owned = ($data->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos')) ? true : false;
                     if($data->es_copia){
                         $unico = false;
                         $info .= '<span class="badge badge-pill badge-warning"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></span><br>';
                     }
                     if (!$data->checksum_control()->exists()){
                         $checksumCalculado = false;
-                        Log::warning($data->nombre_original. " Checksum no validado!");
-                        $info .= '<button class="badge badge-pill badge-checksum" data-toggle="modal" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="no_check" data-target="#checksumModal"><span class="bi bi-exclamation-triangle" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Checksum no validado</span></button><br>';
+                        Log::warning($data->nombre_original. " Checksum no calculado con el nuevo método!");
+                        $info .= '<button class="badge badge-pill badge-checksum" data-toggle="modal" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="no_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-exclamation-triangle" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Checksum no calculado</span></button><br>';
                     } else if (!$data->checkChecksum) {
                         $checksumOk = false;
-                        $info .= '<button class="badge badge-pill badge-danger" data-toggle="modal" data-name="' . $data->nombre_original . '"data-file="' . $data->id . '" data-status="old_check" data-target="#checksumModal"><span class="bi bi-x-circle" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Checksum obsoleto</span></button><br>';
+                        $info .= '<button class="badge badge-pill badge-danger" data-toggle="modal" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="old_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-x-circle" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Error de checksum</span></button><br>';
                     }
                     if (!$data->checkStorage()){
                         $storageOk = false;
@@ -96,13 +98,12 @@ class ArchivoController extends Controller
         return view('archivo.list')->with(['data'=>$archivos]);
     }
 
-    private static function retrieveFiles(){
-        $AppUser = Auth::user();
-        $archivos = $AppUser->visible_files()->withCount('viewers')->with('user')->get();
-        $archivos = $archivos->merge($AppUser->mis_files()->withCount('viewers')->with('user')->get());
+    private static function retrieveFiles($user){
+        $archivos = $user->visible_files()->withCount('viewers')->with('user')->with('checksum_control')->get();
+        $archivos = $archivos->merge($user->mis_files()->withCount('viewers')->with('user')->with('checksum_control')->get());
         try {
-            if ($AppUser->can('Ver Archivos')) {
-                $archivos = $archivos->merge(Archivo::withCount('viewers')->with('user')->get());
+            if ($user->can('Ver Archivos')) {
+                $archivos = $archivos->merge(Archivo::withCount('viewers')->with('user')->with('checksum_control')->get());
             }
         } catch (PermissionDoesNotExist $e) {
             Session::flash('message', 'No existe el permiso "Ver Archivos"');

@@ -52,19 +52,17 @@
     </div>
     <div class="modal-body">
       <!-- acá se carga el mensaje -->
-      <h5 id="checksum-message"></h5>
+      <h5 id="checksum-message" style="text-align: center"></h5>
       <br>
-      <div style="text-align: center; font-size: 16px">Esto puede implicar:</div> 
-      <div class="grid-container"> 
-        <div class="grid-item"><i class="bi bi-file-earmark-excel"></i><br><span class="badge badge-pill badge-danger" style="font-size: 13px">Información erronea</span></div>
-        <div class="grid-item"><i class="bi bi-copy"></i><br><span class="badge badge-pill badge-warning" style="font-size: 13px">Contenido duplicado</span></div>
-      </div>
+      <div id="checksum-modal-info-1" style="text-align: center; font-size: 16px"></div> 
+      <br>
+      <div id="checksum-modal-info-2" style="text-align: center; font-size: 14px"></div> 
     </div>
     <div class="modal-footer">
-      @can('Administrar Archivos', 'Ver Archivos')
-      <!-- al botón se le carga la ruta correspondiente en el script -->
-      <button id="checksum-button" type="button" class="btn-sm btn-success" onclick="recalcularChecksum(this)"></button>
-      @endcan
+      <!-- se muestra botón descargar si corresponde -->
+      <button id="checksum-file-download-button" type="button" class="btn_descarga btn-sm btn-secondary" > Descargar Archivo </button>
+      <!-- al botón se le carga la ruta correspondiente en el script y se muestra si corresponde -->
+      <button id="checksum-button" type="button" class="btn-sm btn-success">Recalcular Checksum</button>
       <button type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
     </div>
     </div>
@@ -202,24 +200,68 @@
         var file_id = button.data('file'); 
         var nombre_original = button.data('name'); 
         var status = button.data('status'); 
+        var recalculable = button.data('recalculable'); 
 
         $(this).find('.modal-title').text('Info sobre checksum (' + nombre_original + ')');
 
         var modalBody = $(this).find('.modal-body');
         var modalfooter = $(this).find('.modal-footer');
         if (status === 'no_check') {
-          // actualizo mensajes
-          modalBody.find('#checksum-message').text('No se realizó la verificación del checksum de este archivo.');
-          modalfooter.find('#checksum-button').text('Validar checksum')
+          // actualizo mensaje principal
+          modalBody.find('#checksum-message').text('El checksum de este archivo no fue recalculado con el nuevo método.');
+          // actualizo info 1
+          var info1 = modalBody.find('#checksum-modal-info-1');
+          info1.empty(); // limpio el contenido anterior
+          info1.append('<div style="margin-bottom: 10px;">Esto imposibilita la correcta detección de</div>');
+          // agrego el grid-container
+          var gridContainer = $('<div class="grid-container"></div>');
+          var gridItem1 = $('<div class="grid-item"></div>').append('<i class="bi bi-file-earmark-excel"></i><br><span class="badge badge-pill badge-danger" style="font-size: 13px">Datos erroneos</span>');
+          var gridItem2 = $('<div class="grid-item"></div>').append('<i class="bi bi-copy"></i><br><span class="badge badge-pill badge-warning" style="font-size: 13px">Contenido duplicado</span>');
+          gridContainer.append(gridItem1, gridItem2);
+          // agrego el grid-container a info1
+          info1.append(gridContainer);
+          info1.append('<div>en la Base de Datos.</div>');
+          // actualizo info 2
+          modalBody.find('#checksum-modal-info-2').text('Debe recalcularse para comprobar su correctitud');
+          // oculto botón descargar
+          modalfooter.find("#checksum-file-download-button").css('display', 'none');
         } else if (status === 'old_check') {
-            // actualizo mensajes
-            modalBody.find('#checksum-message').text('El checksum de este archivo está obsoleto.');
-            modalfooter.find('#checksum-button').text('Recalcular checksum')
+            // actualizo mensaje principal
+            modalBody.find('#checksum-message').text('Hay un error en el cálculo del checksum de este archivo.');
+            // actualizo info 1
+            var info1 = modalBody.find('#checksum-modal-info-1');
+            info1.empty(); // Limpiar el contenido anterior
+            info1.append('<div style="margin-bottom: 10px;">Esto puede deberse a</div>');
+            info1.append('<div style="margin-bottom: 10px;"><i class="bi bi-file-earmark-excel"></i><br><span class="badge badge-pill badge-danger" style="font-size: 13px">Datos erroneos</span></div>');
+            info1.append('<div>en la Base de Datos.</div>');
+            info1.append('<br>');
+            info1.append('<div style="margin-bottom: 10px;">Además imposibilita la detección de</div>');
+            info1.append('<div style="margin-bottom: 10px;"><i class="bi bi-copy"></i><br><span class="badge badge-pill badge-warning" style="font-size: 13px">Archivos Duplicados</span></div>');
+            info1.append('<br>');
+            // actualizo info 2
+            modalBody.find('#checksum-modal-info-2').text('Se recomienda revisar el archivo y recalcular el checksum para comprobar su correctitud');
+            // muestro botón descargar
+            modalfooter.find("#checksum-file-download-button").css('display', 'block');
         }
-        // actualizo ruta
-        modalfooter.find('#checksum-button').attr('href', "{{route('recalcular_checksums', ':archivo_id') }}".replace(':archivo_id', file_id));
+        var botonRecalcular = modalfooter.find('#checksum-button');
+        // actualizo la ruta del botón recalcular
+        botonRecalcular.attr('href', "{{ route('recalcular_checksums', ':archivo_id') }}".replace(':archivo_id', file_id));
+        if (recalculable) {
+          // hago visible el botón
+          botonRecalcular.css('display', 'block');
+        } else {
+          // lo oculto
+          botonRecalcular.css('display', 'none');
+        }
+
+        // Actualizar la ruta del botón de descarga del archivo
+        modalfooter.find("#checksum-file-download-button").off('click').on('click', function() {
+            var url = "{{ url('archivo/') }}"+"/"+file_id+"/descargar";
+            $(location).attr('href', url);
+        });
     });
 
+    // confirm para recalcular desde el modal
     $('#checksum-button').on('click', function(event) {
         event.preventDefault(); // evita que el botón diriga directamente a su href
         if (confirm('¿Estás seguro de que deseas calcular el checksum?')) {
@@ -348,10 +390,10 @@
                 if (statusText.includes('Copia')) {
                     count_archivos_repetidos++;
                 }
-                if (statusText.includes('Checksum no validado')) {
+                if (statusText.includes('Checksum no calculado')) {
                     null_checksums++;
                 }
-                if (statusText.includes('Checksum obsoleto')) {
+                if (statusText.includes('Error de checksum')) {
                     deprecated_checksums++;
                 }
             });

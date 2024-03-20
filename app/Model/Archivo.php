@@ -107,12 +107,12 @@ class Archivo extends Model
         if($control) {
             if ($this->checksum != $control->checksum) {
                 $result = false;
-                Log::error($this->nombre_original.' checksum mal calculado!');
+                Log::error($this->nombre_original.' error en el checksum!');
             } else {
                 Log::info($this->nombre_original.' checksum ok!');
             }
         } else {
-            Log::warning($this->nombre_original.' no tiene el checksum calculado!');
+            Log::warning($this->nombre_original.' no tiene el checksum calculado con el nuevo método!');
         }
         return $result;
     }
@@ -725,4 +725,7 @@ class Archivo extends Model
         return $es_copia;
     }
 
+    public function ownedByUser(User $user){
+        return $this->user_id == $user->id;
+    }  
 }
