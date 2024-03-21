@@ -79,7 +79,15 @@
     <h2>Listado de Archivos</h2>
     @can('Administrar Archivos', 'Ver Archivos')
     <div id="botones-problemas">
-    <!-- Acá se cargan los botones para archivos repetidos y checksums obsoletos -->
+      @if($count_archivos_repetidos > 0)
+        <h4><a href="{{ route('checksums_obsoletos') }}" class="badge badge-pill badge-danger">Ver checksums obsoletos ({{$count_archivos_repetidos}})</a></h4>
+      @endif 
+      @if($count_null_checksums > 0)
+        <h4><a href="{{ route('checksums_no_calculados') }}" class="badge badge-pill badge-checksum">Ver checksums no validados ({{$count_null_checksums}})</a></h4>
+      @endif
+      @if($count_error_checksums > 0) 
+        <h4><a href="{{ route('archivos_repetidos') }}" class="badge badge-pill badge-warning">Ver archivos repetidos ({{$count_error_checksums}})</a></h4>
+      @endif 
     </div>
     @endcan
     <br>
@@ -371,58 +379,5 @@
   });
 
 } );
-
-    // función mostrar botones archivos repetidos, checksums no calculados y obsoletos
-    $(document).ready(function() {
-        // Ejecutar después de que Datatables ha terminado de cargar los datos
-        $('#laravel_datatable').on('draw.dt', function() {
-            var count_archivos_repetidos = 0;
-            var null_checksums = 0;
-            var deprecated_checksums = 0;
-
-            var table = $('#laravel_datatable').DataTable();
-            var data = table.data();
-
-            // Iterar sobre los datos de la datatable (si itero sobre los tr de tabla solo tendré en cuenta los archivos visibles)
-            // igualmente no funciona, tambien probé con
-            // table.rows().every()
-            // table.fnGetNodes() definiendo table como "dataTable()" ya que esta función es de la API Legacy
-            // pero nignun caso funciona, todos cuentan unicamente las filas visibles
-            data.each(function(rowData) {
-                var statusText = $(rowData.status).text(); // Recupero el campo status para cada dato
-
-                // Contar archivos repetidos, checksums no calculados y obsoletos
-                if (statusText.includes('Copia')) {
-                    count_archivos_repetidos++;
-                }
-                if (statusText.includes('Checksum no calculado')) {
-                    null_checksums++;
-                }
-                if (statusText.includes('Error de checksum')) {
-                    deprecated_checksums++;
-                }
-            });
-
-            // Agregar elementos HTML al div 'botones-problemas'
-            var botonesProblemas = $('#botones-problemas');
-            botonesProblemas.empty(); // Limpiar contenido previo
-
-            // opté por sacarles el contador
-            if (deprecated_checksums > 0) {
-                var checksumsObsoletosLink = $('<h4><a href="{{ route("checksums_obsoletos") }}" class="badge badge-pill badge-danger">Ver checksums obsoletos</a></h4>');
-                botonesProblemas.append(checksumsObsoletosLink);
-            }
-            if (null_checksums > 0) {
-                var checksumsObsoletosLink = $('<h4><a href="{{ route("checksums_no_calculados") }}" class="badge badge-pill badge-checksum">Ver checksums no validados</a></h4>');
-                botonesProblemas.append(checksumsObsoletosLink);
-            }
-            if (count_archivos_repetidos > 0) {
-                var archivosRepetidosLink = $('<h4><a href="{{ route("archivos_repetidos") }}" class="badge badge-pill badge-warning">Ver archivos repetidos</a></h4>');
-                botonesProblemas.append(archivosRepetidosLink);
-            }
-        });
-    });
-
-
 </script>
 @endsection

@@ -3,6 +3,7 @@
 namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -45,6 +46,22 @@ class Archivo extends Model
     {
         return $this->hasOne(ChecksumControl::class);
     }
+
+    // accessors (para eliminar queries repetidas)
+    public function esCopia()
+    {
+        return new Attribute(
+            get: fn () => $this->copied()
+        );  
+    }
+    public function checksumOk()
+    {
+        return new Attribute(
+            get: fn () => $this->checkChecksum()
+        );  
+    }
+    ////////////
+
 
     // Funciona para checksum shape (varios files)
     private static function checksumCalculate($request_file, $shape_files = []){
@@ -101,15 +118,12 @@ class Archivo extends Model
     }
 
     // Funciona para verificar que es checksum del archivo esté actualizado
-    public function getcheckChecksumAttribute(){
+    public function checkChecksum(){
         $result = true;
         $control = $this->checksum_control;
         if($control) {
             if ($this->checksum != $control->checksum) {
                 $result = false;
-                Log::error($this->nombre_original.' error en el checksum!');
-            } else {
-                Log::info($this->nombre_original.' checksum ok!');
             }
         } else {
             Log::warning($this->nombre_original.' no tiene el checksum calculado con el nuevo método!');
@@ -714,15 +728,9 @@ class Archivo extends Model
         Log::info("Se eliminó el registro perteneciente a la copia");
     }
 
-    public function getesCopiaAttribute(){
+    public function copied(){
         $original = Archivo::where('checksum',$this->checksum)->orderby('id','asc')->first();
-        $es_copia = $original->id != $this->id;
-        if ($es_copia) {
-            Log::warning($this->nombre_original." es copia!");
-        } else {
-            Log::info($this->nombre_original." es el archivo original!");
-        }
-        return $es_copia;
+        return $original->id != $this->id;
     }
 
     public function ownedByUser(User $user){
