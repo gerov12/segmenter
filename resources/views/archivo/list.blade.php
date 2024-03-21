@@ -380,11 +380,16 @@
             var null_checksums = 0;
             var deprecated_checksums = 0;
 
-            // Iterar sobre las filas de la tabla
-            $('#laravel_datatable tbody tr').each(function() {
-                var statusColumn = $(this).find('td:eq(6)'); // La columna 'status' es la numero 6
-                console.log(statusColumn);
-                var statusText = statusColumn.text();
+            var table = $('#laravel_datatable').DataTable();
+            var data = table.data();
+
+            // Iterar sobre los datos de la datatable (si itero sobre los tr de tabla solo tendré en cuenta los archivos visibles)
+            // igualmente no funciona, tambien probé con
+            // table.rows().every()
+            // table.fnGetNodes() definiendo table como "dataTable()" ya que esta función es de la API Legacy
+            // pero nignun caso funciona, todos cuentan unicamente las filas visibles
+            data.each(function(rowData) {
+                var statusText = $(rowData.status).text(); // Recupero el campo status para cada dato
 
                 // Contar archivos repetidos, checksums no calculados y obsoletos
                 if (statusText.includes('Copia')) {
@@ -402,16 +407,17 @@
             var botonesProblemas = $('#botones-problemas');
             botonesProblemas.empty(); // Limpiar contenido previo
 
+            // opté por sacarles el contador
             if (deprecated_checksums > 0) {
-                var checksumsObsoletosLink = $('<h4><a href="{{ route("checksums_obsoletos") }}" class="badge badge-pill badge-danger">Ver checksums obsoletos (' + deprecated_checksums + ')</a></h4>');
+                var checksumsObsoletosLink = $('<h4><a href="{{ route("checksums_obsoletos") }}" class="badge badge-pill badge-danger">Ver checksums obsoletos</a></h4>');
                 botonesProblemas.append(checksumsObsoletosLink);
             }
             if (null_checksums > 0) {
-                var checksumsObsoletosLink = $('<h4><a href="{{ route("checksums_no_calculados") }}" class="badge badge-pill badge-checksum">Ver checksums no validados (' + null_checksums + ')</a></h4>');
+                var checksumsObsoletosLink = $('<h4><a href="{{ route("checksums_no_calculados") }}" class="badge badge-pill badge-checksum">Ver checksums no validados</a></h4>');
                 botonesProblemas.append(checksumsObsoletosLink);
             }
             if (count_archivos_repetidos > 0) {
-                var archivosRepetidosLink = $('<h4><a href="{{ route("archivos_repetidos") }}" class="badge badge-pill badge-warning">Ver archivos repetidos (' + count_archivos_repetidos + ')</a></h4>');
+                var archivosRepetidosLink = $('<h4><a href="{{ route("archivos_repetidos") }}" class="badge badge-pill badge-warning">Ver archivos repetidos</a></h4>');
                 botonesProblemas.append(archivosRepetidosLink);
             }
         });

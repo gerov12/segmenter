@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-@section('title', 'Null Checksums')
-
 @section('content')
 <div class="container">
 <h2>Listado de archivos con checksums no validados </h2>

@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-@section('title', 'Archivos Repetidos')
-
 @section('content')
 <div class="container">
 <h2>Listado de archivos repetidos </h2>
