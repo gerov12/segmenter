@@ -77,19 +77,17 @@
       </div>
     @endif
     <h2>Listado de Archivos</h2>
-    @can('Administrar Archivos', 'Ver Archivos')
     <div id="botones-problemas">
       @if($count_archivos_repetidos > 0)
-        <h4><a href="{{ route('checksums_obsoletos') }}" class="badge badge-pill badge-danger">Ver checksums obsoletos ({{$count_archivos_repetidos}})</a></h4>
+      <h4><a href="{{ route('archivos_repetidos') }}" class="badge badge-pill badge-warning">Ver archivos repetidos ({{$count_archivos_repetidos}})</a></h4>
       @endif 
       @if($count_null_checksums > 0)
-        <h4><a href="{{ route('checksums_no_calculados') }}" class="badge badge-pill badge-checksum">Ver checksums no validados ({{$count_null_checksums}})</a></h4>
+        <h4><a href="{{ route('checksums_no_calculados') }}" class="badge badge-pill badge-checksum">Ver checksums no calculados ({{$count_null_checksums}})</a></h4>
       @endif
       @if($count_error_checksums > 0) 
-        <h4><a href="{{ route('archivos_repetidos') }}" class="badge badge-pill badge-warning">Ver archivos repetidos ({{$count_error_checksums}})</a></h4>
+        <h4><a href="{{ route('checksums_obsoletos') }}" class="badge badge-pill badge-danger">Ver checksums con error ({{$count_error_checksums}})</a></h4>
       @endif 
     </div>
-    @endcan
     <br>
 
     <div class="col-lg-12">

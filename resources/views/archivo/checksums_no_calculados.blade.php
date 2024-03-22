@@ -2,10 +2,10 @@
 
 @section('content')
 <div class="container">
-<h2>Listado de archivos con checksums no validados </h2>
+<h2>Listado de archivos con checksums no calculated </h2>
   @can('Administrar Archivos', 'Ver Archivos')
     @if(count($checksums_no_calculados) > 0)
-    <h4><a href="{{route('recalcular_checksums')}}" onclick="return confirmarCalculo()" class="btn btn-success"> Validar ({{count($checksums_no_calculados)}})</a></h4>
+    <h4><a href="{{route('recalcular_checksums')}}" onclick="return confirmarCalculo()" class="btn btn-success"> Recalcular ({{count($checksums_no_calculados)}})</a></h4>
     @endif
   @endcan
   <br>

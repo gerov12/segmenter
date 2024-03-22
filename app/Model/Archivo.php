@@ -31,6 +31,10 @@ class Archivo extends Model
         'procesado' => false,
         'epsg_def' => 'epsg:22195'
     ];
+    protected $appended = [
+        'esCopia',
+        'checkChecksum'
+    ];
 
     //Relación con usuario que subió el archivo.
     public function user() {
@@ -46,21 +50,6 @@ class Archivo extends Model
     {
         return $this->hasOne(ChecksumControl::class);
     }
-
-    // accessors (para eliminar queries repetidas)
-    public function esCopia()
-    {
-        return new Attribute(
-            get: fn () => $this->copied()
-        );  
-    }
-    public function checksumOk()
-    {
-        return new Attribute(
-            get: fn () => $this->checkChecksum()
-        );  
-    }
-    ////////////
 
 
     // Funciona para checksum shape (varios files)
@@ -118,7 +107,7 @@ class Archivo extends Model
     }
 
     // Funciona para verificar que es checksum del archivo esté actualizado
-    public function checkChecksum(){
+    public function getCheckChecksumAttribute(){
         $result = true;
         $control = $this->checksum_control;
         if($control) {
@@ -728,7 +717,7 @@ class Archivo extends Model
         Log::info("Se eliminó el registro perteneciente a la copia");
     }
 
-    public function copied(){
+    public function getEsCopiaAttribute(){
         $original = Archivo::where('checksum',$this->checksum)->orderby('id','asc')->first();
         return $original->id != $this->id;
     }

@@ -28,7 +28,7 @@ class ArchivoController extends Controller
 
         // necesario ya que del lado de la vita solo puedo recorrer los visibles
         $count_archivos_repetidos = $archivos->filter(function ($archivo) {
-            return $archivo->es_copia;
+            return $archivo->esCopia;
         })->count();
     
         $count_null_checksums = $count_error_checksums = 0;
@@ -36,7 +36,7 @@ class ArchivoController extends Controller
         foreach ($archivos as $archivo) {
             if (!$archivo->checksum_control()->exists()){
                 $count_null_checksums++;
-            } else if (!$archivo->checksumOk) {
+            } else if (!$archivo->checkChecksum) {
                 $count_error_checksums++;
             }
         }
@@ -73,7 +73,7 @@ class ArchivoController extends Controller
                         $checksumCalculado = false;
                         Log::warning($data->nombre_original. " Checksum no calculado con el nuevo método!");
                         $info .= '<button class="badge badge-pill badge-checksum" data-toggle="modal" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="no_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-exclamation-triangle" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Checksum no calculado</span></button><br>';
-                    } else if (!$data->checksumOk) {
+                    } else if (!$data->checkChecksum) {
                         $checksumCorrecto = false;
                         Log::error($data->nombre_original.' error en el checksum!');
                         $info .= '<button class="badge badge-pill badge-danger" data-toggle="modal" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="old_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-x-circle" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Error de checksum</span></button><br>';
@@ -306,30 +306,6 @@ class ArchivoController extends Controller
         }
     }
 
-    public function listar_repetidos(){
-        try {
-            if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
-                $archivos = Archivo::all();
-                $repetidos = [];
-                foreach ($archivos as $archivo){
-                    if ( $archivo->esCopia ){
-                        // Archivo repetido
-                        $original = Archivo::where('checksum',$archivo->checksum)->orderby('id','asc')->first();
-                        $repetidos[] = [$original,$archivo];
-                    } else {
-                        $mensaje = "Es el archivo original.";
-                    }
-                }
-                return view('archivo.repetidos', compact('repetidos'));
-            } else {
-                flash('No tienes permiso para hacer eso.')->error();
-                return back();
-            }
-        } catch (PermissionDoesNotExist $e) {
-            flash('No existe el permiso "Administrar Archivos" o "Ver Archivos"')->error();
-        }
-    }
-
     //no envio los obsoletos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
     public function recalcular_checksums($archivo_id = null){
 
@@ -348,7 +324,7 @@ class ArchivoController extends Controller
                     $archivos = Archivo::all(); //modificar para traer solo los obsoletos con un scope
                     $recalculados = 0;
                     foreach ($archivos as $archivo){
-                        if (!$archivo->checksumOk){ //si uso el scope esto no debería chequearse
+                        if (!$archivo->checkChecksum){ //si uso el scope esto no debería chequearse
                             // Archivo con checksum viejo
                             $archivo->checksumRecalculate();
                             $recalculados++;
@@ -366,35 +342,40 @@ class ArchivoController extends Controller
         }
     }
 
-    public function listar_checksums_obsoletos(){
-        try {
-            if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
-                $checksums_obsoletos = Archivo::all()->filter(function ($archivo) {
-                    return !$archivo->checksumOk;
-                });
-                return view('archivo.checksums_obsoletos', compact('checksums_obsoletos'));
+    public function listar_repetidos(){
+        $user = Auth::user();
+        $archivos = self::retrieveFiles($user);
+        $repetidos = [];
+        foreach ($archivos as $archivo){
+            if ( $archivo->esCopia ){
+                // Archivo repetido
+                $original = Archivo::where('checksum',$archivo->checksum)->orderby('id','asc')->first();
+                $repetidos[] = [$original,$archivo];
             } else {
-                flash('No tienes permiso para hacer eso.')->error();
-                return back();
+                $mensaje = "Es el archivo original.";
             }
-        } catch (PermissionDoesNotExist $e) {
-            flash('No existe el permiso "Administrar Archivos" o "Ver Archivos"')->error();
         }
+        return view('archivo.repetidos', compact('repetidos'));
     }
 
     public function listar_checksums_no_calculados(){
-        try {
-            if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
-                $checksums_no_calculados = Archivo::all()->filter(function ($archivo) {
-                    return !$archivo->checksum_control()->exists();
-                });
-                return view('archivo.checksums_no_calculados', compact('checksums_no_calculados'));
-            } else {
-                flash('No tienes permiso para hacer eso.')->error();
-                return back();
-            }
-        } catch (PermissionDoesNotExist $e) {
-            flash('No existe el permiso "Administrar Archivos" o "Ver Archivos"')->error();
-        }
+        $user = Auth::user();
+        $archivos = self::retrieveFiles($user);
+        $checksums_no_calculados = $archivos->filter(function ($archivo) {
+            return !$archivo->checksum_control()->exists();
+        });
+        return view('archivo.checksums_no_calculados', compact('checksums_no_calculados'));
+    }
+
+    public function listar_checksums_obsoletos(){
+        $user = Auth::user();
+        $archivos = self::retrieveFiles($user);
+        $checksums_calculados = $archivos->filter(function ($archivo) {
+            return $archivo->checksum_control()->exists();
+        });
+        $checksums_obsoletos = $checksums_calculados->filter(function ($archivo) {
+            return !$archivo->checkChecksum;
+        });
+        return view('archivo.checksums_obsoletos', compact('checksums_obsoletos'));
     }
 }
