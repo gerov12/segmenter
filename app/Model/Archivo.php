@@ -31,10 +31,6 @@ class Archivo extends Model
         'procesado' => false,
         'epsg_def' => 'epsg:22195'
     ];
-    protected $appended = [
-        'esCopia',
-        'checkChecksum'
-    ];
 
     //Relación con usuario que subió el archivo.
     public function user() {
@@ -44,6 +40,16 @@ class Archivo extends Model
     public function viewers()
     {
        return $this->belongsToMany(User::class, 'file_viewer');
+    }
+
+    public function original()
+    {
+       return $this->hasOne(Archivo::class, 'checksum', 'checksum')->orderby('id','asc');
+    }
+
+    public function copias()
+    {
+        return $this->hasMany(Archivo::class, 'checksum', 'checksum')->where('id', '!=' , $this->id); //el where no anda
     }
 
     public function checksum_control()
@@ -107,7 +113,7 @@ class Archivo extends Model
     }
 
     // Funciona para verificar que es checksum del archivo esté actualizado
-    public function getCheckChecksumAttribute(){
+    public function getchecksumOkAttribute(){
         $result = true;
         $control = $this->checksum_control;
         if($control) {
@@ -717,9 +723,14 @@ class Archivo extends Model
         Log::info("Se eliminó el registro perteneciente a la copia");
     }
 
+    public function getNumCopiasAttribute(){
+        $cantidad = $this->copias_count ?? $this->copias()->count();
+        return $cantidad - 1;
+    }
+
     public function getEsCopiaAttribute(){
-        $original = Archivo::where('checksum',$this->checksum)->orderby('id','asc')->first();
-        return $original->id != $this->id;
+        $original_id = $this->original->id ?? $this->original()->first()->id;
+        return $this->id != $original_id;
     }
 
     public function ownedByUser(User $user){

@@ -26,8 +26,8 @@
               <th>Nombre copia</th>
               <th>Creación original</th>
               <th>Creación copia</th>
-              <th>Cargador original</th>
-              <th>Cargador copia</th>
+              <th>Dueño original</th>
+              <th>Dueño copia</th>
             </tr>
           </thead>
           <tbody>

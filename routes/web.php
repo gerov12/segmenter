@@ -295,6 +295,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('archivos/recalcular_cs/{archivo_id?}','ArchivoController@recalcular_checksums')->name('recalcular_checksums'); //el parametro es opcional
     Route::get('archivos/checksums_obsoletos','ArchivoController@listar_checksums_obsoletos')->name('checksums_obsoletos');
     Route::get('archivos/checksums_no_calculados','ArchivoController@listar_checksums_no_calculados')->name('checksums_no_calculados');
+    Route::get('archivo/{archivo}/copias','ArchivoController@getCopias');
 });
 
 // ---------- TABLERO ---------

@@ -20,18 +20,15 @@
     text-align: center;
     }
   </style>
-  <!-- Modal -->
+  <!-- Modal info archivo -->
   <div class="modal fade" id="empModal" role="dialog">
   <div class="modal-dialog">
-
-    <!-- Modal content-->
     <div class="modal-content">
     <div class="modal-header">
       <h4 class="modal-title">Info de Archivo</h4>
       <button type="button" class="close" data-dismiss="modal">&times;</button>
     </div>
     <div class="modal-body">
-
     </div>
     <div class="modal-footer">
       <button type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
@@ -64,6 +61,32 @@
       <!-- al botón se le carga la ruta correspondiente en el script y se muestra si corresponde -->
       <button id="checksum-button" type="button" class="btn-sm btn-success">Recalcular Checksum</button>
       <button type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
+    </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Modal copias de archivo -->
+  <div class="modal fade" id="copiasModal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title"></h4>
+      <button type="button" class="close" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <table class="table table-bordered" id="tabla-repetidos">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Creación</th>
+            <th>Cargado por</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- acá se cargará la info de las copias -->
+        </tbody>
+      </table>
     </div>
     </div>
   </div>
@@ -114,7 +137,7 @@
     </div>
   </div>
 @endsection
-@section('footer_scripts')
+@section('footer_scripts')  
  <script>
  $(document).ready( function () {
      $.ajaxSetup({
@@ -273,6 +296,40 @@
         if (confirm('¿Estás seguro de que deseas calcular el checksum?')) {
             window.location.href = $(this).attr('href');
         }
+    });
+
+    //función abrir modal de copias
+    $('#copiasModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); // botón que activó el modal
+        var name = button.data('name');
+        var modal = this;
+        console.log(name);
+        var archivo = button.data('archivo');
+        $.ajax({
+            url: 'archivo/' + archivo + '/copias',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response){
+                if (response) {
+                  $(modal).find('.modal-title').text('Copias del archivo ' + name);
+
+                  // obtengo el listado de copias de este archivo
+                  var copias = response;
+                  console.log(copias);
+
+                  // contruyo la tabla de copias
+                  var tableBody = '';
+                  copias.forEach(function(copia){
+                      tableBody += '<tr>';
+                      tableBody += '<td>' + copia.nombre_original + '</td>';
+                      tableBody += '<td>' + copia.fecha + '</td>';
+                      tableBody += '<td>' + copia.user.name + '</td>';
+                      tableBody += '</tr>';
+                  });
+                  $('#tabla-repetidos tbody').html(tableBody);
+                };
+            }
+        })
     });
 
   table.on('click', '.btn_arch', function () {
