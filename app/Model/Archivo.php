@@ -87,8 +87,8 @@ class Archivo extends Model
             $checksum = md5(Storage::get($this->nombre));
         }
         // guardo el nuevo checksum en el archivo
-        $this->checksum = $checksum;
-        $this->save();
+        //$this->checksum = $checksum;
+        //$this->save();
 
         // guardo el checksum en su checksum_control
         $control = $this->checksum_control;
