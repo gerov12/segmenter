@@ -32,12 +32,24 @@ class ArchivoController extends Controller
             return $archivo->id != $archivo->original->id;
         })->count();
 
-        $count_null_checksums = $archivos->filter(function ($archivo) {
-            return $archivo->checksum_control == null;
+        $count_null_checksums = $archivos->filter(function ($archivo) { 
+            return $archivo->checksum_control == null; 
         })->count();
 
-        $count_error_checksums = $archivos->filter(function ($archivo) {
-            return !$archivo->checksumOk;
+        $controlled_checksums = $archivos->reject(function ($archivo) { 
+            return $archivo->checksum_control == null; // que tengan checksum_control
+        });
+
+        $wrong_checksums = $controlled_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksum_control
+            return !$archivo->checksumOk; //que tengan checksum erroneo
+        });
+
+        $count_error_checksums = $wrong_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksums erroneos
+            return !$archivo->checksumObsoleto; //que no sean obsoletos
+        })->count();
+
+        $count_old_checksums = $wrong_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksums erroneos
+            return !$archivo->checksumOk and $archivo->checksumObsoleto; //que sean obsoletos
         })->count();
 
         if ($request->ajax()) {
@@ -78,8 +90,13 @@ class ArchivoController extends Controller
                         $info .= '<button class="badge badge-pill badge-checksum" data-toggle="modal" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="no_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-exclamation-triangle" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Checksum no calculado</span></button><br>';
                     } else if (!$data->checksumOk) {
                         $checksumCorrecto = false;
-                        Log::error($data->nombre_original.' error en el checksum!');
-                        $info .= '<button class="badge badge-pill badge-danger" data-toggle="modal" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="old_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-x-circle" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Error de checksum</span></button><br>';
+                        if ($data->checksumObsoleto) {
+                            Log::error($data->nombre_original.' checksum obsoleto!');
+                            $info .= '<button class="badge badge-pill badge-danger" data-toggle="modal" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="old_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-calendar-x" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Checksum obsoleto</span></button><br>';
+                        } else {
+                            Log::error($data->nombre_original.' error en el checksum!');
+                            $info .= '<button class="badge badge-pill badge-danger" data-toggle="modal" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="wrong_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-x-circle" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Error de checksum</span></button><br>';
+                        }
                     } else {
                         Log::info($data->nombre_original.' checksum ok!');
                     }
@@ -126,6 +143,7 @@ class ArchivoController extends Controller
             'count_archivos_repetidos' => $count_archivos_repetidos,
             'count_null_checksums' => $count_null_checksums,
             'count_error_checksums' => $count_error_checksums,
+            'count_old_checksums' => $count_old_checksums
         ]);
     }
 
@@ -319,7 +337,7 @@ class ArchivoController extends Controller
         }
     }
 
-    //no envio los obsoletos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
+    //no envio los erroneos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
     public function recalcular_checksums($archivo_id = null){
 
         flash('Función aún en testeo...')->warning()->important();
@@ -334,16 +352,50 @@ class ArchivoController extends Controller
                     $archivo->checksumRecalculate();
                     flash('Checksum recalculado para el archivo ' . $archivo->nombre_original)->info();
                 } else {
-                    $archivos = Archivo::all(); //modificar para traer solo los obsoletos con un scope
+                    $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
+                        return !$archivo->checksumOk and !$archivo->checksumObsoleto;
+                    });
                     $recalculados = 0;
                     foreach ($archivos as $archivo){
-                        if (!$archivo->checksumOk){ //si uso el scope esto no debería chequearse
-                            // Archivo con checksum viejo
-                            $archivo->checksumRecalculate();
-                            $recalculados++;
-                        }
+                        $archivo->checksumRecalculate();
+                        $recalculados++;
                     }
                     flash($recalculados . " checksums recalculados.")->info();
+                }
+                return redirect('archivos');
+            } else {
+                flash('No tienes permiso para hacer eso.')->error();
+                return back();
+            }
+        } catch (PermissionDoesNotExist $e) {
+            flash('No existe el permiso "Administrar Archivos" o "Ver Archivos"')->error();
+        }
+    }
+
+    //no envio los obsoletos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
+    public function sincronizar_checksums($archivo_id = null){
+
+        flash('Función aún en testeo...')->warning()->important();
+        return redirect('archivos');
+        //Aún falta testeo
+
+        try {
+            if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
+                //si envié un archivo calculo ese
+                if ($archivo_id) {
+                    $archivo = Archivo::findOrFail($archivo_id);
+                    $archivo->checksumSync();
+                    flash('Checksum sincronizado para el archivo ' . $archivo->nombre_original)->info();
+                } else {
+                    $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
+                        return !$archivo->checksumOk and $archivo->checksumObsoleto;
+                    });
+                    $sincronizados = 0;
+                    foreach ($archivos as $archivo){
+                        $archivo->checksumSync();
+                        $sincronizados++;
+                    }
+                    flash($sincronizados . " checksums sincronizados.")->info();
                 }
                 return redirect('archivos');
             } else {
@@ -384,8 +436,30 @@ class ArchivoController extends Controller
             return $archivo->checksum_control !== null;
         });
         $checksums_obsoletos = $checksums_calculados->filter(function ($archivo) {
-            return !$archivo->checksumOk;
+            return !$archivo->checksumOk and $archivo->checksumObsoleto;
+        })->map(function ($archivo) {
+            return [
+                'archivo' => $archivo,
+                'control' => $archivo->checksum_control
+            ];
         });
         return view('archivo.checksums_obsoletos', compact('checksums_obsoletos'));
+    }
+
+    public function listar_checksums_erroneos(){
+        $user = Auth::user();
+        $archivos = self::retrieveFiles($user);
+        $checksums_calculados = $archivos->filter(function ($archivo) {
+            return $archivo->checksum_control !== null;
+        });
+        $checksums_erroneos = $checksums_calculados->filter(function ($archivo) {
+            return !$archivo->checksumOk and !$archivo->checksumObsoleto;
+        })->map(function ($archivo) {
+            return [
+                'archivo' => $archivo,
+                'control' => $archivo->checksum_control
+            ];
+        });
+        return view('archivo.checksums_erroneos', compact('checksums_erroneos'));
     }
 }
