@@ -97,6 +97,9 @@ class Archivo extends Model
         } else {
             $control->checksum = $checksum;
             $control->save();
+            $control->touch(); //actualizo el updated at a pesar de que el checksum no cambie
+            // esto permite pasar del estado "error en checksum" al estado "checksum obsoleto"
+            // una vez que el usuario decide que es correcto recalcular el checksum de un archivo con error
         }
     }
 

@@ -341,6 +341,10 @@ class ArchivoController extends Controller
     //no envio los erroneos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
     public function recalcular_checksums($archivo_id = null){
 
+        //flash('Función aún en testeo...')->warning()->important();
+        //return redirect('archivos');
+        //Aún falta testeo
+
         try {
             if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
                 //si envié un archivo calculo ese
@@ -372,8 +376,8 @@ class ArchivoController extends Controller
     //no envio los obsoletos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
     public function sincronizar_checksums($archivo_id = null){
 
-        flash('Función aún en testeo...')->warning()->important();
-        return redirect('archivos');
+        //flash('Función aún en testeo...')->warning()->important();
+        //return redirect('archivos');
         //Aún falta testeo
 
         try {

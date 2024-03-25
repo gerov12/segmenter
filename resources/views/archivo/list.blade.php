@@ -273,7 +273,7 @@
             info1.append('<div style="margin-bottom: 10px;"><i class="bi bi-copy"></i><br><span class="badge badge-pill badge-warning" style="font-size: 13px">Archivos Duplicados</span></div>');
             info1.append('<br>');
             // actualizo info 2
-            modalBody.find('#checksum-modal-info-2').text('Se recomienda revisar el archivo y recalcular el checksum para comprobar su correctitud');
+            modalBody.find('#checksum-modal-info-2').text('Se recomienda revisar el archivo y, si el contenido es el adecuado, recalcular el checksum para comprobar su correctitud');
             // muestro botón descargar
             modalfooter.find("#checksum-file-download-button").css('display', 'block');
           } else if (status === 'old_check') {
