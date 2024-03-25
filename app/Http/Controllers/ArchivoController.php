@@ -113,6 +113,7 @@ class ArchivoController extends Controller
                     $button = '<button type="button" class="btn_descarga btn-sm btn-primary" > Descargar </button> ';
                     $button .= '<button type="button" class="btn_arch btn-sm btn-primary" > Ver </button>';
                     $button .= '<button type="button" class="btn_arch_procesar btn-sm btn-secondary" > ReProcesar </button>';
+                    $button .= '<button type="button" class="btn_arch_pasar btn-sm btn-secondary" > Pasar Data </button>';
 
                     /*
                     Sin botón de eliminar archivo por el momento
@@ -339,10 +340,6 @@ class ArchivoController extends Controller
 
     //no envio los erroneos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
     public function recalcular_checksums($archivo_id = null){
-
-        flash('Función aún en testeo...')->warning()->important();
-        return redirect('archivos');
-        //Aún falta testeo
 
         try {
             if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
