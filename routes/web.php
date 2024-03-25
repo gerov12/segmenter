@@ -249,6 +249,7 @@ Route::post('aglo-segmenta-run/{aglomerado}','AglomeradoController@run_segmentar
 
 // ---------- ENTIDADES ----------
 Route::get('entidades', 'EntidadController@index')->name('entidades');
+Route::get('entidad/{entidad}','EntidadController@show');
 Route::middleware(['auth'])->group(function () {
   Route::get('entidades/cargar', 'EntidadController@cargar')->name('entidades.cargar');
   Route::post('entidades/cargar', 'EntidadController@store');

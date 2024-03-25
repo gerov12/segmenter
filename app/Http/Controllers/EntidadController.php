@@ -5,19 +5,25 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Model\Entidad;
 use App\Model\Archivo;
+use App\Model\Provincia;
+use App\Model\Geometria;
 use Auth;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Exceptions\PermissionDoesNotExist;
+use Illuminate\Support\Facades\Log;
 
 class EntidadController extends Controller
 {
     /**
      * Mostrar la Entidad
      */
-    public function show(string $id): View
+    public function show($entidad) //: View
     {
+        Log::debug($entidad);
         return view('entidad.view', [
-            'entidad' => Entidad::findOrFail($id)
+            'entidad' => Entidad::findOrNew($entidad)
+            ,'provincia' => $entidad->provincia?? new Provincia (['nombre'=>'No province','id'=>0,'codigo'=>0])
+            ,'svg' => $entidad->geometria ?? new Geometria([])
         ]);
     }
 
