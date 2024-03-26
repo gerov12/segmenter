@@ -38,6 +38,9 @@
                             <th>Id</th>
                             <th>Código</th>
                             <th>Nombre</th>
+                            <th>Localidad</th>
+                            <th>Departamento</th>
+                            <th>Provincia</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -56,7 +59,7 @@
                         }
                     });
                     var table = $('#laravel_datatable').DataTable({
-                        "pageLength": -1,
+                        "pageLength": 25,
                         language: //{url:'https://cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json'},
                         {
                             "sProcessing": "Procesando...",
@@ -87,7 +90,7 @@
                             }
                         },
                         processing: true,
-                        serverSide: false,
+                        serverSide: true,
                         ajax: {
                             url: "{{ url('ents-list') }}",
                             type: 'GET',
@@ -107,8 +110,20 @@
                             {
                                 data: 'nombre',
                                 name: 'nombre'
+                            },                            {
+                                data: 'localidad',
+                                name: 'localidad'
                             },
                             {
+                                data: 'departamento',
+                                name: 'departamento'
+                            },
+                            {
+                                data: 'provincia',
+                                name: 'provincia'
+                            },
+                            {
+                                visible: false,
                                 searchable: false,
                                 data: 'action',
                                 name: 'action'

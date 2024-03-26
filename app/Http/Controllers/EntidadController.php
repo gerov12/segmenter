@@ -19,17 +19,16 @@ class EntidadController extends Controller
      */
     public function show($entidad) //: View
     {
-        Log::debug($entidad);
         return view('entidad.view', [
             'entidad' => Entidad::findOrNew($entidad)
-            ,'provincia' => $entidad->provincia?? new Provincia (['nombre'=>'No province','id'=>0,'codigo'=>0])
+            ,'provincia' => $entidad->provincia ?? new Provincia (['nombre'=>'No province','id'=>0,'codigo'=>0])
             ,'svg' => $entidad->geometria ?? new Geometria([])
         ]);
     }
 
     public function index()
     {
-        $entidades=Entidad::all();
+        $entidades= '';//Entidad::with(['localidad','localidad.departamentos','localidad.departamentos.provincia'])->get();
         return view('entidad.list',['entidades' => $entidades]);
     }
 
@@ -69,7 +68,8 @@ class EntidadController extends Controller
     {
            // Ents, pastores e árboles :D
            $aEnts=[];
-           $entsQuery = Entidad::query();
+           $entsQuery = Entidad::query()->with(['localidad','localidad.departamentos',
+                                                'localidad.departamentos.provincia']);
            $codigo = (!empty($_GET["codigo"])) ? ($_GET["codigo"]) : ('');
            if ($codigo!='') {
               $provsQuery->where('codigo', '=', $codigo);
@@ -86,7 +86,11 @@ class EntidadController extends Controller
 //        dd($provs->get());
         foreach ($qEnts as $ent){
 
-          $aEnts[$ent->codigo]=['id'=>$ent->id,'codigo'=>$ent->codigo,'nombre'=>$ent->nombre ];
+          $aEnts[$ent->codigo]=['id'=>$ent->id,'codigo'=>$ent->codigo,
+                                'nombre'=>$ent->nombre,
+                                'localidad'=>$ent->localidad->nombre,
+                                'departamento'=>$ent->departamentos->first()->nombre,
+                                'provincia'=>$ent->departamentos->first()->provincia->nombre ];
         }
       return datatables()->of($aEnts)
                 ->addColumn('action', function($data){
