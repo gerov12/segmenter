@@ -87,11 +87,12 @@ class EntidadController extends Controller
 //        dd($provs->get());
         foreach ($qEnts as $ent){
 //dd($ent->localidad);
-          $aEnts[$ent->codigo]=['id'=>$ent->id,'codigo'=>$ent->codigo,
-                                'nombre'=>$ent->nombre,
-                                'localidad'=>$ent->localidad->nombre,
-                                'departamento'=>$ent->localidad->departamentos->first()->nombre,
-                                'provincia'=>$ent->localidad->departamentos->first()->provincia->nombre ];
+          $aEnts[$ent->codigo]=['id' => $ent->id,'codigo' => $ent->codigo,
+                                'nombre' => $ent->nombre,
+                                'localidad' => $ent->localidad->nombre,
+                                'departamento' => $ent->localidad->departamentos->first()->nombre,
+                                'provincia' => $ent->localidad->departamentos->first()->provincia->nombre,
+                                'codprov'=> $ent->localidad->departamentos->first()->provincia->codigo];
         }
       return datatables()->of($aEnts)
                 ->addColumn('action', function($data){
@@ -99,13 +100,13 @@ class EntidadController extends Controller
                     // botón de eliminar Entidad  en test, si esta logueado.
                     if (Auth::check()) {
                             try {
-                                if ( ( Auth::user()->hasPermissionTo($data['codigo'], 'filters') and Auth::user()->can('Borrar Entidad') ) )
+                                if ( ( Auth::user()->hasPermissionTo($data['codprov'], 'filters') and Auth::user()->can('Borrar Entidad') ) )
                                 // Botón borrar sólo si tiene permiso y la Entiadd pertenece a la provincia (TODO).
                                 {
                                     $button .= '<button type="button" class="btn_ent_delete btn-sm btn-danger "> Borrar </button>';
                                 }
                             } catch (PermissionDoesNotExist $e) {
-                            Log::warning('No existe el permiso '.$e->getMessage());
+                            Log::warning('No existe el permiso '.$e->getMessage(),[$data]);
                             }
                             return $button;
                         }
