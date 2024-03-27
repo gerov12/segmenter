@@ -177,6 +177,15 @@ Route::get('search_provincia', 'AutoCompleteProvinciaController@index');
 Route::get('autocomplete_provincia', 'AutoCompleteProvinciaController@search');
 Route::get('provincia','ProvinciaController@index');
 
+// ---------- PERFIL ----------
+Route::middleware(['auth'])->group(function () {
+    Route::get('perfil', 'UserController@mostrarPerfil')->name('perfil');
+    Route::post('perfil/edit-username', 'UserController@editarUsername')->name('editarUsername');
+    Route::post('perfil/edit-email', 'UserController@editarEmail')->name('editarEmail');
+    Route::post('perfil/edit-password', 'UserController@editarContraseña')->name('editarContraseña');
+    Route::post('perfil/edit-profile-pic', 'UserController@editarFoto')->name('editarFoto');
+});
+
 // ---------- USUARIOS ----------
 Route::get('users', 'UserController@listarUsuarios')->name('admin.listarUsuarios');
 Route::middleware(['auth'])->group(function () {
@@ -297,8 +306,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('archivo/{archivo}/pasar_data','ArchivoController@pasarData');
     Route::get('archivos/limpiar','ArchivoController@eliminar_repetidos')->name('limpiar_archivos');
     Route::get('archivos/repetidos','ArchivoController@listar_repetidos')->name('archivos_repetidos');
-    Route::get('archivos/recalcular_cs','ArchivoController@reclacular_checksums_obsoletos')->name('recalcular_checksums');
+    Route::get('archivos/recalcular_cs/{archivo_id?}','ArchivoController@recalcular_checksums')->name('recalcular_checksums'); //el parametro es opcional
     Route::get('archivos/checksums_obsoletos','ArchivoController@listar_checksums_obsoletos')->name('checksums_obsoletos');
+    Route::get('archivos/checksums_no_calculados','ArchivoController@listar_checksums_no_calculados')->name('checksums_no_calculados');
+    Route::get('archivo/{archivo}/copias','ArchivoController@getCopias');
 });
 
 // ---------- TABLERO ---------
