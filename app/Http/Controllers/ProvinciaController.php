@@ -10,6 +10,7 @@ use Datatables;
 use Auth;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 
 class ProvinciaController extends Controller
 {
@@ -80,15 +81,19 @@ class ProvinciaController extends Controller
                     $button = '<button type="button" class="btn_descarga btn-sm btn-primary" > Descargar </button> ';
                     // botón de eliminar PROVINCIA  en test, si esta logueado.
                     if (Auth::check()) {
-                            try {                 
-                                $filtro = Permission::where('name',$data['codigo'])->first();                                
-                                if ( $filtro and ( Auth::user()->hasPermissionTo($data['codigo'], 'filters') and Auth::user()->can('Borrar Provincia') and ($data['departamentos_count']==0) ) ) 
+                            try {
+                                if ( Auth::user()->hasPermissionTo($data['codigo'], 'filters')=='' )
+                                // Botón INFO para Referentes.
+                                {
+                                  $button .= '<button type="button" class="btn-sm "> INFO </button>';
+                                }
+                                if ( ( Auth::user()->hasPermissionTo($data['codigo'], 'filters')=='' and Auth::user()->can('Borrar Provincia') and ($data['departamentos_count']==0) ) )
                                 // Botón borrar sólo si tiene permiso y la provicnia no tiene deptos. (agregar or Auth::user()->hasRole('Super Admin') solo para tests)
                                 {
                                     $button .= '<button type="button" class="btn_prov_delete btn-sm btn-danger "> Borrar </button>';
                                 }
                             } catch (PermissionDoesNotExist $e) {
-                            Log::warning('No existe el permiso "Borrar Provincia"');
+                               Log::warning('No existe el permiso '.$e->getMessage());
                             }
                             return $button;
                         }
@@ -179,7 +184,7 @@ class ProvinciaController extends Controller
       $deptos = count($provincia->departamentos);
       if ($deptos == 0){
         $filtro = Permission::where('name',$provincia->codigo)->first();
-        if ($filtro && Auth::user()->hasPermissionTo($provincia->codigo, 'filters')) { 
+        if ($filtro && Auth::user()->hasPermissionTo($provincia->codigo, 'filters')) {
             //agregar or Auth::user()->hasRole('Super Admin') solo para tests
             Log::info('El usuario posee el filtro: '.$provincia->codigo);
             if ($provincia->delete()) {

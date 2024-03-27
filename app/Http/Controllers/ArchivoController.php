@@ -298,6 +298,19 @@ if ($data->checksumObsoleto) {
 	    $mensaje = $archivo->procesar()?'ik0':'m4l';
       return view('archivo.list');
     }
+
+    /**
+     * Pasar Data de archivo resource.
+     *
+     * @param  \App\Model\Archivo  $archivo
+     * @return \Illuminate\Http\Response
+     */
+    public function pasarData(Archivo $archivo)
+    {
+	    // Mensaje extraño
+	    $mensaje = $archivo->pasarData()?'ik0':'m4l';
+      return view('archivo.list');
+    }
     
     //no envio los repetidos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
     public function eliminar_repetidos() {
@@ -319,10 +332,6 @@ if ($data->checksumObsoleto) {
                     if ( $archivo->esCopia ){
                         // Archivo repetido
                         $original = Archivo::where('checksum',$archivo->checksum)->orderby('id','asc')->first();
-                        // Logs repetidos pero es necesario ya que este log debe mostrarse antes que los de limpiar_copia()
-                        Log::error("Archivo " . $archivo->id . ". Checksum: " . $archivo->checksum.". Copia de archivo id: ".$original->id."." );
-                        $archivo->limpiar_copia($original);
-                        $eliminados = $eliminados + 1;
                     } else {
                         Log::info("Archivo " . $archivo->id . ". Checksum: " . $archivo->checksum.". Es el archivo original." );
                     }
