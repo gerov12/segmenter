@@ -68,21 +68,22 @@ class EntidadController extends Controller
     {
            // Ents, pastores e árboles :D
            $aEnts=[];
-           $entsQuery = Entidad::query()->with(['localidad','localidad.departamentos',
+           $entsQuery = Entidad::with(['localidad','localidad.departamentos',
                                                 'localidad.departamentos.provincia']);
            $codigo = (!empty($_GET["codigo"])) ? ($_GET["codigo"]) : ('');
            if ($codigo!='') {
               $provsQuery->where('codigo', '=', $codigo);
            }
-    	  $qEnts = $entsQuery->select('*')
+    	  $qEnts = $entsQuery
 /*                ->withCount(['departamentos','fracciones'])
                 ->with('departamentos')
                 ->with('fracciones')
                 ->with('fracciones.radios')
                 ->with('fracciones.radios.tipo')
                 ->with('departamentos.localidades') */
-                ->get('codigo','nombre')
-                ->sort();
+                //->get(['codigo','nombre'])
+                ->get()
+                ->sort(['codigo','nombre']);
 //        dd($provs->get());
         foreach ($qEnts as $ent){
 
