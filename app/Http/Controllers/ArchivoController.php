@@ -368,7 +368,7 @@ if ($data->checksumObsoleto) {
                     });
                     $recalculados = 0;
                     foreach ($archivos as $archivo){
-                                                    $archivo->checksumRecalculate();
+                            $archivo->checksumRecalculate();
                             $recalculados++;
                                             }
                     flash($recalculados . " checksums recalculados.")->info();
