@@ -1,6 +1,9 @@
 <?php
+namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 
 class SqlGobLocDeptoSeeder extends Seeder
 {
@@ -12,7 +15,6 @@ class SqlGobLocDeptoSeeder extends Seeder
     public function run()
     {
         //
-        Eloquent::unguard();
         $this->command->info('Relacionando Gobiernos Locales con Departamentos ...');
         $path = 'app/developer_docs/gobierno_local_departamento.sql';
         DB::unprepared(file_get_contents($path));

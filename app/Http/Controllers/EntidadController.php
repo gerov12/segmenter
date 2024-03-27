@@ -82,16 +82,16 @@ class EntidadController extends Controller
                 ->with('fracciones.radios.tipo')
                 ->with('departamentos.localidades') */
                 //->get(['codigo','nombre'])
-                ->get()
-                ->sort(['codigo','nombre']);
+                ->orderBy('codigo','asc') //'nombre'])
+                ->get();
 //        dd($provs->get());
         foreach ($qEnts as $ent){
-
+//dd($ent->localidad);
           $aEnts[$ent->codigo]=['id'=>$ent->id,'codigo'=>$ent->codigo,
                                 'nombre'=>$ent->nombre,
                                 'localidad'=>$ent->localidad->nombre,
-                                'departamento'=>$ent->departamentos->first()->nombre,
-                                'provincia'=>$ent->departamentos->first()->provincia->nombre ];
+                                'departamento'=>$ent->localidad->departamentos->first()->nombre,
+                                'provincia'=>$ent->localidad->departamentos->first()->provincia->nombre ];
         }
       return datatables()->of($aEnts)
                 ->addColumn('action', function($data){
@@ -99,14 +99,13 @@ class EntidadController extends Controller
                     // botón de eliminar Entidad  en test, si esta logueado.
                     if (Auth::check()) {
                             try {
-                                $filtro = Permission::where('name',$data['codigo'])->first();
-                                if ( $filtro and ( Auth::user()->hasPermissionTo($data['codigo'], 'filters') and Auth::user()->can('Borrar Entidad') ) )
+                                if ( ( Auth::user()->hasPermissionTo($data['codigo'], 'filters') and Auth::user()->can('Borrar Entidad') ) )
                                 // Botón borrar sólo si tiene permiso y la Entiadd pertenece a la provincia (TODO).
                                 {
                                     $button .= '<button type="button" class="btn_ent_delete btn-sm btn-danger "> Borrar </button>';
                                 }
                             } catch (PermissionDoesNotExist $e) {
-                            Log::warning('No existe el permiso "Borrar Entidad"');
+                            Log::warning('No existe el permiso '.$e->getMessage());
                             }
                             return $button;
                         }

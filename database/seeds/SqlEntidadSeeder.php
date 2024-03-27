@@ -1,6 +1,9 @@
 <?php
+namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 
 class SqlEntidadSeeder extends Seeder
 {
@@ -12,7 +15,6 @@ class SqlEntidadSeeder extends Seeder
     public function run()
     {
         //
-        Eloquent::unguard();
         $this->command->info('Sembrando entidades...');
         $path = 'app/developer_docs/entidad.sql';
         try{
