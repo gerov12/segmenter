@@ -60,8 +60,6 @@ class Archivo extends Model
 
     // Funciona para checksum shape (varios files)
     private static function checksumCalculate($request_file, $shape_files = []){
-        // O generar archivo comprimido de una vez :/
-        // DO IT
         $checksum = md5_file($request_file); //->getRealPath());
         if ($shape_files != null){
             $checksums[] = $checksum;
@@ -84,7 +82,8 @@ class Archivo extends Model
             $shp = array_shift($shape_files);
             $checksum = $this->checksumCalculate($shp, $shape_files);
         } else {
-            $checksum = md5(Storage::get($this->nombre));
+            $file = Storage::get($this->nombre);
+            $checksum = md5($file);
         }
         
         // guardo el checksum en su checksum_control
@@ -105,6 +104,7 @@ class Archivo extends Model
 
     //sincroniza el checksum del archivo con el calculado en su control
     public function checksumSync(){
+        $this->checksumRecalculate(); //recalculo primero ya que el control puede estar mal tambien
         $control = $this->checksum_control;
         if ($control) {
             // guardo el nuevo checksum en el archivo
