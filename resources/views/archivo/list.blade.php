@@ -22,7 +22,7 @@
   </style>
   <!-- Modal info archivo -->
   <div class="modal fade" id="empModal" role="dialog">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
     <div class="modal-header">
       <h4 class="modal-title">Info de Archivo</h4>
