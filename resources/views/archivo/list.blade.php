@@ -22,7 +22,7 @@
   </style>
   <!-- Modal info archivo -->
   <div class="modal fade" id="empModal" role="dialog">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
     <div class="modal-header">
       <h4 class="modal-title">Info de Archivo</h4>
@@ -361,6 +361,7 @@
         })
     });
 
+  // Funcion de botón Ver.
   table.on('click', '.btn_arch', function () {
     var row = $(this).closest('tr');
     var data = table.row( row ).data();
@@ -371,7 +372,7 @@
           };
   });
 
-// Función de botón Procesar.
+  // Función de botón Procesar.
     table.on('click', '.btn_arch_procesar', function () {
       var row = $(this).closest('tr');
       var data = table.row( row ).data();

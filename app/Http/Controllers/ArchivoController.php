@@ -204,7 +204,7 @@ if ($data->checksumObsoleto) {
 ///      return response($request->format);
       $result = $archivo->load('user');
       if ($request->format == 'html') {
-        $result = $result->toJson(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        return view('archivo.info')->with(['archivo'=>$result]);
       }
      	return $result;
 
