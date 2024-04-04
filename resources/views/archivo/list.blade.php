@@ -92,6 +92,32 @@
   </div>
   </div>
 
+  <!-- Modal original de archivo copiado -->
+  <div class="modal fade" id="originalModal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title"></h4>
+      <button type="button" class="close" data-dismiss="modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <table class="table table-bordered" id="tabla-original">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Creación</th>
+            <th>Cargado por</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- acá se cargará la info del archivo original -->
+        </tbody>
+      </table>
+    </div>
+    </div>
+  </div>
+  </div>
+
   <div class="container">
     @if(Session::has('message'))
       <div class="alert alert-danger alert-dismissible" role="alert">
@@ -332,7 +358,6 @@
         var button = $(event.relatedTarget); // botón que activó el modal
         var name = button.data('name');
         var modal = this;
-        console.log(name);
         var archivo = button.data('archivo');
         $.ajax({
             url: 'archivo/' + archivo + '/copias',
@@ -344,7 +369,6 @@
 
                   // obtengo el listado de copias de este archivo
                   var copias = response;
-                  console.log(copias);
 
                   // contruyo la tabla de copias
                   var tableBody = '';
@@ -356,6 +380,36 @@
                       tableBody += '</tr>';
                   });
                   $('#tabla-repetidos tbody').html(tableBody);
+                };
+            }
+        })
+    });
+
+    //función abrir modal de archivo original
+    $('#originalModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); // botón que activó el modal
+        var name = button.data('name');
+        var modal = this;
+        var archivo = button.data('archivo');
+        $.ajax({
+            url: 'archivo/' + archivo + '/original',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response){
+                if (response) {
+                  $(modal).find('.modal-title').text('Original del archivo ' + name);
+
+                  // obtengo el listado de copias de este archivo
+                  var original = response;
+                  console.log(original.nombre_original);
+                  // contruyo la tabla para la info del original
+                  var tableBody = '';
+                  tableBody += '<tr>';
+                  tableBody += '<td>' + original.nombre_original + '</td>';
+                  tableBody += '<td>' + original.fecha + '</td>';
+                  tableBody += '<td>' + original.user.name + '</td>';
+                  tableBody += '</tr>';
+                  $('#tabla-original tbody').html(tableBody);
                 };
             }
         })

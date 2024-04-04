@@ -312,6 +312,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('archivos/checksums_erroneos','ArchivoController@listar_checksums_erroneos')->name('checksums_erroneos');
     Route::get('archivos/checksums_no_calculados','ArchivoController@listar_checksums_no_calculados')->name('checksums_no_calculados');
     Route::get('archivo/{archivo}/copias','ArchivoController@getCopias');
+    Route::get('archivo/{archivo}/original','ArchivoController@getOriginal');
 });
 
 // ---------- TABLERO ---------

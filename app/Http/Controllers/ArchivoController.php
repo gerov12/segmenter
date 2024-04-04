@@ -76,7 +76,7 @@ class ArchivoController extends Controller
                     if($data->id != $data->original->id){
                         $unico = false;
                         Log::warning($data->nombre_original." es copia!");
-                        $info .= '<span class="badge badge-pill badge-warning"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></span><br>';
+                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-target="#originalModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></button><br>';
                     } else if ($data->copias_count > 1) {
                         $unico = false;
                         Log::info($data->nombre_original." es el archivo original! (Tiene ".$data->numCopias." copias)");
@@ -155,6 +155,12 @@ if ($data->checksumObsoleto) {
             return $copia;
         });
         return response()->json($copias);
+    }
+
+    public function getOriginal(Archivo $archivo) {
+        $original = $archivo->original()->with('user')->first();
+        $original->fecha = $original->created_at->format('d-M-Y');
+        return response()->json($original);
     }
 
     private static function retrieveFiles($user){
