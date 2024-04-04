@@ -17,13 +17,23 @@ class EntidadController extends Controller
     /**
      * Mostrar la Entidad
      */
-    public function show($entidad) //: View
+    public function show($entidad, Request $request) //: View
     {
-        return view('entidad.view', [
-            'entidad' => Entidad::findOrNew($entidad)
-            ,'provincia' => $entidad->provincia ?? new Provincia (['nombre'=>'No province','id'=>0,'codigo'=>0])
-            ,'svg' => $entidad->geometria ?? new Geometria([])
+      $oEntidad =  Entidad::findOrNew($entidad);
+      $oProvincia = $oEntidad->localidad->departamentos->first()->provincia;
+      if ($request->ajax()) {
+        return view('entidad.info', [
+            'entidad' => $oEntidad
+            ,'provincia' => $oProvincia ?? new Provincia (['nombre'=>'No province','id'=>0,'codigo'=>0])
+            ,'svg' => $oEntidad->geometria()->first()->getSVG() ?? (new Geometria([]))->getSVG()
         ]);
+      }else{
+        return view('entidad.view', [
+          'entidad' => $oEntidad
+          ,'provincia' => $oProvincia ?? new Provincia (['nombre'=>'No province','id'=>0,'codigo'=>0])
+          ,'svg' => $oEntidad->geometria()->first()->getSVG() ?? (new Geometria([]))->getSVG()
+      ]);
+      }
     }
 
     public function index()

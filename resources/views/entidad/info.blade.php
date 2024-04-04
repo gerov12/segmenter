@@ -14,5 +14,9 @@ parte de  {{ count($provincia->operativos) }} operativos
 		@endforeach
 </p>
     @endif
+    @if ($entidad)
+    {{ $entidad->codigo }}
+    {{ $entidad->nombre }}
+    @endif
     {{!! $svg !!}}
 <div/>

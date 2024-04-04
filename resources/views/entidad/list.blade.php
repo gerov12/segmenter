@@ -136,7 +136,7 @@
                         if ((data != null) && (propagacion == false)) {
                             // AJAX request
                             $.ajax({
-                                url: "{{ url('ent') }}" + "/" + data.id,
+                                url: "{{ url('entidad') }}" + "/" + data.id,
                                 type: 'post',
                                 data: {
                                     id: data.id,
@@ -155,12 +155,12 @@
                     });
 
                     // Función de botón Ver 2.
-                    table.on('click', '.btn_prov', function() {
+                    table.on('click', '.btn_ent', function() {
                         var row = $(this).closest('tr');
                         var data = table.row(row).data();
                         console.log('Ver Entidad: ' + data.codigo);
                         if (typeof data !== 'undefined') {
-                            url = "{{ url('ent') }}" + "/" + data.id;
+                            url = "{{ url('entidad') }}" + "/" + data.id;
                             $(location).attr('href', url);
                         };
                     });

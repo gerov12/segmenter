@@ -260,6 +260,7 @@ Route::post('aglo-segmenta-run/{aglomerado}','AglomeradoController@run_segmentar
 Route::get('entidades', 'EntidadController@index')->name('entidades');
 Route::get('entidad/{entidad}','EntidadController@show');
 Route::get('ents-list', 'EntidadController@entsList');
+Route::post('entidad/{entidad}','EntidadController@show');
 Route::get('ents','EntidadController@index');
 
 Route::middleware(['auth'])->group(function () {

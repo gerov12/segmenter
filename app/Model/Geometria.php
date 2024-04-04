@@ -3,6 +3,7 @@
 namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Geometria extends Model
 {
@@ -27,6 +28,9 @@ class Geometria extends Model
       //    Utiliza tablas listado_geo, r3 junto a segmentacion y manzanas.
           $width = 600;
           $escalar = false;
+          $perimeter = 2400;
+          $height = 400;
+          $stroke = 2;
           $extent = DB::select("SELECT box2d(st_collect(poligono)) box FROM
           ".$this->table."
           WHERE id='".$this->id."' ");
@@ -84,8 +88,8 @@ class Geometria extends Model
                   ,'#555','#CCC','#A00','#0A0','#00A','#F00','#0F0','#00F','#008','#800','#080'];
            */
           $svg = DB::select("
-WITH shapes (geom, attribute, tipo) AS (
-  ( SELECT st_buffer(st_collect(poligono),1,'endcap=flat join=round') wkb_geometry, codigo as attribute, 'A' as tipo FROM
+WITH shapes (geom, attribute, tipo) AS
+  ( SELECT st_buffer(st_collect(poligono),1,'endcap=flat join=round') wkb_geometry, ".$this->id." as attribute, 'A'::text as tipo FROM
   ".$this->table."
   WHERE id='".$this->id."'
   ),
@@ -98,7 +102,7 @@ WITH shapes (geom, attribute, tipo) AS (
        fill=\"gray\"'
               WHEN tipo='mza' THEN 'stroke=\"white\"
               stroke-width=\"1\" fill=\"#BBBBC5\"'
-              WHEN attribute < 5 THEN 'stroke=\"none\"
+              WHEN attribute < 5 THEN 'stroke=\"gray\"
               stroke-width=\"".$stroke."\" fill=\"#' || attribute*20 || 'AAAA\"'
               WHEN attribute < 10 THEN 'stroke=\"none\"
        stroke-width=\"".$stroke."\" fill=\"#00' || (attribute-5)*20 || '00\"'
@@ -122,8 +126,7 @@ WITH shapes (geom, attribute, tipo) AS (
    ) foo order by orden asc
 )
 SELECT concat(
-       '<svg id=\"geometria_".$this->codigo."_botonera\"xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0
- \" height=\"80\" width=\"".$width."\">',
+       '<svg id=\"geometria_".$this->codigo."_botonera\"xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 70 70\" height=\"80\" width=\"".$width."\">',
  '<circle style=\"opacity: 10%;\" class=\"compass\" cx=\"".(+30)."\" cy=\"".(30)."\" r=\"28\"></circle>
        <circle style=\"opacity: 20%;\" class=\"button\" cx=\"".(+30)."\" cy=\"".(36)."\"
        r=\"7\"
