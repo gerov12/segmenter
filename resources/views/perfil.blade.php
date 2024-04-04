@@ -88,6 +88,24 @@
       background-color: orange;
       color: #fff;
     }
+    .email-verify-button {
+      position: absolute;
+      top: 10px; /* posición desde la parte superior */
+      right: 10px; /* posición desde la parte derecha */
+      padding: 5px 10px;
+      font-size: 13px;
+      background-color: transparent;
+      color: red;
+      border: 1px solid red;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .email-verify-button:hover {
+      background-color: red;
+      color: #fff;
+    }
     .buttons-container {
       justify-content: space-between;
       display: flex;
@@ -147,6 +165,14 @@
       background-color: orange;
       color: #fff;
     }
+    .edit-button-admin {
+      font-size: 12px;
+      background-color: transparent;
+      color: grey;
+      cursor: pointer;
+      text-decoration: none;
+      display: none; /* Ocultar los botones por defecto */
+    }
     .edit-photo-button {
       position: absolute;
       top: 10px; /* Distancia desde la parte superior */
@@ -194,18 +220,35 @@
     <div class="username-container">
       <div class="username">{{$usuario->name}}</div>
       <input type="text" class="edit-username-input" style="display: none;">
+      @if ($usuario->hasRole('Super Admin'))
+      <i class="bi bi-ban edit-button-admin ml-2"></i>
+      @else
       <button class="edit-button ml-2" id="edit-username" onclick="toggleEditUsername()"><i class="bi bi-pen"></i></button>
+      @endif
     </div>
     
     <div class="email-container">
+      @if ($usuario->hasRole('Super Admin') or $usuario->email_verified_at != null)
       <div class="email">{{$usuario->email}}</div>
+      @else
+      <div class="email" style="color:red">{{$usuario->email}}</div>
+      <i class="bi bi-exclamation-circle ml-2" style="color:red" title="Email no verificado."></i>
+      @endif  
       <input type="text" class="edit-email-input" style="display: none;">
+      @if ($usuario->hasRole('Super Admin'))
+      <i class="bi bi-ban edit-button-admin ml-2"></i>
+      @else
       <button class="edit-button ml-2" id="edit-email" onclick="toggleEditEmail()"><i class="bi bi-pen"></i></button>
+      @endif
     </div>
 
     <button class="password-button" data-toggle="modal" id="btn-trigger-modal-password" data-target="#passwordModal">Cambiar contraseña</button>
   </div>
+  @if ($usuario->hasRole('Super Admin') or $usuario->email_verified_at != null)
   <button class="mode-button" onclick="toggleEditMode()"><i class="bi bi-pen"></i></button> <!-- Botón de edición -->
+  @else
+  <button class="email-verify-button">Verificar Email</button> <!-- Botón de verificar mail -->
+  @endif
   <div class="buttons-container">
     <hr class="divider"> <!-- Línea divisoria -->
     <button class="modal-button" data-toggle="modal" id="btn-trigger-modal-permisos" data-target="#permisosModal">Mis Permisos</button>
@@ -507,7 +550,7 @@
       if (editModeButton.classList.contains('bi-pen')) {
         editModeButton.classList.remove('bi-pen');
         editModeButton.classList.add('bi-x-lg'); //Cambio el icono
-        document.querySelectorAll('.edit-button, .edit-photo-button').forEach(function(button) {
+        document.querySelectorAll('.edit-button, .edit-button-admin, .edit-photo-button').forEach(function(button) {
           button.style.display = 'inline-block';
         });
         passwordButton.style.display = 'block'; // Muestro el botón de cambio de contraseña
@@ -515,7 +558,7 @@
       } else {
         editModeButton.classList.remove('bi-x-lg');
         editModeButton.classList.add('bi-pen'); //Restauro icono editar
-        document.querySelectorAll('.edit-button, .edit-photo-button').forEach(function(button) {
+        document.querySelectorAll('.edit-button, .edit-button-admin, .edit-photo-button').forEach(function(button) {
           button.style.display = 'none';
         });
         passwordButton.style.display = 'none'; // Oculto el botón de cambio de contraseña
@@ -636,20 +679,16 @@
             _token: $('meta[name="csrf-token"]').attr('content')
           },
           success: function(response) {
-            console.log('Nombre de usuario actualizado correctamente:', response);
-            $('.username').text(newUsername); //actualizo el nombre en el frontend
-            var alertHtml = '<div class="alert alert-success alert-dismissible" role="alert">' +
-                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-                            response.message + 
-                          '</div>';
-            $('#alert-container').html(alertHtml);
-          },
-          error: function(xhr, status, error) {
-            console.error('Error al actualizar el nombre de usuario:', error);
-            var alertHtml = '<div class="alert alert-danger alert-dismissible" role="alert">' +
-                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-                            'Hubo un problema al actualizar el nombre de usuario.' +
-                          '</div>';
+            if (response.statusCode === 200) {
+              var alertClass = 'alert-success';
+              $('.username').text(newUsername); //actualizo el nombre en el frontend
+            } else {
+              var alertClass = 'alert-danger';
+            }
+            var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                              '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                              response.message +
+                            '</div>';
             $('#alert-container').html(alertHtml);
           }
       });
