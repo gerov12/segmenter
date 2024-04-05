@@ -1,4 +1,5 @@
 <div class="container">
+   <h6><b>Estado</b></h6>
    <div class="estados">
       @php
          $unico = $checksumCalculado = $checksumCorrecto = $storageOk = true;

@@ -389,7 +389,7 @@
         var botonCerrar = modalfooter.find('#close-button-copias');
         var botonVolver = modalfooter.find('#back-button-copias');
         $.ajax({
-            url: 'archivo/' + archivo + '/copias',
+            url: '/archivo/' + archivo + '/copias',
             type: 'GET',
             dataType: 'json',
             success: function(response){
@@ -435,7 +435,7 @@
         var botonCerrar = modalfooter.find('#close-button-original');
         var botonVolver = modalfooter.find('#back-button-original');
         $.ajax({
-            url: 'archivo/' + archivo + '/original',
+            url: '/archivo/' + archivo + '/original',
             type: 'GET',
             dataType: 'json',
             success: function(response){
