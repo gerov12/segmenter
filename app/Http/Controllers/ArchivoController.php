@@ -76,27 +76,27 @@ class ArchivoController extends Controller
                     if($data->id != $data->original->id){
                         $unico = false;
                         Log::warning($data->nombre_original." es copia!");
-                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-target="#originalModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></button><br>';
+                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-target="#originalModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></button><br>';
                     } else if ($data->copias_count > 1) {
                         $unico = false;
                         Log::info($data->nombre_original." es el archivo original! (Tiene ".$data->numCopias." copias)");
-                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-target="#copiasModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copiado ('.$data->numCopias.')</span></button><br>';
+                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-target="#copiasModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copiado ('.$data->numCopias.')</span></button><br>';
                     } else {
                         Log::info($data->nombre_original." es el archivo original!");
                     }
                     if ($data->checksum_control == null){
                         $checksumCalculado = false;
                         Log::warning($data->nombre_original. " Checksum no calculado con el nuevo método!");
-                        $info .= '<button class="badge badge-pill badge-checksum" data-toggle="modal" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="no_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-exclamation-triangle" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Checksum no calculado</span></button><br>';
+                        $info .= '<button class="badge badge-pill badge-checksum" data-toggle="modal" data-info="false" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="no_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-exclamation-triangle" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Checksum no calculado</span></button><br>';
                     } else if (!$data->checksumOk) {
                         $checksumCorrecto = false;
-if ($data->checksumObsoleto) {
+                        if ($data->checksumObsoleto) {
                             Log::error($data->nombre_original.' checksum obsoleto!');
-                            $info .= '<button class="badge badge-pill badge-danger" data-toggle="modal" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="old_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-calendar-x" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Checksum obsoleto</span></button><br>';
+                            $info .= '<button class="badge badge-pill badge-danger" data-toggle="modal" data-info="false" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="old_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-calendar-x" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Checksum obsoleto</span></button><br>';
                         } else {
-                        Log::error($data->nombre_original.' error en el checksum!');
-                        $info .= '<button class="badge badge-pill badge-danger" data-toggle="modal" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="wrong_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-x-circle" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Error de checksum</span></button><br>';
-}
+                            Log::error($data->nombre_original.' error en el checksum!');
+                            $info .= '<button class="badge badge-pill badge-danger" data-toggle="modal" data-info="false" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="wrong_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-x-circle" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Error de checksum</span></button><br>';
+                        }
                     } else {
                         Log::info($data->nombre_original.' checksum ok!');
                     }
@@ -208,8 +208,15 @@ if ($data->checksumObsoleto) {
     {
     	//
 ///      return response($request->format);
-      $result = $archivo->load('user');
+      $result = Archivo::withCount(['viewers','copias'])->with(['user','checksum_control','original', 'original.user'])->findOrFail($archivo->id);
       if ($request->format == 'html') {
+        $size = $result->size;
+        if ( $size > 0 ) {
+        $size = (int) $size;
+        $base = log($size) / log(1024);
+        $suffixes = array(' bytes', ' KB', ' MB', ' GB', ' TB');
+        $result->tamaño = round(pow(1024, $base - floor($base)), 1) . $suffixes[floor($base)];
+        }
         return view('archivo.info')->with(['archivo'=>$result]);
       }
      	return $result;

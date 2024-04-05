@@ -60,7 +60,8 @@
       <button id="checksum-file-download-button" type="button" class="btn_descarga btn-sm btn-secondary" > Descargar Archivo </button>
       <!-- al botón se le carga la ruta correspondiente en el script y se muestra si corresponde -->
       <button id="checksum-button" type="button" class="btn-sm btn-success"></button>
-      <button type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
+      <button id="close-button-check" type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
+      <button id="back-button-check" class="btn-sm btn-primary float-right btn-detalles" data-target="#empModal" data-toggle="modal" data-dismiss="modal">Volver</button>
     </div>
     </div>
   </div>
@@ -70,24 +71,28 @@
   <div class="modal fade" id="copiasModal" role="dialog">
   <div class="modal-dialog">
     <div class="modal-content">
-    <div class="modal-header">
-      <h4 class="modal-title"></h4>
-      <button type="button" class="close" data-dismiss="modal">&times;</button>
-    </div>
-    <div class="modal-body">
-      <table class="table table-bordered" id="tabla-repetidos">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Creación</th>
-            <th>Cargado por</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- acá se cargará la info de las copias -->
-        </tbody>
-      </table>
-    </div>
+      <div class="modal-header">
+        <h4 class="modal-title"></h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-bordered" id="tabla-repetidos">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Creación</th>
+              <th>Cargado por</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- acá se cargará la info de las copias -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button id="close-button-copias" type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
+        <button id="back-button-copias" class="btn-sm btn-primary float-right btn-detalles" data-target="#empModal" data-toggle="modal" data-dismiss="modal">Volver</button>
+      </div>
     </div>
   </div>
   </div>
@@ -96,24 +101,28 @@
   <div class="modal fade" id="originalModal" role="dialog">
   <div class="modal-dialog">
     <div class="modal-content">
-    <div class="modal-header">
-      <h4 class="modal-title"></h4>
-      <button type="button" class="close" data-dismiss="modal">&times;</button>
-    </div>
-    <div class="modal-body">
-      <table class="table table-bordered" id="tabla-original">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Creación</th>
-            <th>Cargado por</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- acá se cargará la info del archivo original -->
-        </tbody>
-      </table>
-    </div>
+      <div class="modal-header">
+        <h4 class="modal-title"></h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-bordered" id="tabla-original">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Creación</th>
+              <th>Cargado por</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- acá se cargará la info del archivo original -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button id="close-button-original" type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
+        <button id="back-button-original" class="btn-sm btn-primary float-right btn-detalles" data-target="#empModal" data-toggle="modal" data-dismiss="modal">Volver</button>
+      </div>
     </div>
   </div>
   </div>
@@ -155,8 +164,8 @@
               <th>Checksum</th>
               <th>Tamaño</th>
               <th>Creación</th>
-              <th>Cargador</th>
-              <th alt="Observadores" >(o)</th>
+              <th>Cargado por</th>
+              <th title="Observadores" alt="Observadores" ><i class="bi bi-eye-fill" style="font-size:15px"></i></th>
               <th>Estado</th>
               <th> * </th>
           </tr>
@@ -246,6 +255,7 @@
 
             // Display Modal
             $('#empModal').modal('show'); 
+            $
           }
         });
         console.log( 'You clicked on '+data.id+'\'s row' );
@@ -259,12 +269,16 @@
         var nombre_original = button.data('name'); 
         var status = button.data('status'); 
         var recalculable = button.data('recalculable'); 
+        var info = button.data('info');
+        console.log("from info: " + info)
 
         $(this).find('.modal-title').text('Info sobre checksum (' + nombre_original + ')');
 
         var modalBody = $(this).find('.modal-body');
         var modalfooter = $(this).find('.modal-footer');
         var botonRecalcular = modalfooter.find('#checksum-button');
+        var botonCerrar = modalfooter.find('#close-button-check');
+        var botonVolver = modalfooter.find('#back-button-check');
 
         if (status === 'no_check') {
           // actualizo mensaje principal
@@ -338,11 +352,23 @@
           botonRecalcular.css('display', 'none');
         }
 
+        if (info === true) {
+          // si vengo de info permito volver
+          botonVolver.css('display', 'block');
+          botonCerrar.css('display', 'none');
+        } else {
+          // sino permito cerrar
+          botonVolver.css('display', 'none');
+          botonCerrar.css('display', 'block');
+        }
+
         // Actualizar la ruta del botón de descarga del archivo
         modalfooter.find("#checksum-file-download-button").off('click').on('click', function() {
             var url = "{{ url('archivo/') }}"+"/"+file_id+"/descargar";
             $(location).attr('href', url);
         });
+
+
     });
 
     // confirm para recalcular desde el modal
@@ -359,6 +385,11 @@
         var name = button.data('name');
         var modal = this;
         var archivo = button.data('archivo');
+        var info = button.data('info');
+        var modalfooter = $(this).find('.modal-footer');
+        var botonCerrar = modalfooter.find('#close-button-copias');
+        var botonVolver = modalfooter.find('#back-button-copias');
+        console.log("from info: " + info)
         $.ajax({
             url: 'archivo/' + archivo + '/copias',
             type: 'GET',
@@ -380,6 +411,16 @@
                       tableBody += '</tr>';
                   });
                   $('#tabla-repetidos tbody').html(tableBody);
+
+                  if (info === true) {
+                    // si vengo de info permito volver
+                    botonVolver.css('display', 'block');
+                    botonCerrar.css('display', 'none');
+                  } else {
+                    // sino permito cerrar
+                    botonVolver.css('display', 'none');
+                    botonCerrar.css('display', 'block');
+                  }
                 };
             }
         })
@@ -391,6 +432,11 @@
         var name = button.data('name');
         var modal = this;
         var archivo = button.data('archivo');
+        var info = button.data('info');
+        var modalfooter = $(this).find('.modal-footer');
+        var botonCerrar = modalfooter.find('#close-button-original');
+        var botonVolver = modalfooter.find('#back-button-original');
+        console.log("from info: " + info)
         $.ajax({
             url: 'archivo/' + archivo + '/original',
             type: 'GET',
@@ -410,6 +456,16 @@
                   tableBody += '<td>' + original.user.name + '</td>';
                   tableBody += '</tr>';
                   $('#tabla-original tbody').html(tableBody);
+
+                  if (info === true) {
+                    // si vengo de info permito volver
+                    botonVolver.css('display', 'block');
+                    botonCerrar.css('display', 'none');
+                  } else {
+                    // sino permito cerrar
+                    botonVolver.css('display', 'none');
+                    botonCerrar.css('display', 'block');
+                  }
                 };
             }
         })
