@@ -368,13 +368,19 @@ class ArchivoController extends Controller
         //Aún falta testeo
 
         try {
-            if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
-                //si envié un archivo calculo ese
-                if ($archivo_id) {
-                    $archivo = Archivo::findOrFail($archivo_id);
+            $user = Auth::user();
+            $success = true;
+            //si envié un archivo calculo ese
+            if ($archivo_id) {
+                $archivo = Archivo::findOrFail($archivo_id);
+                if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                     $archivo->checksumRecalculate();
                     flash('Checksum recalculado para el archivo ' . $archivo->nombre_original)->info();
                 } else {
+                    $success = false;
+                }           
+            } else {
+                if ($user->can(['Administrar Archivos', 'Ver Archivos'])){
                     $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
                         return !$archivo->checksumOk and !$archivo->checksumObsoleto;
                     });
@@ -384,7 +390,12 @@ class ArchivoController extends Controller
                             $recalculados++;
                                             }
                     flash($recalculados . " checksums recalculados.")->info();
+                } else {
+                    $success = false;
                 }
+            }
+
+            if ($success == true) { 
                 return redirect('archivos');
             } else {
                 flash('No tienes permiso para hacer eso.')->error();
@@ -403,13 +414,19 @@ class ArchivoController extends Controller
         //Aún falta testeo
 
         try {
-            if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
-                //si envié un archivo calculo ese
-                if ($archivo_id) {
-                    $archivo = Archivo::findOrFail($archivo_id);
+            $user = Auth::user();
+            $success = true;
+            //si envié un archivo sincronizo ese
+            if ($archivo_id) {
+                $archivo = Archivo::findOrFail($archivo_id);
+                if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                     $archivo->checksumSync();
                     flash('Checksum sincronizado para el archivo ' . $archivo->nombre_original)->info();
                 } else {
+                    $success = false;
+                }
+            } else {
+                if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
                     $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
                         return !$archivo->checksumOk and $archivo->checksumObsoleto;
                     });
@@ -419,7 +436,11 @@ class ArchivoController extends Controller
                         $sincronizados++;
                     }
                     flash($sincronizados . " checksums sincronizados.")->info();
+                } else {
+                    $success = false;
                 }
+            }
+            if ($success == true) {
                 return redirect('archivos');
             } else {
                 flash('No tienes permiso para hacer eso.')->error();
