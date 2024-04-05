@@ -26,33 +26,32 @@ class ArchivoController extends Controller
         $user = Auth::user();
         $archivos = self::retrieveFiles($user);
         $count_archivos = $archivos->count();
+        if (!$request->ajax()) {
+            // necesario ya que del lado de la vista solo puedo recorrer los visibles
+            $count_archivos_repetidos = $archivos->filter(function ($archivo) {
+                return $archivo->id != $archivo->original->id;
+            })->count();
 
-        // necesario ya que del lado de la vista solo puedo recorrer los visibles
-        $count_archivos_repetidos = $archivos->filter(function ($archivo) {
-            return $archivo->id != $archivo->original->id;
-        })->count();
+            $count_null_checksums = $archivos->filter(function ($archivo) {
+                return $archivo->checksum_control == null;
+            })->count();
 
-        $count_null_checksums = $archivos->filter(function ($archivo) {
-            return $archivo->checksum_control == null;
-        })->count();
+            $controlled_checksums = $archivos->reject(function ($archivo) { 
+                return $archivo->checksum_control == null; // que tengan checksum_control
+            });
 
-        $controlled_checksums = $archivos->reject(function ($archivo) { 
-            return $archivo->checksum_control == null; // que tengan checksum_control
-        });
+            $wrong_checksums = $controlled_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksum_control
+                return !$archivo->checksumOk; //que tengan checksum erroneo
+            });
 
-        $wrong_checksums = $controlled_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksum_control
-            return !$archivo->checksumOk; //que tengan checksum erroneo
-        });
+            $count_error_checksums = $wrong_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksums erroneos
+                return !$archivo->checksumObsoleto; //que no sean obsoletos
+            })->count();
 
-        $count_error_checksums = $wrong_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksums erroneos
-            return !$archivo->checksumObsoleto; //que no sean obsoletos
-        })->count();
-
-        $count_old_checksums = $wrong_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksums erroneos
-            return !$archivo->checksumOk and $archivo->checksumObsoleto; //que sean obsoletos
-        })->count();
-
-        if ($request->ajax()) {
+            $count_old_checksums = $wrong_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksums erroneos
+                return !$archivo->checksumOk and $archivo->checksumObsoleto; //que sean obsoletos
+            })->count();
+        } else {
             return Datatables::of($archivos)
                 ->addIndexColumn()
                 ->addColumn('created_at_h', function ($row){
