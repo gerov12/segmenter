@@ -28,29 +28,7 @@ class ArchivoController extends Controller
         $count_archivos = $archivos->count();
         if (!$request->ajax()) {
             // necesario ya que del lado de la vista solo puedo recorrer los visibles
-            $count_archivos_repetidos = $archivos->filter(function ($archivo) {
-                return $archivo->id != $archivo->original->id;
-            })->count();
-
-            $count_null_checksums = $archivos->filter(function ($archivo) {
-                return $archivo->checksum_control == null;
-            })->count();
-
-            $controlled_checksums = $archivos->reject(function ($archivo) { 
-                return $archivo->checksum_control == null; // que tengan checksum_control
-            });
-
-            $wrong_checksums = $controlled_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksum_control
-                return !$archivo->checksumOk; //que tengan checksum erroneo
-            });
-
-            $count_error_checksums = $wrong_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksums erroneos
-                return !$archivo->checksumObsoleto; //que no sean obsoletos
-            })->count();
-
-            $count_old_checksums = $wrong_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksums erroneos
-                return !$archivo->checksumOk and $archivo->checksumObsoleto; //que sean obsoletos
-            })->count();
+            $count_estados = self::countEstados($archivos);
         } else {
             return Datatables::of($archivos)
                 ->addIndexColumn()
@@ -139,11 +117,11 @@ class ArchivoController extends Controller
         }
 
         return view('archivo.list')->with([
-            'data'=>$archivos, 
-            'count_archivos_repetidos' => $count_archivos_repetidos,
-            'count_null_checksums' => $count_null_checksums,
-            'count_error_checksums' => $count_error_checksums,
-            'count_old_checksums' => $count_old_checksums
+            'data' => $archivos, 
+            'count_archivos_repetidos' => $count_estados["repetidos"],
+            'count_null_checksums' => $count_estados["null"],
+            'count_error_checksums' => $count_estados["error"],
+            'count_old_checksums' => $count_estados["old"]
         ]);
     }
 
@@ -173,6 +151,34 @@ class ArchivoController extends Controller
             Session::flash('message', 'No existe el permiso "Ver Archivos"');
         }
         return $archivos;
+    }
+
+    private static function countEstados($archivos){
+        $count_archivos_repetidos = $archivos->filter(function ($archivo) {
+            return $archivo->id != $archivo->original->id;
+        })->count();
+
+        $count_null_checksums = $archivos->filter(function ($archivo) {
+            return $archivo->checksum_control == null;
+        })->count();
+
+        $controlled_checksums = $archivos->reject(function ($archivo) { 
+            return $archivo->checksum_control == null; // que tengan checksum_control
+        });
+
+        $wrong_checksums = $controlled_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksum_control
+            return !$archivo->checksumOk; //que tengan checksum erroneo
+        });
+
+        $count_error_checksums = $wrong_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksums erroneos
+            return !$archivo->checksumObsoleto; //que no sean obsoletos
+        })->count();
+
+        $count_old_checksums = $wrong_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksums erroneos
+            return !$archivo->checksumOk and $archivo->checksumObsoleto; //que sean obsoletos
+        })->count();
+
+        return ["repetidos"=>$count_archivos_repetidos, "null"=>$count_null_checksums, "error"=>$count_error_checksums, "old"=>$count_old_checksums];
     }
 
     /**
@@ -308,7 +314,17 @@ class ArchivoController extends Controller
     {
 	    // Mensaje extraño
 	    $mensaje = $archivo->procesar()?'ik0':'m4l';
-      return view('archivo.list');
+
+        $user = Auth::user();
+        $archivos = self::retrieveFiles($user);
+        $count_estados = self::countEstados($archivos);
+        return view('archivo.list')->with([
+            'data' => $archivos, 
+            'count_archivos_repetidos' => $count_estados["repetidos"],
+            'count_null_checksums' => $count_estados["null"],
+            'count_error_checksums' => $count_estados["error"],
+            'count_old_checksums' => $count_estados["old"]
+        ]);
     }
 
     /**

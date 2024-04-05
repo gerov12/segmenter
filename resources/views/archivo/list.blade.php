@@ -270,7 +270,6 @@
         var status = button.data('status'); 
         var recalculable = button.data('recalculable'); 
         var info = button.data('info');
-        console.log("from info: " + info)
 
         $(this).find('.modal-title').text('Info sobre checksum (' + nombre_original + ')');
 
@@ -389,7 +388,6 @@
         var modalfooter = $(this).find('.modal-footer');
         var botonCerrar = modalfooter.find('#close-button-copias');
         var botonVolver = modalfooter.find('#back-button-copias');
-        console.log("from info: " + info)
         $.ajax({
             url: 'archivo/' + archivo + '/copias',
             type: 'GET',
@@ -436,7 +434,6 @@
         var modalfooter = $(this).find('.modal-footer');
         var botonCerrar = modalfooter.find('#close-button-original');
         var botonVolver = modalfooter.find('#back-button-original');
-        console.log("from info: " + info)
         $.ajax({
             url: 'archivo/' + archivo + '/original',
             type: 'GET',
