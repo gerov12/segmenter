@@ -34,12 +34,12 @@
       @endif
       
 
-      @if (!$archivo->checkStorage())
+      <!-- @if (!$archivo->checkStorage())
          @php
             $storageOk = false;
          @endphp       
          <span class="badge badge-pill badge-dark"><span class="bi bi-archive" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Problema de storage</span></span>
-      @endif
+      @endif -->
 
       @if ($unico and $checksumCalculado and $checksumCorrecto and $storageOk)
          <span class="badge badge-pill badge-success"><span class="bi bi-check" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> OK</span></span>

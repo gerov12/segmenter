@@ -77,10 +77,10 @@ class ArchivoController extends Controller
                     } else {
                         Log::info($data->nombre_original.' checksum ok!');
                     }
-                    if (!$data->checkStorage()){
-                        $storageOk = false;       
-                        $info .= '<span class="badge badge-pill badge-dark"><span class="bi bi-archive" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Problema de storage</span></span><br>';
-                    }
+                    // if (!$data->checkStorage()){
+                    //     $storageOk = false;       
+                    //     $info .= '<span class="badge badge-pill badge-dark"><span class="bi bi-archive" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Problema de storage</span></span><br>';
+                    // }
                     if ($unico and $checksumCalculado and $checksumCorrecto and $storageOk){
                         $info .= '<span class="badge badge-pill badge-success"><span class="bi bi-check" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> OK</span></span><br>';
                     }
