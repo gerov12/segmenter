@@ -79,7 +79,8 @@ class EntidadController extends Controller
            // Ents, pastores e árboles :D
            $aEnts=[];
            $entsQuery = Entidad::with(['localidad','localidad.departamentos',
-                                                'localidad.departamentos.provincia']);
+                                                'localidad.departamentos.provincia',
+                                              'geometria']);
            $codigo = (!empty($_GET["codigo"])) ? ($_GET["codigo"]) : ('');
            if ($codigo!='') {
               $provsQuery->where('codigo', '=', $codigo);
@@ -102,7 +103,9 @@ class EntidadController extends Controller
                                 'localidad' => $ent->localidad->nombre,
                                 'departamento' => $ent->localidad->departamentos->first()->nombre,
                                 'provincia' => $ent->localidad->departamentos->first()->provincia->nombre,
-                                'codprov'=> $ent->localidad->departamentos->first()->provincia->codigo];
+                                'codprov'=> $ent->localidad->departamentos->first()->provincia->codigo
+//                               , 'icon'=> $ent->geometria()->first()->getSVG(30,30)
+                              ];
         }
       return datatables()->of($aEnts)
                 ->addColumn('action', function($data){

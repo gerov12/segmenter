@@ -110,7 +110,7 @@
                             {
                                 data: 'nombre',
                                 name: 'nombre'
-                            },                            {
+                            },{
                                 data: 'localidad',
                                 name: 'localidad'
                             },
