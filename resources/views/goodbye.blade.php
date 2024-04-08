@@ -67,8 +67,8 @@
           @include('flash::message')
         </div>
         <div class="flex-center position-ref full-height">
-            <div class="content" style="line-height: 1.1; 
-                                        background-image:url(/images/mandarinas.png); 
+            <div class="content" style="line-height: 1.1;
+                                        background-image:url(/images/mandarinas.png);
                                         background-repeat: no-repeat;
                                         background-position: center 75px;
                                         background-opacity:0.75;"><br />
@@ -87,7 +87,7 @@
             </div>
         </div>
         <div id="copyright" class="text-center justify-content-center"
-        style="display:block"><hr />© 2023 INDEC - Argentina - Geoestadística</div>
+        style="display:block"><hr />© 2024 INDEC - Argentina - Geoestadística</div>
         </div>
     </body>
 </html>
