@@ -120,6 +120,8 @@
         </table>
       </div>
       <div class="modal-footer">
+        <!-- al botón se le carga la ruta correspondiente en el script y se muestra si corresponde -->
+        <button id="delete-copy-button" type="button" class="btn-sm btn-danger">Limpiar copia</button>
         <button id="close-button-original" type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
         <button id="back-button-original" class="btn-sm btn-primary float-right btn-detalles" data-target="#empModal" data-toggle="modal" data-dismiss="modal">Volver</button>
       </div>
@@ -372,8 +374,17 @@
 
     // confirm para recalcular desde el modal
     $('#checksum-button').on('click', function(event) {
-        event.preventDefault(); // evita que el botón diriga directamente a su href
-        if (confirm('¿Estás seguro de que deseas calcular el checksum?')) {
+        event.preventDefault(); // evita que el botón dirija directamente a su href
+        var buttonText = $(this).text().trim();
+        var message = "";
+
+        if (buttonText === "Sincronizar Checksum") {
+            message = '¿Estás seguro de que deseas sincronizar el checksum?';
+        } else if (buttonText === "Recalcular Checksum") {
+            message = '¿Estás seguro de que deseas recalcular el checksum?';
+        }
+        
+        if (message !== "" && confirm(message)) {
             window.location.href = $(this).attr('href');
         }
     });
@@ -431,7 +442,9 @@
         var modal = this;
         var archivo = button.data('archivo');
         var info = button.data('info');
+        var limpiable = button.data('limpiable');
         var modalfooter = $(this).find('.modal-footer');
+        var botonLimpiar = modalfooter.find('#delete-copy-button');
         var botonCerrar = modalfooter.find('#close-button-original');
         var botonVolver = modalfooter.find('#back-button-original');
         $.ajax({
@@ -454,6 +467,19 @@
                   tableBody += '</tr>';
                   $('#tabla-original tbody').html(tableBody);
 
+                  // actualizo la ruta del botón
+                  botonLimpiar.attr('href', "{{ route('limpiar_archivos', ':archivo_id') }}".replace(':archivo_id', archivo));
+                  // si tengo los permisos necesarios
+                  if (limpiable) {
+                    // hago visible el botón
+                    botonLimpiar.css('display', 'block');
+                  } else {
+                    // lo oculto
+                    botonLimpiar.css('display', 'none');
+                  }
+
+                  console.log(info);
+
                   if (info === true) {
                     // si vengo de info permito volver
                     botonVolver.css('display', 'block');
@@ -466,6 +492,14 @@
                 };
             }
         })
+    });
+
+    // confirm para limpiar copia desde el modal
+    $('#delete-copy-button').on('click', function(event) {
+        event.preventDefault(); // evita que el botón diriga directamente a su href
+        if (confirm('Al confirmar se eliminará este archivo y pasarás a ser "observador" del archivo original. ¿Estás seguro?')) {
+            window.location.href = $(this).attr('href');
+        }
     });
 
   // Funcion de botón Ver.

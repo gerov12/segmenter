@@ -304,13 +304,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('archivo/{archivo}/descargar','ArchivoController@descargar');
     Route::get('archivo/{archivo}/procesar','ArchivoController@procesar');
     Route::get('archivo/{archivo}/pasar_data','ArchivoController@pasarData');
-    Route::get('archivos/limpiar','ArchivoController@eliminar_repetidos')->name('limpiar_archivos');
-    Route::get('archivos/repetidos','ArchivoController@listar_repetidos')->name('archivos_repetidos');
+
+    Route::get('archivos/limpiar/{archivo_id?}','ArchivoController@eliminar_repetidos')->name('limpiar_archivos'); //el parametro es opcional
     Route::get('archivos/recalcular_cs/{archivo_id?}','ArchivoController@recalcular_checksums')->name('recalcular_checksums'); //el parametro es opcional
     Route::get('archivos/sincronizar_cs/{archivo_id?}','ArchivoController@sincronizar_checksums')->name('sincronizar_checksums'); //el parametro es opcional
+
+    Route::get('archivos/repetidos','ArchivoController@listar_repetidos')->name('archivos_repetidos');
     Route::get('archivos/checksums_obsoletos','ArchivoController@listar_checksums_obsoletos')->name('checksums_obsoletos');
     Route::get('archivos/checksums_erroneos','ArchivoController@listar_checksums_erroneos')->name('checksums_erroneos');
     Route::get('archivos/checksums_no_calculados','ArchivoController@listar_checksums_no_calculados')->name('checksums_no_calculados');
+
     Route::get('archivo/{archivo}/copias','ArchivoController@getCopias');
     Route::get('archivo/{archivo}/original','ArchivoController@getOriginal');
 });

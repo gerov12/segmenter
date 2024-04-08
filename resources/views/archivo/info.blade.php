@@ -9,7 +9,7 @@
          @php
             $unico = false;
          @endphp
-         <button class="badge badge-pill badge-warning" data-toggle="modal" data-dismiss="modal" data-info="true" data-archivo="{{$archivo->id}}" data-name="{{$archivo->nombre_original}}" data-target="#originalModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></button>
+         <button class="badge badge-pill badge-warning" data-toggle="modal" data-dismiss="modal" data-info="true" data-archivo="{{$archivo->id}}" data-name="{{$archivo->nombre_original}}" data-limpiable="{{$owned}}" data-target="#originalModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></button>
       @elseif ($archivo->copias_count > 1)
          @php
             $unico = false;

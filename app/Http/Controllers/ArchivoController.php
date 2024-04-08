@@ -53,7 +53,7 @@ class ArchivoController extends Controller
                     if($data->id != $data->original->id){
                         $unico = false;
                         Log::warning($data->nombre_original." es copia!");
-                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-target="#originalModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></button><br>';
+                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-limpiable="' . $owned . '" data-target="#originalModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></button><br>';
                     } else if ($data->copias_count > 1) {
                         $unico = false;
                         Log::info($data->nombre_original." es el archivo original! (Tiene ".$data->numCopias." copias)");
@@ -155,7 +155,7 @@ class ArchivoController extends Controller
 
     private static function countEstados($archivos){
         $count_archivos_repetidos = $archivos->filter(function ($archivo) {
-            return $archivo->id != $archivo->original->id;
+            return $archivo->esCopia;
         })->count();
 
         $count_null_checksums = $archivos->filter(function ($archivo) {
@@ -341,36 +341,50 @@ class ArchivoController extends Controller
     }
     
     //no envio los repetidos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
-    public function eliminar_repetidos() {
+    public function eliminar_repetidos($archivo_id = null) {
 
 
-        flash('Función aún en testeo...')->warning()->important();
-        return redirect('archivos');
+        //flash('Función aún en testeo...')->warning()->important();
+        //return redirect('archivos');
         //Aún falta testeo
 
         $this->middleware('can:run-setup');
 
         try {
-            if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
-                // Para todos los archivos
-                $archivos = Archivo::all();
-                $eliminados = 0;
-                Log::error("------------- ELIMINAR ARCHIVOS REPETIDOS -----------------------------");
-                foreach ($archivos as $archivo){
-                    if ( $archivo->esCopia ){
-                        // Archivo repetido
-                        $original = Archivo::where('checksum',$archivo->checksum)->orderby('id','asc')->first();
-                    } else {
-                        Log::info("Archivo " . $archivo->id . ". Checksum: " . $archivo->checksum.". Es el archivo original." );
+            $user = Auth::user();
+            $success = true;
+            if ($archivo_id) {
+                $archivo = Archivo::findOrFail($archivo_id);
+                if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
+                    $archivo->limpiarCopia();
+                    flash('Se eliminó la copia ' . $archivo->nombre_original)->info();
+                } else {
+                    $success = false;
+                }       
+            } else {
+                if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
+                    // Para todos los archivos
+                    $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
+                        return $archivo->esCopia;
+                    });
+                    $eliminados = 0;
+                    foreach ($archivos as $archivo){
+                        $archivo->limpiarCopia();
+                        $eliminados++;
                     }
+                    flash($eliminados . " archivos copia limpiados.")->info();
+                    return redirect('archivos');
+                } else {
+                    $success = false;
                 }
-                flash($eliminados . " archivos eliminados de ".$archivos->count()." encontrados.")->info();
+            }
+
+            if ($success == true) { 
                 return redirect('archivos');
             } else {
-                flash('message', 'No tienes permiso para hacer eso.')->error();
+                flash('No tienes permiso para hacer eso.')->error();
                 return back();
             }
-            return view('archivo.list');
         } catch (PermissionDoesNotExist $e) {
             flash('message', 'No existe el permiso "Administrar Archivos" o "Ver Archivos"')->error();
         }
@@ -404,7 +418,7 @@ class ArchivoController extends Controller
                     foreach ($archivos as $archivo){
                             $archivo->checksumRecalculate();
                             $recalculados++;
-                                            }
+                    }
                     flash($recalculados . " checksums recalculados.")->info();
                 } else {
                     $success = false;
@@ -470,7 +484,7 @@ class ArchivoController extends Controller
     public function listar_repetidos(){
         $user = Auth::user();
         $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
-            return $archivo->id != $archivo->original->id;
+            return $archivo->esCopia;
         });
         $repetidos = [];
         foreach ($archivos as $archivo){
