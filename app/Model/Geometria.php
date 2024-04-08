@@ -126,7 +126,7 @@ WITH shapes (geom, attribute, tipo) AS
    ) foo order by orden asc
 )
 SELECT concat(
-       '<svg id=\"geometria_".$this->codigo."_botonera\"xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 70 70\" height=\"80\" width=\"".$width."\">',
+       '<svg id=\"geometria_".$this->codigo."_botonera\"xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 60 60\" height=\"80\" width=\"".$width."\">',
  '<circle style=\"opacity: 10%;\" class=\"compass\" cx=\"".(+30)."\" cy=\"".(30)."\" r=\"28\"></circle>
        <circle style=\"opacity: 20%;\" class=\"button\" cx=\"".(+30)."\" cy=\"".(36)."\"
        r=\"7\"
