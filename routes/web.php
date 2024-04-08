@@ -217,7 +217,9 @@ Route::middleware(['auth'])->group(function () {
 Route::get('provs-list', 'ProvinciaController@provsList');
 Route::get('provs','ProvinciaController@index');
 Route::get('prov/{provincia}','ProvinciaController@show');
+Route::get('provincia/{provincia}','ProvinciaController@show');
 Route::post('prov/{provincia}','ProvinciaController@show_post');
+
 Route::delete('provincia/{provincia}','ProvinciaController@destroy')->name('provincia.delete');
 
 // ---------- DEPARTAMENTOS --------
@@ -267,6 +269,12 @@ Route::middleware(['auth'])->group(function () {
   Route::get('entidades/cargar', 'EntidadController@cargar')->name('entidades.cargar');
   Route::post('entidades/cargar', 'EntidadController@store');
 });
+
+// ---------- OPERATIVOS ----------
+Route::get('operativos', 'OperativoController@index')->name('operativos');
+Route::get('operativo/{operativo}','OperativoController@show');
+Route::get('operativos-list', 'OperativoController@operativosList');
+Route::post('operativo/{operativo}','OperativoController@show');
 
 
 // --------- SEGMENTACION X AGLOMERADO ---------

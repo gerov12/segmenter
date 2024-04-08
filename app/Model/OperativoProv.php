@@ -20,4 +20,13 @@ class OperativoProv extends Model
         return $this->hasMany('App\Model\Provincia','provincia_id');
     }
 
+    /**
+     * Relación con Operativo.
+     *
+     */
+
+     public function operativo(): hasMany
+     {
+         return $this->hasMany('App\Model\Operativo','operativo_id');
+     }
 }

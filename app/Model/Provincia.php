@@ -8,6 +8,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\View\ViewException;
 use GuzzleHttp\Exception\RequestException;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Provincia extends Model
 {
@@ -67,9 +68,9 @@ class Provincia extends Model
     /**
      * Relación con Operativo, diretamente puede tener varios operativos.
      */
-    public function operativos()
+    public function operativos(): BelongsToMany
     {
-        return $this->hasMany('App\Model\OperativoProv');
+        return $this->BelongsToMany('App\Model\Operativo','operativo_provincia','provincia_id','operativo_id');
     }
 
     /**
