@@ -25,7 +25,7 @@ class EntidadController extends Controller
         return view('entidad.info', [
             'entidad' => $oEntidad
             ,'provincia' => $oProvincia ?? new Provincia (['nombre'=>'No province','id'=>0,'codigo'=>0])
-            ,'svg' => $oEntidad->geometria()->first()->getSVG() ?? (new Geometria([]))->getSVG()
+            ,'svg' => $oEntidad->geometria()->first()->getSVG(400,400) ?? (new Geometria([]))->getSVG()
         ]);
       }else{
         return view('entidad.view', [

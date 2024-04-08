@@ -24,12 +24,10 @@ class Geometria extends Model
     }
 
       // return SVG Geometria poligono
-    public function getSVG() {
+    public function getSVG( $width = 600, $height = 400) {
       //    Utiliza tablas listado_geo, r3 junto a segmentacion y manzanas.
-          $width = 600;
           $escalar = false;
           $perimeter = 2400;
-          $height = 400;
           $stroke = 2;
           $extent = DB::select("SELECT box2d(st_collect(poligono)) box FROM
           ".$this->table."
@@ -126,7 +124,7 @@ WITH shapes (geom, attribute, tipo) AS
    ) foo order by orden asc
 )
 SELECT concat(
-       '<svg id=\"geometria_".$this->codigo."_botonera\"xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 60 60\" height=\"80\" width=\"".$width."\">',
+"./*       '<svg id=\"geometria_".$this->codigo."_botonera\"xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 60 60\" height=\"80\" width=\"".$width."\">',
  '<circle style=\"opacity: 10%;\" class=\"compass\" cx=\"".(+30)."\" cy=\"".(30)."\" r=\"28\"></circle>
        <circle style=\"opacity: 20%;\" class=\"button\" cx=\"".(+30)."\" cy=\"".(36)."\"
        r=\"7\"
@@ -140,6 +138,7 @@ onclick=\"zoom(1.1)\"/>
 <path style=\"opacity: 10%;\" class=\"button\" onclick=\"pan(-25, 0)\" d=\"M".(+55)." ".(+30)." l-10 -6 a35 20 0 0 1 0 12z\" />
 ',
  '</svg>',
+ */"
        '<svg id=\"geometria_".$this->codigo."\"xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"".$viewBox.
  "\" height=\"".$height."\" width=\"".$width."\">',
  ' <g id=\"matrix-group\" transform=\"matrix(1 0 0 1 0 0)\">',

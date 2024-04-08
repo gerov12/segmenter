@@ -15,8 +15,26 @@ parte de  {{ count($provincia->operativos) }} operativos
 </p>
     @endif
     @if ($entidad)
-    {{ $entidad->codigo }}
-    {{ $entidad->nombre }}
+      <ul>
+      <li class="btn  btn-outline-secondry" style="margin-bottom: 1px" >
+        <h4>
+          <a href="{{ url("/localidad/{$entidad->localidad->id}") }}" >
+          ({{ $entidad->localidad->codigo }})
+          {{ $entidad->localidad->nombre }}
+          </a>
+        </h4>
+      </li>
+      <br />
+      <li class="btn  btn-outline-secondry" style="margin-bottom: 1px" >
+        <a href="{{ url("/entidad/{$entidad->id}") }}" >
+        <h3>
+          ({{ $entidad->codigo }})
+          {{ $entidad->nombre }}
+        </h3>
+        </a>
+      </li>
+    </ul>
     @endif
-    {{!! $svg !!}}
+
+    {!! $svg !!}
 <div/>
