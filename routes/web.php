@@ -275,6 +275,7 @@ Route::get('operativos', 'OperativoController@index')->name('operativos');
 Route::get('operativo/{operativo}','OperativoController@show');
 Route::get('operativos-list', 'OperativoController@operativosList');
 Route::post('operativo/{operativo}','OperativoController@show');
+Route::get('operativo/seleccionar/{operativo}','OperativoController@seleccionar');
 
 
 // --------- SEGMENTACION X AGLOMERADO ---------

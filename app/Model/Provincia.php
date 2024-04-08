@@ -123,4 +123,13 @@ class Provincia extends Model
     static function getxCodigo(text $codigo) {
 
     }
+
+    /**
+     * Scope to filter provincia by a given operativo.
+     */
+    public function scopeOperativo($query, $operativo) {
+      return $query->where(['operativo' => function ($q) {
+          $q == $operativo;
+      }]);
+  }
 }

@@ -9,6 +9,7 @@ use Auth;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 
 class OperativoController extends Controller
 {
@@ -75,4 +76,14 @@ class OperativoController extends Controller
             ->make(true);
     }
 
+    /**
+     * Seleccionar Operativo
+     */
+    public function seleccionar(Operativo $operativo, Request $request) //: View
+    {
+      $oOperativo =  Operativo::findOrNew($operativo);
+      $operativo_actual = session::put('operativo', $oOperativo->toArray());
+      return view('home');
+
+    }
 }
