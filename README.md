@@ -115,6 +115,11 @@ php artisan migrate
 php artisan db:seed
 ```
 
+- Permitir el acceso público al storage de Laravel, creando un link simbolico entre el mismo (*storage/app/public*) y la carpeta pública (*public/storage*). Esto es necesario para el correcto funcionamiento de las fotos de perfil de usuario
+```bash
+php artisan storage:link
+```
+
 - Para configurar las tareas programadas de laravel agregamos al cron (vía crontab -e)
 ```
 * * * * * cd segmenter && php artisan schedule:run >> /dev/null 2>&1

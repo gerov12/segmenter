@@ -227,19 +227,26 @@
       <div class="modal-body">
         <table class="table" id="tabla-permisos">
           <tbody>
-            @if ($permisos->count() > 0)
-              @foreach ($permisos as $permiso)
-              <tr>                                         
-                <td class="col align-self-center">
-                  {{$permiso->name}}
-                  @if ($permisos_roles->contains($permiso->name) or $usuario->hasRole('Super Admin'))
-                    <span class="badge badge-pill badge-danger ml-2">Heredado de rol</span>
-                  @endif
-                </td>
-              </tr> 
-              @endforeach
-            @else
-              No tenés permisos asignados.
+            @if ($usuario->hasRole('Super Admin'))
+              <div>
+                Este usuario cuenta con todos los permisos.
+                <span class="badge badge-pill badge-danger ml-1">Heredado de rol</span>
+              </div>
+            @else 
+              @if ($permisos->count() > 0)
+                @foreach ($permisos as $permiso)
+                <tr>                                         
+                  <td class="col align-self-center">
+                    {{$permiso->name}}
+                    @if ($permisos_roles->contains($permiso->name))
+                      <span class="badge badge-pill badge-danger ml-2">Heredado de rol</span>
+                    @endif
+                  </td>
+                </tr> 
+                @endforeach
+              @else
+                No tenés permisos asignados.
+              @endif
             @endif
           </tbody>
         </table>

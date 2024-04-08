@@ -2,10 +2,10 @@
 
 @section('content')
 <div class="container">
-<h2>Listado de archivos con checksums obsoletos </h2>
+<h2>Listado de archivos con checksums con error </h2>
   @can('Administrar Archivos', 'Ver Archivos')
-    @if(count($checksums_obsoletos) > 0)
-    <h4><a href="{{route('sincronizar_checksums')}}" onclick="return confirmarCalculo()" class="btn btn-primary"> Sincronizar ({{count($checksums_obsoletos)}})</a></h4>
+    @if(count($checksums_erroneos) > 0)
+    <h4><a href="{{route('recalcular_checksums')}}" onclick="return confirmarCalculo()" class="btn btn-primary"> Recalcular ({{count($checksums_erroneos)}})</a></h4>
     @endif
   @endcan
   <br>
@@ -18,8 +18,8 @@
             {{Session::get('info')}}
           </div>
         @endif
-        <table class="table table-bordered" id="tabla-obsoletos">
-          @if($checksums_obsoletos !== null)
+        <table class="table table-bordered" id="tabla-erroneos">
+          @if($checksums_erroneos !== null)
           <thead>
             <tr>
               <th>Nombre</th>
@@ -30,7 +30,7 @@
             </tr>
           </thead>
           <tbody>
-            @foreach ($checksums_obsoletos as $archivo)
+            @foreach ($checksums_erroneos as $archivo)
             <tr>
               <td>{{$archivo['archivo']->nombre_original}}</td>
               <td>{{$archivo['archivo']->created_at->format('d-M-Y')}}</td>
@@ -47,7 +47,7 @@
             @endforeach
           </tbody>
           @else
-          <h1>No hay checksums obsoletos</h1>
+          <h1>No hay checksums con error</h1>
           @endif
         </table>
       </div>
@@ -60,7 +60,7 @@
 <script>src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"</script>
 <script>src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap4.min.js"</script>
 <script>
-  $('#tabla-obsoletos').DataTable({
+  $('#tabla-erroneos').DataTable({
     language: {
       "sProcessing":     "Procesando...",
       "sLengthMenu":     "Mostrar _MENU_ registros",
