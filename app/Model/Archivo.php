@@ -60,8 +60,6 @@ class Archivo extends Model
 
     // Funciona para checksum shape (varios files)
     private static function checksumCalculate($request_file, $shape_files = []){
-        // O generar archivo comprimido de una vez :/
-        // DO IT
         $checksum = md5_file($request_file); //->getRealPath());
         if ($shape_files != null){
             $checksums[] = $checksum;
@@ -76,7 +74,7 @@ class Archivo extends Model
         return $checksum;
     }
 
-    //recalcula el checksum según corresponda para archivos con checksums obsoletos
+    //recalcula el checksum según corresponda para archivos con checksums no calculados o erroneos
     public function checksumRecalculate(){
         if ($this->isMultiArchivo()){
             // si soy multiarchivo calculo el checksum en base a mis shapefiles
@@ -84,12 +82,10 @@ class Archivo extends Model
             $shp = array_shift($shape_files);
             $checksum = $this->checksumCalculate($shp, $shape_files);
         } else {
-            $checksum = md5(Storage::get($this->nombre));
+            $file = Storage::get($this->nombre);
+            $checksum = md5($file);
         }
-        // guardo el nuevo checksum en el archivo
-        //$this->checksum = $checksum;
-        //$this->save();
-
+        
         // guardo el checksum en su checksum_control
         $control = $this->checksum_control;
         if (!$control) {
@@ -100,6 +96,22 @@ class Archivo extends Model
         } else {
             $control->checksum = $checksum;
             $control->save();
+            $control->touch(); //actualizo el updated at a pesar de que el checksum no cambie
+            // esto permite pasar del estado "error en checksum" al estado "checksum obsoleto"
+            // una vez que el usuario decide que es correcto recalcular el checksum de un archivo con error
+        }
+    }
+
+    //sincroniza el checksum del archivo con el calculado en su control
+    public function checksumSync(){
+        $this->checksumRecalculate(); //recalculo primero ya que el control puede estar mal tambien
+        $control = $this->checksum_control;
+        if ($control) {
+            // guardo el nuevo checksum en el archivo
+            $this->checksum = $control->checksum;
+            $this->save();
+        } else {
+            Log::error($this->nombre_original.' no tiene el checksum calculado con el nuevo método!');
         }
     }
 
@@ -126,13 +138,27 @@ class Archivo extends Model
         return $result;
     }
 
+    // Funciona para verificar si el error en el checksum se debe a que el calculo es obsoleto o no
+    public function getchecksumObsoletoAttribute(){
+        $result = true;
+        $control = $this->checksum_control;
+        if($control) {
+            if ($this->updated_at >= $control->updated_at) {
+                $result = false;
+            }
+        } else {
+            Log::warning($this->nombre_original.' no tiene el checksum calculado con el nuevo método!');
+        }
+        return $result;
+    }
+
     public function checkStorage(){
         $result = true;
         if ( $this->isMultiArchivo() ){
             $nombre = explode(".",$this->nombre)[0];
             $nombre_original = explode(".",$this->nombre_original)[0];
             // busco para cada extension
-            $extensiones = [".dbf", ".shx", ".prj"];
+            $extensiones = [".shp", ".shx", ".dbf", ".prj"];
             foreach ($extensiones as $extension) {
                 $n = $nombre . $extension;
                 if(Storage::exists($n)) {
