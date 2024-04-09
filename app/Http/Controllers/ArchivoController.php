@@ -26,33 +26,10 @@ class ArchivoController extends Controller
         $user = Auth::user();
         $archivos = self::retrieveFiles($user);
         $count_archivos = $archivos->count();
-
-        // necesario ya que del lado de la vista solo puedo recorrer los visibles
-        $count_archivos_repetidos = $archivos->filter(function ($archivo) {
-            return $archivo->id != $archivo->original->id;
-        })->count();
-
-        $count_null_checksums = $archivos->filter(function ($archivo) {
-            return $archivo->checksum_control == null;
-        })->count();
-
-        $controlled_checksums = $archivos->reject(function ($archivo) { 
-            return $archivo->checksum_control == null; // que tengan checksum_control
-        });
-
-        $wrong_checksums = $controlled_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksum_control
-            return !$archivo->checksumOk; //que tengan checksum erroneo
-        });
-
-        $count_error_checksums = $wrong_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksums erroneos
-            return !$archivo->checksumObsoleto; //que no sean obsoletos
-        })->count();
-
-        $count_old_checksums = $wrong_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksums erroneos
-            return !$archivo->checksumOk and $archivo->checksumObsoleto; //que sean obsoletos
-        })->count();
-
-        if ($request->ajax()) {
+        if (!$request->ajax()) {
+            // necesario ya que del lado de la vista solo puedo recorrer los visibles
+            $count_estados = self::countEstados($archivos);
+        } else {
             return Datatables::of($archivos)
                 ->addIndexColumn()
                 ->addColumn('created_at_h', function ($row){
@@ -76,34 +53,34 @@ class ArchivoController extends Controller
                     if($data->id != $data->original->id){
                         $unico = false;
                         Log::warning($data->nombre_original." es copia!");
-                        $info .= '<span class="badge badge-pill badge-warning"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></span><br>';
+                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-limpiable="' . $owned . '" data-target="#originalModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></button><br>';
                     } else if ($data->copias_count > 1) {
                         $unico = false;
                         Log::info($data->nombre_original." es el archivo original! (Tiene ".$data->numCopias." copias)");
-                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-target="#copiasModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copiado ('.$data->numCopias.')</span></button><br>';
+                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-limpiables="' . $owned . '" data-target="#copiasModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copiado ('.$data->numCopias.')</span></button><br>';
                     } else {
                         Log::info($data->nombre_original." es el archivo original!");
                     }
                     if ($data->checksum_control == null){
                         $checksumCalculado = false;
                         Log::warning($data->nombre_original. " Checksum no calculado con el nuevo método!");
-                        $info .= '<button class="badge badge-pill badge-checksum" data-toggle="modal" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="no_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-exclamation-triangle" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Checksum no calculado</span></button><br>';
+                        $info .= '<button class="badge badge-pill badge-checksum" data-toggle="modal" data-info="false" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="no_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-exclamation-triangle" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Checksum no calculado</span></button><br>';
                     } else if (!$data->checksumOk) {
                         $checksumCorrecto = false;
-if ($data->checksumObsoleto) {
+                        if ($data->checksumObsoleto) {
                             Log::error($data->nombre_original.' checksum obsoleto!');
-                            $info .= '<button class="badge badge-pill badge-danger" data-toggle="modal" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="old_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-calendar-x" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Checksum obsoleto</span></button><br>';
+                            $info .= '<button class="badge badge-pill badge-danger" data-toggle="modal" data-info="false" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="old_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-calendar-x" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Checksum obsoleto</span></button><br>';
                         } else {
-                        Log::error($data->nombre_original.' error en el checksum!');
-                        $info .= '<button class="badge badge-pill badge-danger" data-toggle="modal" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="wrong_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-x-circle" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Error de checksum</span></button><br>';
-}
+                            Log::error($data->nombre_original.' error en el checksum!');
+                            $info .= '<button class="badge badge-pill badge-danger" data-toggle="modal" data-info="false" data-name="' . $data->nombre_original . '" data-file="' . $data->id . '" data-status="wrong_check" data-recalculable="' . $owned . '" data-target="#checksumModal"><span class="bi bi-x-circle" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Error de checksum</span></button><br>';
+                        }
                     } else {
                         Log::info($data->nombre_original.' checksum ok!');
                     }
-                    if (!$data->checkStorage()){
-                        $storageOk = false;       
-                        $info .= '<span class="badge badge-pill badge-dark"><span class="bi bi-archive" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Problema de storage</span></span><br>';
-                    }
+                    // if (!$data->checkStorage()){
+                    //     $storageOk = false;       
+                    //     $info .= '<span class="badge badge-pill badge-dark"><span class="bi bi-archive" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Problema de storage</span></span><br>';
+                    // }
                     if ($unico and $checksumCalculado and $checksumCorrecto and $storageOk){
                         $info .= '<span class="badge badge-pill badge-success"><span class="bi bi-check" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> OK</span></span><br>';
                     }
@@ -140,11 +117,11 @@ if ($data->checksumObsoleto) {
         }
 
         return view('archivo.list')->with([
-            'data'=>$archivos, 
-            'count_archivos_repetidos' => $count_archivos_repetidos,
-            'count_null_checksums' => $count_null_checksums,
-            'count_error_checksums' => $count_error_checksums,
-            'count_old_checksums' => $count_old_checksums
+            'data' => $archivos, 
+            'count_archivos_repetidos' => $count_estados["repetidos"],
+            'count_null_checksums' => $count_estados["null"],
+            'count_error_checksums' => $count_estados["error"],
+            'count_old_checksums' => $count_estados["old"]
         ]);
     }
 
@@ -155,6 +132,12 @@ if ($data->checksumObsoleto) {
             return $copia;
         });
         return response()->json($copias);
+    }
+
+    public function getOriginal(Archivo $archivo) {
+        $original = $archivo->original()->with('user')->first();
+        $original->fecha = $original->created_at->format('d-M-Y');
+        return response()->json($original);
     }
 
     private static function retrieveFiles($user){
@@ -168,6 +151,34 @@ if ($data->checksumObsoleto) {
             Session::flash('message', 'No existe el permiso "Ver Archivos"');
         }
         return $archivos;
+    }
+
+    private static function countEstados($archivos){
+        $count_archivos_repetidos = $archivos->filter(function ($archivo) {
+            return $archivo->esCopia;
+        })->count();
+
+        $count_null_checksums = $archivos->filter(function ($archivo) {
+            return $archivo->checksum_control == null;
+        })->count();
+
+        $controlled_checksums = $archivos->reject(function ($archivo) { 
+            return $archivo->checksum_control == null; // que tengan checksum_control
+        });
+
+        $wrong_checksums = $controlled_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksum_control
+            return !$archivo->checksumOk; //que tengan checksum erroneo
+        });
+
+        $count_error_checksums = $wrong_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksums erroneos
+            return !$archivo->checksumObsoleto; //que no sean obsoletos
+        })->count();
+
+        $count_old_checksums = $wrong_checksums->filter(function ($archivo) { //filtro unicamente por los que tienen checksums erroneos
+            return !$archivo->checksumOk and $archivo->checksumObsoleto; //que sean obsoletos
+        })->count();
+
+        return ["repetidos"=>$count_archivos_repetidos, "null"=>$count_null_checksums, "error"=>$count_error_checksums, "old"=>$count_old_checksums];
     }
 
     /**
@@ -202,8 +213,15 @@ if ($data->checksumObsoleto) {
     {
     	//
 ///      return response($request->format);
-      $result = $archivo->load('user');
+      $result = Archivo::withCount(['viewers','copias'])->with(['user','checksum_control','original', 'original.user'])->findOrFail($archivo->id);
       if ($request->format == 'html') {
+        $size = $result->size;
+        if ( $size > 0 ) {
+        $size = (int) $size;
+        $base = log($size) / log(1024);
+        $suffixes = array(' bytes', ' KB', ' MB', ' GB', ' TB');
+        $result->tamaño = round(pow(1024, $base - floor($base)), 1) . $suffixes[floor($base)];
+        }
         return view('archivo.info')->with(['archivo'=>$result]);
       }
      	return $result;
@@ -296,7 +314,17 @@ if ($data->checksumObsoleto) {
     {
 	    // Mensaje extraño
 	    $mensaje = $archivo->procesar()?'ik0':'m4l';
-      return view('archivo.list');
+
+        $user = Auth::user();
+        $archivos = self::retrieveFiles($user);
+        $count_estados = self::countEstados($archivos);
+        return view('archivo.list')->with([
+            'data' => $archivos, 
+            'count_archivos_repetidos' => $count_estados["repetidos"],
+            'count_null_checksums' => $count_estados["null"],
+            'count_error_checksums' => $count_estados["error"],
+            'count_old_checksums' => $count_estados["old"]
+        ]);
     }
 
     /**
@@ -313,36 +341,64 @@ if ($data->checksumObsoleto) {
     }
     
     //no envio los repetidos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
-    public function eliminar_repetidos() {
+    public function eliminar_repetidos($archivo_id = null, $copias = null) {
 
-
-        flash('Función aún en testeo...')->warning()->important();
-        return redirect('archivos');
+        //flash('Función aún en testeo...')->warning()->important();
+        //return redirect('archivos');
         //Aún falta testeo
 
         $this->middleware('can:run-setup');
 
         try {
-            if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
-                // Para todos los archivos
-                $archivos = Archivo::all();
-                $eliminados = 0;
-                Log::error("------------- ELIMINAR ARCHIVOS REPETIDOS -----------------------------");
-                foreach ($archivos as $archivo){
-                    if ( $archivo->esCopia ){
-                        // Archivo repetido
-                        $original = Archivo::where('checksum',$archivo->checksum)->orderby('id','asc')->first();
-                    } else {
-                        Log::info("Archivo " . $archivo->id . ". Checksum: " . $archivo->checksum.". Es el archivo original." );
+            $user = Auth::user();
+            $success = true;
+            
+            if ($archivo_id && $copias) {
+                $archivo = Archivo::findOrFail($archivo_id);
+                if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
+                    $eliminados = 0;
+                    $copias = $archivo->copias()->with('user')->where('id', '!=' , $archivo->id)->get();
+                    foreach ($copias as $archivo){
+                        $archivo->limpiarCopia();
+                        $eliminados++;
                     }
+                    flash("Se limpiaron ". $eliminados . " copias de " . $archivo->nombre_original . ".")->info();
+                    return redirect('archivos');
+                } else {
+                    $success = false;
                 }
-                flash($eliminados . " archivos eliminados de ".$archivos->count()." encontrados.")->info();
+            } else if ($archivo_id) {
+                    $archivo = Archivo::findOrFail($archivo_id);
+                    if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
+                        $archivo->limpiarCopia();
+                        flash('Se eliminó la copia ' . $archivo->nombre_original)->info();
+                    } else {
+                        $success = false;
+                    } 
+            } else {
+                if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
+                    // Para todos los archivos
+                    $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
+                        return $archivo->esCopia;
+                    });
+                    $eliminados = 0;
+                    foreach ($archivos as $archivo){
+                        $archivo->limpiarCopia();
+                        $eliminados++;
+                    }
+                    flash($eliminados . " archivos copia limpiados.")->info();
+                    return redirect('archivos');
+                } else {
+                    $success = false;
+                }
+            }
+
+            if ($success == true) { 
                 return redirect('archivos');
             } else {
-                flash('message', 'No tienes permiso para hacer eso.')->error();
+                flash('No tienes permiso para hacer eso.')->error();
                 return back();
             }
-            return view('archivo.list');
         } catch (PermissionDoesNotExist $e) {
             flash('message', 'No existe el permiso "Administrar Archivos" o "Ver Archivos"')->error();
         }
@@ -356,13 +412,19 @@ if ($data->checksumObsoleto) {
         //Aún falta testeo
 
         try {
-            if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
-                //si envié un archivo calculo ese
-                if ($archivo_id) {
-                    $archivo = Archivo::findOrFail($archivo_id);
+            $user = Auth::user();
+            $success = true;
+            //si envié un archivo calculo ese
+            if ($archivo_id) {
+                $archivo = Archivo::findOrFail($archivo_id);
+                if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                     $archivo->checksumRecalculate();
                     flash('Checksum recalculado para el archivo ' . $archivo->nombre_original)->info();
                 } else {
+                    $success = false;
+                }           
+            } else {
+                if ($user->can(['Administrar Archivos', 'Ver Archivos'])){
                     $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
                         return !$archivo->checksumOk and !$archivo->checksumObsoleto;
                     });
@@ -370,9 +432,14 @@ if ($data->checksumObsoleto) {
                     foreach ($archivos as $archivo){
                             $archivo->checksumRecalculate();
                             $recalculados++;
-                                            }
+                    }
                     flash($recalculados . " checksums recalculados.")->info();
+                } else {
+                    $success = false;
                 }
+            }
+
+            if ($success == true) { 
                 return redirect('archivos');
             } else {
                 flash('No tienes permiso para hacer eso.')->error();
@@ -391,13 +458,19 @@ if ($data->checksumObsoleto) {
         //Aún falta testeo
 
         try {
-            if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
-                //si envié un archivo calculo ese
-                if ($archivo_id) {
-                    $archivo = Archivo::findOrFail($archivo_id);
+            $user = Auth::user();
+            $success = true;
+            //si envié un archivo sincronizo ese
+            if ($archivo_id) {
+                $archivo = Archivo::findOrFail($archivo_id);
+                if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                     $archivo->checksumSync();
                     flash('Checksum sincronizado para el archivo ' . $archivo->nombre_original)->info();
                 } else {
+                    $success = false;
+                }
+            } else {
+                if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
                     $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
                         return !$archivo->checksumOk and $archivo->checksumObsoleto;
                     });
@@ -407,7 +480,11 @@ if ($data->checksumObsoleto) {
                         $sincronizados++;
                     }
                     flash($sincronizados . " checksums sincronizados.")->info();
+                } else {
+                    $success = false;
                 }
+            }
+            if ($success == true) {
                 return redirect('archivos');
             } else {
                 flash('No tienes permiso para hacer eso.')->error();
@@ -421,7 +498,7 @@ if ($data->checksumObsoleto) {
     public function listar_repetidos(){
         $user = Auth::user();
         $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
-            return $archivo->id != $archivo->original->id;
+            return $archivo->esCopia;
         });
         $repetidos = [];
         foreach ($archivos as $archivo){
@@ -435,7 +512,7 @@ if ($data->checksumObsoleto) {
         $user = Auth::user();
         $archivos = self::retrieveFiles($user);
         $checksums_no_calculados = $archivos->filter(function ($archivo) {
-            return !$archivo->checksum_control !== null;
+            return $archivo->checksum_control === null;
         });
         return view('archivo.checksums_no_calculados', compact('checksums_no_calculados'));
     }

@@ -717,7 +717,7 @@ class Archivo extends Model
         $nombre_copia = explode(".",$this->nombre)[0];
 
         // busco para cada extension
-        $extensiones = [".dbf", ".shx", ".prj"];
+        $extensiones = [".shp", ".shx", ".dbf", ".prj"];
         foreach ($extensiones as $extension) {
             Log::info("Verificando archivos con extensión ".$extension." en el storage");
             $o = $nombre_original . $extension;
@@ -759,8 +759,9 @@ class Archivo extends Model
         }
     }
 
-    public function limpiar_copia(Archivo $original){
+    public function limpiarCopia(){
         $owner = $this->user;
+        $original = $this->original()->first();
         # En caso de ser necesario le permito al usuario ver el archivo original
         if (($original->user_id != $owner->id) and (!$owner->visible_files()->get()->contains($original))){
             $owner->visible_files()->attach($original->id);
@@ -788,6 +789,10 @@ class Archivo extends Model
             # Elimino la relación con todos los viewers
             $this->viewers()->detach();
             Log::info("Se eliminaron los viewers de la copia.");
+        }
+        $control = $this->checksum_control;
+        if ($control) {
+            $control->delete();
         }
         $this->delete();
         Log::info("Se eliminó el registro perteneciente a la copia");

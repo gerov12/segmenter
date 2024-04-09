@@ -5,7 +5,7 @@
 <h2>Listado de archivos con checksums con error </h2>
   @can('Administrar Archivos', 'Ver Archivos')
     @if(count($checksums_erroneos) > 0)
-    <h4><a href="{{route('recalcular_checksums')}}" onclick="return confirmarCalculo()" class="btn btn-primary"> Recalcular ({{count($checksums_erroneos)}})</a></h4>
+    <h4><a href="{{route('recalcular_checksums')}}" onclick="return confirmarCalculoBulk()" class="btn btn-success"> Recalcular ({{count($checksums_erroneos)}})</a></h4>
     @endif
   @endcan
   <br>
@@ -27,6 +27,7 @@
               <th>Cargador</th>
               <th>Checksum obsoleto</th>
               <th>Checksum recalculado</th>
+              <th>*</th>
             </tr>
           </thead>
           <tbody>
@@ -43,6 +44,11 @@
                 {{$archivo['control']->checksum}} <br>
                 ({{$archivo['control']->updated_at->format('d-M-Y H:i:s')}})
               </td>
+              @if ($archivo['archivo']->ownedByUser(Auth::user()) || Auth::user()->can('Administrar Archivos', 'Ver Archivos'))
+              <td style="text-align: center;"><a href="{{route('recalcular_checksums', ['archivo_id' => $archivo['archivo']->id])}}" onclick="return confirmarCalculo()" class="btn btn-success"> Recalcular </a></td>
+              @else
+              <td style="text-align: center;"><i class="bi bi-ban"></i></td>
+              @endif
             </tr>
             @endforeach
           </tbody>
@@ -93,6 +99,9 @@
 </script>
 <script type="text/javascript">
   function confirmarCalculo(){
+    return confirm("¿Estás seguro de que deseas recalcular el checksum? Esta acción es irreversible.");
+  };
+  function confirmarCalculoBulk(){
     return confirm("¿Estás seguro de que deseas recalcular el checksum? Esta acción es irreversible.");
   };
 </script>

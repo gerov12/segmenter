@@ -60,7 +60,8 @@
       <button id="checksum-file-download-button" type="button" class="btn_descarga btn-sm btn-secondary" > Descargar Archivo </button>
       <!-- al botón se le carga la ruta correspondiente en el script y se muestra si corresponde -->
       <button id="checksum-button" type="button" class="btn-sm btn-success"></button>
-      <button type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
+      <button id="close-button-check" type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
+      <button id="back-button-check" class="btn-sm btn-primary float-right btn-detalles" data-target="#empModal" data-toggle="modal" data-dismiss="modal">Volver</button>
     </div>
     </div>
   </div>
@@ -70,24 +71,62 @@
   <div class="modal fade" id="copiasModal" role="dialog">
   <div class="modal-dialog">
     <div class="modal-content">
-    <div class="modal-header">
-      <h4 class="modal-title"></h4>
-      <button type="button" class="close" data-dismiss="modal">&times;</button>
+      <div class="modal-header">
+        <h4 class="modal-title"></h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-bordered" id="tabla-repetidos">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Creación</th>
+              <th>Cargado por</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- acá se cargará la info de las copias -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <!-- al botón se le carga la ruta correspondiente en el script y se muestra si corresponde -->
+        <button id="delete-copies-button" type="button" class="btn-sm btn-danger">Limpiar copias</button>
+        <button id="close-button-copias" type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
+        <button id="back-button-copias" class="btn-sm btn-primary float-right btn-detalles" data-target="#empModal" data-toggle="modal" data-dismiss="modal">Volver</button>
+      </div>
     </div>
-    <div class="modal-body">
-      <table class="table table-bordered" id="tabla-repetidos">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Creación</th>
-            <th>Cargado por</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- acá se cargará la info de las copias -->
-        </tbody>
-      </table>
-    </div>
+  </div>
+  </div>
+
+  <!-- Modal original de archivo copiado -->
+  <div class="modal fade" id="originalModal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title"></h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-bordered" id="tabla-original">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Creación</th>
+              <th>Cargado por</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- acá se cargará la info del archivo original -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <!-- al botón se le carga la ruta correspondiente en el script y se muestra si corresponde -->
+        <button id="delete-copy-button" type="button" class="btn-sm btn-danger">Limpiar copia</button>
+        <button id="close-button-original" type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
+        <button id="back-button-original" class="btn-sm btn-primary float-right btn-detalles" data-target="#empModal" data-toggle="modal" data-dismiss="modal">Volver</button>
+      </div>
     </div>
   </div>
   </div>
@@ -129,8 +168,8 @@
               <th>Checksum</th>
               <th>Tamaño</th>
               <th>Creación</th>
-              <th>Cargador</th>
-              <th alt="Observadores" >(o)</th>
+              <th>Cargado por</th>
+              <th title="Observadores" alt="Observadores" ><i class="bi bi-eye-fill" style="font-size:15px"></i></th>
               <th>Estado</th>
               <th> * </th>
           </tr>
@@ -220,6 +259,7 @@
 
             // Display Modal
             $('#empModal').modal('show'); 
+            $
           }
         });
         console.log( 'You clicked on '+data.id+'\'s row' );
@@ -233,12 +273,15 @@
         var nombre_original = button.data('name'); 
         var status = button.data('status'); 
         var recalculable = button.data('recalculable'); 
+        var info = button.data('info');
 
         $(this).find('.modal-title').text('Info sobre checksum (' + nombre_original + ')');
 
         var modalBody = $(this).find('.modal-body');
         var modalfooter = $(this).find('.modal-footer');
         var botonRecalcular = modalfooter.find('#checksum-button');
+        var botonCerrar = modalfooter.find('#close-button-check');
+        var botonVolver = modalfooter.find('#back-button-check');
 
         if (status === 'no_check') {
           // actualizo mensaje principal
@@ -312,17 +355,38 @@
           botonRecalcular.css('display', 'none');
         }
 
+        if (info === true) {
+          // si vengo de info permito volver
+          botonVolver.css('display', 'block');
+          botonCerrar.css('display', 'none');
+        } else {
+          // sino permito cerrar
+          botonVolver.css('display', 'none');
+          botonCerrar.css('display', 'block');
+        }
+
         // Actualizar la ruta del botón de descarga del archivo
         modalfooter.find("#checksum-file-download-button").off('click').on('click', function() {
             var url = "{{ url('archivo/') }}"+"/"+file_id+"/descargar";
             $(location).attr('href', url);
         });
+
+
     });
 
     // confirm para recalcular desde el modal
     $('#checksum-button').on('click', function(event) {
-        event.preventDefault(); // evita que el botón diriga directamente a su href
-        if (confirm('¿Estás seguro de que deseas calcular el checksum?')) {
+        event.preventDefault(); // evita que el botón dirija directamente a su href
+        var buttonText = $(this).text().trim();
+        var message = "";
+
+        if (buttonText === "Sincronizar Checksum") {
+            message = '¿Estás seguro de que deseas sincronizar el checksum?';
+        } else if (buttonText === "Recalcular Checksum") {
+            message = '¿Estás seguro de que deseas recalcular el checksum?';
+        }
+        
+        if (message !== "" && confirm(message)) {
             window.location.href = $(this).attr('href');
         }
     });
@@ -332,10 +396,15 @@
         var button = $(event.relatedTarget); // botón que activó el modal
         var name = button.data('name');
         var modal = this;
-        console.log(name);
         var archivo = button.data('archivo');
+        var info = button.data('info');
+        var limpiables = button.data('limpiables');
+        var modalfooter = $(this).find('.modal-footer');
+        var botonLimpiar = modalfooter.find('#delete-copies-button');
+        var botonCerrar = modalfooter.find('#close-button-copias');
+        var botonVolver = modalfooter.find('#back-button-copias');
         $.ajax({
-            url: 'archivo/' + archivo + '/copias',
+            url: '/archivo/' + archivo + '/copias',
             type: 'GET',
             dataType: 'json',
             success: function(response){
@@ -344,7 +413,6 @@
 
                   // obtengo el listado de copias de este archivo
                   var copias = response;
-                  console.log(copias);
 
                   // contruyo la tabla de copias
                   var tableBody = '';
@@ -356,9 +424,103 @@
                       tableBody += '</tr>';
                   });
                   $('#tabla-repetidos tbody').html(tableBody);
+
+                  // actualizo la ruta del botón
+                  botonLimpiar.attr('href', "{{ route('limpiar_copias', [':archivo_id', ':copias']) }}".replace(':archivo_id', archivo).replace(':copias', true));
+                  // si tengo los permisos necesarios
+                  if (limpiables) {
+                    // hago visible el botón
+                    botonLimpiar.css('display', 'block');
+                  } else {
+                    // lo oculto
+                    botonLimpiar.css('display', 'none');
+                  }
+
+                  if (info === true) {
+                    // si vengo de info permito volver
+                    botonVolver.css('display', 'block');
+                    botonCerrar.css('display', 'none');
+                  } else {
+                    // sino permito cerrar
+                    botonVolver.css('display', 'none');
+                    botonCerrar.css('display', 'block');
+                  }
                 };
             }
         })
+    });
+
+    // confirm para limpiar copias de un archivo desde el modal
+    $('#delete-copies-button').on('click', function(event) {
+        event.preventDefault(); // evita que el botón diriga directamente a su href
+        if (confirm('Al confirmar se eliminarán todas las copias de este archivo y los usuarios que las cargaron pasarán a ser "observadores" del original. ¿Estás seguro?')) {
+            window.location.href = $(this).attr('href');
+        }
+    });
+
+    //función abrir modal de archivo original
+    $('#originalModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); // botón que activó el modal
+        var name = button.data('name');
+        var modal = this;
+        var archivo = button.data('archivo');
+        var info = button.data('info');
+        var limpiable = button.data('limpiable');
+        var modalfooter = $(this).find('.modal-footer');
+        var botonLimpiar = modalfooter.find('#delete-copy-button');
+        var botonCerrar = modalfooter.find('#close-button-original');
+        var botonVolver = modalfooter.find('#back-button-original');
+        $.ajax({
+            url: '/archivo/' + archivo + '/original',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response){
+                if (response) {
+                  $(modal).find('.modal-title').text('Original del archivo ' + name);
+
+                  // obtengo el original de este archivo
+                  var original = response;
+                  console.log(original.nombre_original);
+                  // contruyo la tabla para la info del original
+                  var tableBody = '';
+                  tableBody += '<tr>';
+                  tableBody += '<td>' + original.nombre_original + '</td>';
+                  tableBody += '<td>' + original.fecha + '</td>';
+                  tableBody += '<td>' + original.user.name + '</td>';
+                  tableBody += '</tr>';
+                  $('#tabla-original tbody').html(tableBody);
+
+                  // actualizo la ruta del botón
+                  botonLimpiar.attr('href', "{{ route('limpiar_archivos', ':archivo_id') }}".replace(':archivo_id', archivo));
+                  // si tengo los permisos necesarios
+                  if (limpiable) {
+                    // hago visible el botón
+                    botonLimpiar.css('display', 'block');
+                  } else {
+                    // lo oculto
+                    botonLimpiar.css('display', 'none');
+                  }
+
+                  if (info === true) {
+                    // si vengo de info permito volver
+                    botonVolver.css('display', 'block');
+                    botonCerrar.css('display', 'none');
+                  } else {
+                    // sino permito cerrar
+                    botonVolver.css('display', 'none');
+                    botonCerrar.css('display', 'block');
+                  }
+                };
+            }
+        })
+    });
+
+    // confirm para limpiar copia desde el modal
+    $('#delete-copy-button').on('click', function(event) {
+        event.preventDefault(); // evita que el botón diriga directamente a su href
+        if (confirm('Al confirmar se eliminará este archivo y pasarás a ser "observador" del archivo original. ¿Estás seguro?')) {
+            window.location.href = $(this).attr('href');
+        }
     });
 
   // Funcion de botón Ver.
