@@ -20,10 +20,10 @@ class CargarSegmentos extends Controller
 
     public function procesar(Request $request)
     {
-        //Procesar solo si está logueado y tiene permiso 
+        //Procesar solo si está logueado y tiene permiso
         if (!Auth::check()){
                flash('Debe estar logueado para realizar esta acción')->error() ->important();
-               return  redirect('/');  
+               return  redirect('/');
         }
 
         // Verificar si el archivo se ha subido
@@ -37,53 +37,37 @@ class CargarSegmentos extends Controller
         //   dd($oArchivoCargado->nombre_original);
         $nombreArchivo = $oArchivoCargado->nombre;
         // Verificar el tipo MIME del archivo
-        
-  
+
+
         $tipoMIME = $oArchivoCargado->mime;
         $tiposMIMEValidos = [
             'application/vnd.ms-excel',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'application/vnd.oasis.opendocument.spreadsheet',
         ];
-        
+
         if (!in_array($tipoMIME, $tiposMIMEValidos)) {
             flash('Error: Solo se pueden cargar archivos de tipo Excel')->error()->important();
             return back();
         }
-         
-        // Obtener el nombre del archivo
-        $nombreArchivo = $oArchivoCargado->nombre;
-        //$nombreArchivo = $request->file('tabla_segmentos')->getClientOriginalName();
-        //flash('Nep 1 el nombre del archivo es '.  $nombreArchivo );
-        $elotroNombre = $oArchivoCargado->nombre_original;
-        //flash('Nep 2  El archivo fue guardado como "'.$elotroNombre.'"')->success();
-        // Verificar si el archivo ya existe en la tabla `archivos`
-        $archivoExistente = Archivo::where('nombre', $nombreArchivo)->first();
-
-        if ($archivoExistente) {
-            flash('El archivo "' . $archivoExistente->nombre_original . '" ya ha sido cargado previamente   .')->error()->important();
-           //return back();
-        }
-      
+//dd($oArchivoCargado);
+       if($oArchivoCargado->wasRecentlyCreated){
+        flash('el archivo es nuevo... se procesa')->important()->success();
         // Insertar los datos en la base de datos
         if (CargarSegmentos::insertOrIgnore($nombreArchivo)) {
-            return view('segmentos.cargar',['data' => null])->with('success', '¡Importación realizada con éxito!');
-        } else {
-            return view('segmentos.cargar',['data' => null])->with('error', 'Hubo un error durante la importación.');
-        }
+          return view('segmentos.cargar',['data' => null])->with('success', '¡Importación realizada con éxito!');
+      } else {
+          return view('segmentos.cargar',['data' => null])->with('error', 'Hubo un error durante la importación.');
+      }
 
-       // Definir la variable $contenido
-        $contenido = $request->toArray();
-        flash('contenido de $contenido ' . $contenido);
-        if (array_key_exists('tabla_segmentos', $contenido)) {
-           $datosImportados = $contenido['tabla_segmentos'];
-        } else {
-           // Mostrar mensaje de error
-           return back()->with('error', 'No se encontraron datos en la solicitud.');
-        }
-       
+       }else{
+        flash('el archivo ya fue visto por aqui... NO se procesa')->error()->important();
+        return view('segmentos.cargar',['data' => null])->with('error','El archivo ya fue visto por aqui... NO se procesa');
+       }
+
+
     }
-    
+
     public function insertOrIgnore($nombreArchivo) {
     // Verificar la extensión del archivo
     //   $extension = pathinfo($nombreArchivo, PATHINFO_EXTENSION);
