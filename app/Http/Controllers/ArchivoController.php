@@ -512,7 +512,7 @@ class ArchivoController extends Controller
         $user = Auth::user();
         $archivos = self::retrieveFiles($user);
         $checksums_no_calculados = $archivos->filter(function ($archivo) {
-            return !$archivo->checksum_control !== null;
+            return $archivo->checksum_control === null;
         });
         return view('archivo.checksums_no_calculados', compact('checksums_no_calculados'));
     }
