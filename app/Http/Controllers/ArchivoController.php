@@ -57,7 +57,7 @@ class ArchivoController extends Controller
                     } else if ($data->copias_count > 1) {
                         $unico = false;
                         Log::info($data->nombre_original." es el archivo original! (Tiene ".$data->numCopias." copias)");
-                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-target="#copiasModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copiado ('.$data->numCopias.')</span></button><br>';
+                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-limpiables="' . $owned . '" data-target="#copiasModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copiado ('.$data->numCopias.')</span></button><br>';
                     } else {
                         Log::info($data->nombre_original." es el archivo original!");
                     }
@@ -341,8 +341,7 @@ class ArchivoController extends Controller
     }
     
     //no envio los repetidos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
-    public function eliminar_repetidos($archivo_id = null) {
-
+    public function eliminar_repetidos($archivo_id = null, $copias = null) {
 
         //flash('Función aún en testeo...')->warning()->important();
         //return redirect('archivos');
@@ -353,14 +352,29 @@ class ArchivoController extends Controller
         try {
             $user = Auth::user();
             $success = true;
-            if ($archivo_id) {
+            
+            if ($archivo_id && $copias) {
                 $archivo = Archivo::findOrFail($archivo_id);
                 if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
-                    $archivo->limpiarCopia();
-                    flash('Se eliminó la copia ' . $archivo->nombre_original)->info();
+                    $eliminados = 0;
+                    $copias = $archivo->copias()->with('user')->where('id', '!=' , $archivo->id)->get();
+                    foreach ($copias as $archivo){
+                        $archivo->limpiarCopia();
+                        $eliminados++;
+                    }
+                    flash("Se limpiaron ". $eliminados . " copias de " . $archivo->nombre_original . ".")->info();
+                    return redirect('archivos');
                 } else {
                     $success = false;
-                }       
+                }
+            } else if ($archivo_id) {
+                    $archivo = Archivo::findOrFail($archivo_id);
+                    if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
+                        $archivo->limpiarCopia();
+                        flash('Se eliminó la copia ' . $archivo->nombre_original)->info();
+                    } else {
+                        $success = false;
+                    } 
             } else {
                 if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
                     // Para todos los archivos

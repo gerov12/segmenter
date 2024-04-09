@@ -90,6 +90,8 @@
         </table>
       </div>
       <div class="modal-footer">
+        <!-- al botón se le carga la ruta correspondiente en el script y se muestra si corresponde -->
+        <button id="delete-copies-button" type="button" class="btn-sm btn-danger">Limpiar copias</button>
         <button id="close-button-copias" type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
         <button id="back-button-copias" class="btn-sm btn-primary float-right btn-detalles" data-target="#empModal" data-toggle="modal" data-dismiss="modal">Volver</button>
       </div>
@@ -396,7 +398,9 @@
         var modal = this;
         var archivo = button.data('archivo');
         var info = button.data('info');
+        var limpiables = button.data('limpiables');
         var modalfooter = $(this).find('.modal-footer');
+        var botonLimpiar = modalfooter.find('#delete-copies-button');
         var botonCerrar = modalfooter.find('#close-button-copias');
         var botonVolver = modalfooter.find('#back-button-copias');
         $.ajax({
@@ -421,6 +425,17 @@
                   });
                   $('#tabla-repetidos tbody').html(tableBody);
 
+                  // actualizo la ruta del botón
+                  botonLimpiar.attr('href', "{{ route('limpiar_copias', [':archivo_id', ':copias']) }}".replace(':archivo_id', archivo).replace(':copias', true));
+                  // si tengo los permisos necesarios
+                  if (limpiables) {
+                    // hago visible el botón
+                    botonLimpiar.css('display', 'block');
+                  } else {
+                    // lo oculto
+                    botonLimpiar.css('display', 'none');
+                  }
+
                   if (info === true) {
                     // si vengo de info permito volver
                     botonVolver.css('display', 'block');
@@ -433,6 +448,14 @@
                 };
             }
         })
+    });
+
+    // confirm para limpiar copias de un archivo desde el modal
+    $('#delete-copies-button').on('click', function(event) {
+        event.preventDefault(); // evita que el botón diriga directamente a su href
+        if (confirm('Al confirmar se eliminarán todas las copias de este archivo y los usuarios que las cargaron pasarán a ser "observadores" del original. ¿Estás seguro?')) {
+            window.location.href = $(this).attr('href');
+        }
     });
 
     //función abrir modal de archivo original
@@ -455,7 +478,7 @@
                 if (response) {
                   $(modal).find('.modal-title').text('Original del archivo ' + name);
 
-                  // obtengo el listado de copias de este archivo
+                  // obtengo el original de este archivo
                   var original = response;
                   console.log(original.nombre_original);
                   // contruyo la tabla para la info del original
@@ -477,8 +500,6 @@
                     // lo oculto
                     botonLimpiar.css('display', 'none');
                   }
-
-                  console.log(info);
 
                   if (info === true) {
                     // si vengo de info permito volver

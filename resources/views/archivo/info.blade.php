@@ -14,7 +14,7 @@
          @php
             $unico = false;
          @endphp
-         <button class="badge badge-pill badge-warning" data-toggle="modal" data-dismiss="modal" data-info="true" data-archivo="{{$archivo->id}}" data-name="{{$archivo->nombre_original}}" data-target="#copiasModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copiado ({{$archivo->numCopias}})</span></button>
+         <button class="badge badge-pill badge-warning" data-toggle="modal" data-dismiss="modal" data-info="true" data-archivo="{{$archivo->id}}" data-name="{{$archivo->nombre_original}}" data-limpiables="{{$owned}}" data-target="#copiasModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copiado ({{$archivo->numCopias}})</span></button>
       @endif
 
       @if ($archivo->checksum_control == null)
