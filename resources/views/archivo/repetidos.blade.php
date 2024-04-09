@@ -5,7 +5,7 @@
 <h2>Listado de archivos repetidos </h2>
   @can('Administrar Archivos', 'Ver Archivos')
     @if(count($repetidos) > 0)
-    <h4><a href="{{route('limpiar_archivos')}}" onclick="return confirmarLimpieza()" class="btn btn-danger"> Limpiar ({{count($repetidos)}})</a></h4>
+    <h4><a href="{{route('limpiar_archivos')}}" onclick="return confirmarLimpiezaBulk()" class="btn btn-danger"> Limpiar ({{count($repetidos)}})</a></h4>
     @endif
   @endcan
   <br>
@@ -28,6 +28,7 @@
               <th>Creación copia</th>
               <th>Dueño original</th>
               <th>Dueño copia</th>
+              <th>*</th>
             </tr>
           </thead>
           <tbody>
@@ -39,6 +40,11 @@
               <td>{{$archivo[1]->created_at->format('d-M-Y')}}</td>
               <td>{{$archivo[0]->user->name}}</td>
               <td>{{$archivo[1]->user->name}}</td>
+              @if ($archivo[0]->ownedByUser(Auth::user()) || $archivo[1]->ownedByUser(Auth::user()) || Auth::user()->can('Administrar Archivos', 'Ver Archivos'))
+              <td style="text-align: center;"><a href="{{route('limpiar_archivos', ['archivo_id' => $archivo[1]->id])}}" onclick="return confirmarLimpieza()" class="btn btn-danger"> Limpiar </a></td>
+              @else
+              <td style="text-align: center;"><i class="bi bi-ban"></i></td>
+              @endif
             </tr>
             @endforeach
           </tbody>
@@ -89,7 +95,10 @@
 </script>
 <script type="text/javascript">
   function confirmarLimpieza(){
-    return confirm("¿Estás seguro de que deseas eliminar todos los archivos repetidos? Esta acción es irreversible.");
+    return confirm('¿Estás seguro de que deseas eliminar el archivo repetido?. El usuario que cargó la copia pasará a ser "observador" del orignal. Esta acción es irreversible.');
+  };
+  function confirmarLimpiezaBulk(){
+    return confirm("¿Estás seguro de que deseas limpiar todos los archivos repetidos? Esta acción es irreversible.");
   };
 </script>
 @endsection
