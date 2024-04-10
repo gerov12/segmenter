@@ -341,7 +341,7 @@ class ArchivoController extends Controller
     }
     
     //no envio los repetidos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
-    public function eliminar_repetidos($archivo_id = null, $copias = null) {
+    public function eliminar_repetidos(Request $request, $archivo_id = null) {
 
         //flash('Función aún en testeo...')->warning()->important();
         //return redirect('archivos');
@@ -352,26 +352,32 @@ class ArchivoController extends Controller
         try {
             $user = Auth::user();
             $success = true;
-            
-            if ($archivo_id && $copias) {
+            $tipo = $request->get('type');
+            if ($archivo_id && $tipo == "bulk") {
                 $archivo = Archivo::findOrFail($archivo_id);
                 if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                     $eliminados = 0;
                     $copias = $archivo->copias()->with('user')->where('id', '!=' , $archivo->id)->get();
+                    $id_copias = $copias->map(function($copia) {
+                        return $copia->id;
+                    });
                     foreach ($copias as $archivo){
                         $archivo->limpiarCopia();
                         $eliminados++;
                     }
-                    flash("Se limpiaron ". $eliminados . " copias de " . $archivo->nombre_original . ".")->info();
-                    return redirect('archivos');
+                    $respuesta = ['statusCode'=> 200, 'id_copias' => $id_copias, 'message' => "Se limpiaron ". $eliminados . " copias de " . $archivo->nombre_original . "."];
+                    return response()->json($respuesta);
+                    $success = false;
                 } else {
                     $success = false;
                 }
-            } else if ($archivo_id) {
+            } else if ($archivo_id && $tipo == "individual") {
                     $archivo = Archivo::findOrFail($archivo_id);
                     if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                         $archivo->limpiarCopia();
-                        flash('Se eliminó la copia ' . $archivo->nombre_original)->info();
+                        $respuesta = ['statusCode'=> 200,'message' => 'Se eliminó la copia ' . $archivo->nombre_original];
+                        return response()->json($respuesta);
+                        $success = false;
                     } else {
                         $success = false;
                     } 
@@ -396,8 +402,8 @@ class ArchivoController extends Controller
             if ($success == true) { 
                 return redirect('archivos');
             } else {
-                flash('No tienes permiso para hacer eso.')->error();
-                return back();
+                //flash('No tienes permiso para hacer eso.')->error();
+                //return back();
             }
         } catch (PermissionDoesNotExist $e) {
             flash('message', 'No existe el permiso "Administrar Archivos" o "Ver Archivos"')->error();

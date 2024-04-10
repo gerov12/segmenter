@@ -91,7 +91,7 @@
       </div>
       <div class="modal-footer">
         <!-- al botón se le carga la ruta correspondiente en el script y se muestra si corresponde -->
-        <button id="delete-copies-button" type="button" class="btn-sm btn-danger">Limpiar copias</button>
+        <button id="delete-copies-button" type="button" class="btn-sm btn-danger" data-dismiss="modal">Limpiar copias</button>
         <button id="close-button-copias" type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
         <button id="back-button-copias" class="btn-sm btn-primary float-right btn-detalles" data-target="#empModal" data-toggle="modal" data-dismiss="modal">Volver</button>
       </div>
@@ -123,7 +123,7 @@
       </div>
       <div class="modal-footer">
         <!-- al botón se le carga la ruta correspondiente en el script y se muestra si corresponde -->
-        <button id="delete-copy-button" type="button" class="btn-sm btn-danger">Limpiar copia</button>
+        <button id="delete-copy-button" type="button" class="btn-sm btn-danger" data-dismiss = modal>Limpiar copia</button>
         <button id="close-button-original" type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
         <button id="back-button-original" class="btn-sm btn-primary float-right btn-detalles" data-target="#empModal" data-toggle="modal" data-dismiss="modal">Volver</button>
       </div>
@@ -132,12 +132,14 @@
   </div>
 
   <div class="container">
-    @if(Session::has('message'))
-      <div class="alert alert-danger alert-dismissible" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        {{Session::get('message')}}
-      </div>
-    @endif
+    <div id="alert-container">
+      @if(Session::has('message'))
+        <div class="alert alert-danger alert-dismissible" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          {{Session::get('message')}}
+        </div>
+      @endif
+    </div>
     <h2>Listado de Archivos</h2>
     <div id="botones-problemas">
       @if($count_archivos_repetidos > 0)
@@ -374,7 +376,7 @@
 
     });
 
-    // confirm para recalcular desde el modal
+    // confirm para recalcular/sincronizar desde el modal
     $('#checksum-button').on('click', function(event) {
         event.preventDefault(); // evita que el botón dirija directamente a su href
         var buttonText = $(this).text().trim();
@@ -425,8 +427,8 @@
                   });
                   $('#tabla-repetidos tbody').html(tableBody);
 
-                  // actualizo la ruta del botón
-                  botonLimpiar.attr('href', "{{ route('limpiar_copias', [':archivo_id', ':copias']) }}".replace(':archivo_id', archivo).replace(':copias', true));
+                  // agrego el campo archivo-id al botón
+                  botonLimpiar.attr('data-archivo-id', archivo);
                   // si tengo los permisos necesarios
                   if (limpiables) {
                     // hago visible el botón
@@ -452,9 +454,37 @@
 
     // confirm para limpiar copias de un archivo desde el modal
     $('#delete-copies-button').on('click', function(event) {
-        event.preventDefault(); // evita que el botón diriga directamente a su href
-        if (confirm('Al confirmar se eliminarán todas las copias de este archivo y los usuarios que las cargaron pasarán a ser "observadores" del original. ¿Estás seguro?')) {
-            window.location.href = $(this).attr('href');
+        var archivo_id = $(this).data('archivo-id');
+        if (confirm('Al confirmar se eliminarán las copias listadas y sus usuarios pasarán a ser "observadores" de este archivo. ¿Estás seguro?')) {
+          $.ajax({
+              url: 'archivos/limpiar/' + archivo_id + '/copias',
+              type: 'POST',
+              data: {
+                type: "bulk"
+              },
+              success: function(response) {
+                var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+                var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                                response.message +
+                              '</div>';
+                $('#alert-container').html(alertHtml);
+                if (response.statusCode == 200) {
+                  var table = $('#laravel_datatable').DataTable();
+                  var copias = response.id_copias;
+                  console.log(copias);
+                  for (const id_copia of copias) {
+                    var rowNode = table.row({id:id_copia}).node();
+                    var row = $(rowNode);
+                    row.fadeOut(400, function() {
+                        row.remove();
+                    });
+                  };
+                  table.draw();
+                  // llamar a la función de counts
+                }
+              }
+          });
         }
     });
 
@@ -490,8 +520,8 @@
                   tableBody += '</tr>';
                   $('#tabla-original tbody').html(tableBody);
 
-                  // actualizo la ruta del botón
-                  botonLimpiar.attr('href', "{{ route('limpiar_archivos', ':archivo_id') }}".replace(':archivo_id', archivo));
+                  // agrego el campo archivo-id al botón
+                  botonLimpiar.attr('data-archivo-id', archivo);
                   // si tengo los permisos necesarios
                   if (limpiable) {
                     // hago visible el botón
@@ -500,7 +530,7 @@
                     // lo oculto
                     botonLimpiar.css('display', 'none');
                   }
-
+                  
                   if (info === true) {
                     // si vengo de info permito volver
                     botonVolver.css('display', 'block');
@@ -517,10 +547,35 @@
 
     // confirm para limpiar copia desde el modal
     $('#delete-copy-button').on('click', function(event) {
-        event.preventDefault(); // evita que el botón diriga directamente a su href
-        if (confirm('Al confirmar se eliminará este archivo y pasarás a ser "observador" del archivo original. ¿Estás seguro?')) {
-            window.location.href = $(this).attr('href');
-        }
+      var archivo_id = $(this).data('archivo-id');
+      if (confirm('Al confirmar se eliminará este archivo y pasarás a ser "observador" del archivo original. ¿Estás seguro?')) {
+        $.ajax({
+            url: 'archivos/limpiar/' + archivo_id,
+            type: 'POST',
+            data: {
+              type: "individual"
+            },
+            success: function(response) {
+              console.log(response);
+              var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+              var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                                response.message +
+                              '</div>';
+              $('#alert-container').html(alertHtml);
+              if (response.statusCode == 200) {
+                var table = $('#laravel_datatable').DataTable();
+                var rowNode = table.row({id:archivo_id}).node();
+                var row = $(rowNode);
+                row.fadeOut(400, function() {
+                    row.remove();
+                    table.draw();
+                });
+                // llamar a la función de counts
+              }
+            }
+        });
+      }
     });
 
   // Funcion de botón Ver.
