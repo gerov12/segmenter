@@ -107,7 +107,11 @@
         <h4 class="modal-title"></h4>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" id="body-modal-original">
+        <div id="aclaracion-original">
+          <!-- acá se carga la aclaración de qué hace el botón limpiar -->
+        </div>
+        <br>
         <table class="table table-bordered" id="tabla-original">
           <thead>
             <tr>
@@ -494,6 +498,7 @@
         var name = button.data('name');
         var modal = this;
         var archivo = button.data('archivo');
+        var owner = button.data('owner');
         var info = button.data('info');
         var limpiable = button.data('limpiable');
         var modalfooter = $(this).find('.modal-footer');
@@ -519,6 +524,7 @@
                   tableBody += '<td>' + original.user.name + '</td>';
                   tableBody += '</tr>';
                   $('#tabla-original tbody').html(tableBody);
+                  $('#aclaracion-original').html('Al clickear en <span style="color:red">"Limpiar copia"</span> el usuario <b>' + owner + '</b> pasará a ser "observador" del siguiente archivo, eliminando el actual.');
 
                   // agrego el campo archivo-id al botón
                   botonLimpiar.attr('data-archivo-id', archivo);

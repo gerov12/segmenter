@@ -53,11 +53,12 @@ class ArchivoController extends Controller
                     if($data->id != $data->original->id){
                         $unico = false;
                         Log::warning($data->nombre_original." es copia!");
-                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-limpiable="' . $owned . '" data-target="#originalModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></button><br>';
+                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-limpiable="' . $owned . '" data-owner="' . $data->user->name . '" data-target="#originalModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></button><br>';
                     } else if ($data->copias_count > 1) {
                         $unico = false;
                         Log::info($data->nombre_original." es el archivo original! (Tiene ".$data->numCopias." copias)");
-                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-limpiables="' . $owned . '" data-target="#copiasModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copiado ('.$data->numCopias.')</span></button><br>';
+                        $info .= '<span class="badge badge-pill badge-success"><span class="bi bi-file-earmark-check" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Original </span></span><br>';
+                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-limpiables="' . $owned . '" data-target="#copiasModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Ver copias ('.$data->numCopias.')</span></button><br>';
                     } else {
                         Log::info($data->nombre_original." es el archivo original!");
                     }
