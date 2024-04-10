@@ -648,5 +648,5 @@ class Archivo extends Model
         $this->delete();
         Log::info("Se eliminó el registro");
     }
-    
+//agregar funcion esExceldeSegmentacion     
 }
