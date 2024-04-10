@@ -57,7 +57,7 @@ class ArchivoController extends Controller
                     } else if ($data->copias_count > 1) {
                         $unico = false;
                         Log::info($data->nombre_original." es el archivo original! (Tiene ".$data->numCopias." copias)");
-                        $info .= '<span class="badge badge-pill badge-success"><span class="bi bi-file-earmark-check" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Original </span></span><br>';
+                        $info .= '<span class="badge badge-pill badge-primary"><span class="bi bi-file-earmark-check" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Original </span></span><br>';
                         $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-limpiables="' . $owned . '" data-target="#copiasModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Ver copias ('.$data->numCopias.')</span></button><br>';
                     } else {
                         Log::info($data->nombre_original." es el archivo original!");
@@ -412,7 +412,7 @@ class ArchivoController extends Controller
     }
 
     //no envio los erroneos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
-    public function recalcular_checksums($archivo_id = null){
+    public function recalcular_checksums(Request $request, $archivo_id = null){
 
         //flash('Función aún en testeo...')->warning()->important();
         //return redirect('archivos');
@@ -421,12 +421,15 @@ class ArchivoController extends Controller
         try {
             $user = Auth::user();
             $success = true;
+            $tipo = $request->get('type');
             //si envié un archivo calculo ese
-            if ($archivo_id) {
+            if ($archivo_id && $tipo="individual") {
                 $archivo = Archivo::findOrFail($archivo_id);
                 if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                     $archivo->checksumRecalculate();
-                    flash('Checksum recalculado para el archivo ' . $archivo->nombre_original)->info();
+                    $respuesta = ['statusCode'=> 200,'message' => 'Checksum recalculado para el archivo ' . $archivo->nombre_original];
+                    return response()->json($respuesta);
+                    $success = false;
                 } else {
                     $success = false;
                 }           

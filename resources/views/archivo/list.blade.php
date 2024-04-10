@@ -59,7 +59,7 @@
       <!-- se muestra botón descargar si corresponde -->
       <button id="checksum-file-download-button" type="button" class="btn_descarga btn-sm btn-secondary" > Descargar Archivo </button>
       <!-- al botón se le carga la ruta correspondiente en el script y se muestra si corresponde -->
-      <button id="checksum-button" type="button" class="btn-sm btn-success"></button>
+      <button id="checksum-button" type="button" class="btn-sm btn-success" data-dismiss="modal"></button>
       <button id="close-button-check" type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
       <button id="back-button-check" class="btn-sm btn-primary float-right btn-detalles" data-target="#empModal" data-toggle="modal" data-dismiss="modal">Volver</button>
     </div>
@@ -348,6 +348,10 @@
             // oculto botón descargar
             modalfooter.find("#checksum-file-download-button").css('display', 'none');
         }
+
+        // agrego el campo archivo-id al botón
+        botonRecalcular.attr('data-archivo-id', file_id);
+
         if (status !== 'old_check') {
           // actualizo la ruta del botón para que sea recalcular
           botonRecalcular.attr('href', "{{ route('recalcular_checksums', ':archivo_id') }}".replace(':archivo_id', file_id)).text("Recalcular Checksum");
@@ -385,6 +389,7 @@
         event.preventDefault(); // evita que el botón dirija directamente a su href
         var buttonText = $(this).text().trim();
         var message = "";
+        var archivo_id = $(this).data('archivo-id');
 
         if (buttonText === "Sincronizar Checksum") {
             message = '¿Estás seguro de que deseas sincronizar el checksum?';
@@ -393,7 +398,45 @@
         }
         
         if (message !== "" && confirm(message)) {
-            window.location.href = $(this).attr('href');
+          $.ajax({
+            url: $(this).attr("href"),
+            type: 'POST',
+            data: {
+              type: "individual"
+            },
+            success: function(response) {
+              console.log(response);
+              var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+              var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                                response.message +
+                              '</div>';
+              $('#alert-container').html(alertHtml);
+              if (response.statusCode == 200) {
+                var table = $('#laravel_datatable').DataTable();
+                var rowsData = table.rows().data();
+                var index = 0;
+                var rowNode;
+                rowsData.each(function(row) {
+                    if (row.id === archivo_id) {
+                        // encontré la fila
+                        rowNode = table.row(index).node();
+                        console.log("Fila encontrada:", rowNode);
+                        return false;
+                    }
+                    index = index + 1;
+                });
+                var row = $(rowNode);
+                var originalColor = row.css('background-color');
+                row.css('background-color', 'lightgreen');
+                setTimeout(function() {
+                    row.css('background-color', originalColor);
+                    table.draw();
+                }, 3000);
+                // llamar a la función de counts
+              }
+            }
+          });
         }
     });
 
@@ -476,15 +519,25 @@
                 if (response.statusCode == 200) {
                   var table = $('#laravel_datatable').DataTable();
                   var copias = response.id_copias;
-                  console.log(copias);
                   for (const id_copia of copias) {
-                    var rowNode = table.row({id:id_copia}).node();
+                    var rowsData = table.rows().data();
+                    var index = 0;
+                    var rowNode;
+                    rowsData.each(function(row) {
+                        if (row.id === id_copia) {
+                            // encontré la fila
+                            rowNode = table.row(index).node();
+                            console.log("Fila encontrada:", rowNode);
+                            return false;
+                        }
+                        index = index + 1;
+                    });
                     var row = $(rowNode);
-                    row.fadeOut(400, function() {
+                    row.fadeOut(1000, function() {
                         row.remove();
+                        table.draw();
                     });
                   };
-                  table.draw();
                   // llamar a la función de counts
                 }
               }
@@ -571,9 +624,20 @@
               $('#alert-container').html(alertHtml);
               if (response.statusCode == 200) {
                 var table = $('#laravel_datatable').DataTable();
-                var rowNode = table.row({id:archivo_id}).node();
+                var rowsData = table.rows().data();
+                var index = 0;
+                var rowNode;
+                rowsData.each(function(row) {
+                    if (row.id === archivo_id) {
+                        // encontré la fila
+                        rowNode = table.row(index).node();
+                        console.log("Fila encontrada:", rowNode);
+                        return false;
+                    }
+                    index = index + 1;
+                });
                 var row = $(rowNode);
-                row.fadeOut(400, function() {
+                row.fadeOut(1000, function() {
                     row.remove();
                     table.draw();
                 });

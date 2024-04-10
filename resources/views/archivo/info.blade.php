@@ -14,7 +14,7 @@
          @php
             $unico = false;
          @endphp
-         <span class="badge badge-pill badge-success"><span class="bi bi-file-earmark-check" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Original </span></span><br>
+         <span class="badge badge-pill badge-primary"><span class="bi bi-file-earmark-check" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Original </span></span><br>
          <button class="badge badge-pill badge-warning" data-toggle="modal" data-dismiss="modal" data-info="true" data-archivo="{{$archivo->id}}" data-name="{{$archivo->nombre_original}}" data-limpiables="{{$owned}}" data-target="#copiasModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Ver copias ({{$archivo->numCopias}})</span></button>
       @endif
 
