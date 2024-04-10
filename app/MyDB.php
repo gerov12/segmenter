@@ -1727,7 +1727,7 @@ FROM
                  Log::debug('Viendo si esta segmentado el radio '.$radio->codigo.' en esquema '.$esquema);
                  if ($esquema != $radio->esquema){
                    Log::warning('Raro! Buscando segmentacion para radio '.$radio->codigo.' en esquema '.$esquema.
-                                ' fuera del esperados '.$this->esquema);
+                                ' fuera del esperados '.$radio->esquema);
                  }
                   try{
                     return (int) DB::select("SELECT count(distinct segmento_id) FROM ".$esquema.".segmentacion s JOIN
