@@ -1,28 +1,37 @@
 @charset "UTF-8";
+:root {
+  --dt-row-selected: 2, 117, 216;
+  --dt-row-selected-text: 255, 255, 255;
+  --dt-row-selected-link: 9, 10, 11;
+  --dt-row-stripe: 0, 0, 0;
+  --dt-row-hover: 0, 0, 0;
+  --dt-column-ordering: 0, 0, 0;
+  --dt-html-background: white;
+}
+:root.dark {
+  --dt-html-background: rgb(33, 37, 41);
+}
+
 table.dataTable td.dt-control {
   text-align: center;
   cursor: pointer;
 }
 table.dataTable td.dt-control:before {
-  height: 1em;
-  width: 1em;
-  margin-top: -9px;
   display: inline-block;
-  color: white;
-  border: 0.15em solid white;
-  border-radius: 1em;
-  box-shadow: 0 0 0.2em #444;
-  box-sizing: content-box;
-  text-align: center;
-  text-indent: 0 !important;
-  font-family: "Courier New", Courier, monospace;
-  line-height: 1em;
-  content: "+";
-  background-color: #31b131;
+  color: rgba(0, 0, 0, 0.5);
+  content: "▶";
 }
 table.dataTable tr.dt-hasChild td.dt-control:before {
-  content: "-";
-  background-color: #d33333;
+  content: "▼";
+}
+
+html.dark table.dataTable td.dt-control:before,
+:root[data-bs-theme=dark] table.dataTable td.dt-control:before {
+  color: rgba(255, 255, 255, 0.5);
+}
+html.dark table.dataTable tr.dt-hasChild td.dt-control:before,
+:root[data-bs-theme=dark] table.dataTable tr.dt-hasChild td.dt-control:before {
+  color: rgba(255, 255, 255, 0.5);
 }
 
 table.dataTable thead > tr > th.sorting, table.dataTable thead > tr > th.sorting_asc, table.dataTable thead > tr > th.sorting_desc, table.dataTable thead > tr > th.sorting_asc_disabled, table.dataTable thead > tr > th.sorting_desc_disabled,
@@ -61,6 +70,7 @@ table.dataTable thead > tr > td.sorting_asc_disabled:before,
 table.dataTable thead > tr > td.sorting_desc_disabled:before {
   bottom: 50%;
   content: "▲";
+  content: "▲"/"";
 }
 table.dataTable thead > tr > th.sorting:after, table.dataTable thead > tr > th.sorting_asc:after, table.dataTable thead > tr > th.sorting_desc:after, table.dataTable thead > tr > th.sorting_asc_disabled:after, table.dataTable thead > tr > th.sorting_desc_disabled:after,
 table.dataTable thead > tr > td.sorting:after,
@@ -70,6 +80,7 @@ table.dataTable thead > tr > td.sorting_asc_disabled:after,
 table.dataTable thead > tr > td.sorting_desc_disabled:after {
   top: 50%;
   content: "▼";
+  content: "▼"/"";
 }
 table.dataTable thead > tr > th.sorting_asc:before, table.dataTable thead > tr > th.sorting_desc:after,
 table.dataTable thead > tr > td.sorting_asc:before,
@@ -86,9 +97,9 @@ table.dataTable thead > tr > td:active {
   outline: none;
 }
 
-div.dataTables_scrollBody table.dataTable thead > tr > th:before, div.dataTables_scrollBody table.dataTable thead > tr > th:after,
-div.dataTables_scrollBody table.dataTable thead > tr > td:before,
-div.dataTables_scrollBody table.dataTable thead > tr > td:after {
+div.dataTables_scrollBody > table.dataTable > thead > tr > th:before, div.dataTables_scrollBody > table.dataTable > thead > tr > th:after,
+div.dataTables_scrollBody > table.dataTable > thead > tr > td:before,
+div.dataTables_scrollBody > table.dataTable > thead > tr > td:after {
   display: none;
 }
 
@@ -101,6 +112,7 @@ div.dataTables_processing {
   margin-top: -26px;
   text-align: center;
   padding: 2px;
+  z-index: 10;
 }
 div.dataTables_processing > div:last-child {
   position: relative;
@@ -114,7 +126,8 @@ div.dataTables_processing > div:last-child > div {
   width: 13px;
   height: 13px;
   border-radius: 50%;
-  background: rgba(2, 117, 216, 0.9);
+  background: rgb(2, 117, 216);
+  background: rgb(var(--dt-row-selected));
   animation-timing-function: cubic-bezier(0, 1, 1, 0);
 }
 div.dataTables_processing > div:last-child > div:nth-child(1) {
@@ -266,23 +279,28 @@ table.dataTable > tbody > tr {
   background-color: transparent;
 }
 table.dataTable > tbody > tr.selected > * {
-  box-shadow: inset 0 0 0 9999px rgba(2, 117, 216, 0.9);
-  color: white;
+  box-shadow: inset 0 0 0 9999px rgb(2, 117, 216);
+  box-shadow: inset 0 0 0 9999px rgb(var(--dt-row-selected));
+  color: rgb(255, 255, 255);
+  color: rgb(var(--dt-row-selected-text));
 }
 table.dataTable > tbody > tr.selected a {
-  color: #090a0b;
+  color: rgb(9, 10, 11);
+  color: rgb(var(--dt-row-selected-link));
 }
 table.dataTable.table-striped > tbody > tr.odd > * {
-  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-stripe), 0.05);
 }
 table.dataTable.table-striped > tbody > tr.odd.selected > * {
   box-shadow: inset 0 0 0 9999px rgba(2, 117, 216, 0.95);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.95);
 }
 table.dataTable.table-hover > tbody > tr:hover > * {
-  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.075);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-hover), 0.075);
 }
 table.dataTable.table-hover > tbody > tr.selected:hover > * {
   box-shadow: inset 0 0 0 9999px rgba(2, 117, 216, 0.975);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.975);
 }
 
 div.dataTables_wrapper div.dataTables_length label {
@@ -363,9 +381,9 @@ div.dataTables_scrollFoot > .dataTables_scrollFootInner > table {
 
 @media screen and (max-width: 767px) {
   div.dataTables_wrapper div.dataTables_length,
-div.dataTables_wrapper div.dataTables_filter,
-div.dataTables_wrapper div.dataTables_info,
-div.dataTables_wrapper div.dataTables_paginate {
+  div.dataTables_wrapper div.dataTables_filter,
+  div.dataTables_wrapper div.dataTables_info,
+  div.dataTables_wrapper div.dataTables_paginate {
     text-align: center;
   }
   div.dataTables_wrapper div.dataTables_paginate ul.pagination {
@@ -414,7 +432,7 @@ div.table-responsive > div.dataTables_wrapper > div.row > div[class^=col-]:last-
   font-style: normal;
   font-weight: 400;
   src: url(/fonts/nunito-v16-latin-regular.eot?57a5470848663767abbfead39494ea8c); /* IE9 Compat Modes */
-  src: local(""), url(/fonts/nunito-v16-latin-regular.eot?57a5470848663767abbfead39494ea8c?#iefix) format("embedded-opentype"), url(/fonts/nunito-v16-latin-regular.woff2?39a18f443d434999b89b5cb4d3f34688) format("woff2"), url(/fonts/nunito-v16-latin-regular.woff?1f30e08faa7c60d1f7ac829b9cdba320) format("woff"), url(/fonts/nunito-v16-latin-regular.ttf?b2e4cf0fab6c8ca66b7ffb01ee7a4f4c) format("truetype"), url(/fonts/nunito-v16-latin-regular.svg?13ae283c0d7cc04efe7ef3ba7bf21d13#Nunito) format("svg"); /* Legacy iOS */
+  src: local(""), url(/fonts/nunito-v16-latin-regular.eot?57a5470848663767abbfead39494ea8c?#iefix) format("embedded-opentype"), url(/fonts/nunito-v16-latin-regular.woff2?39a18f443d434999b89b5cb4d3f34688) format("woff2"), url(/fonts/nunito-v16-latin-regular.woff?1f30e08faa7c60d1f7ac829b9cdba320) format("woff"), url(/fonts/nunito-v16-latin-regular.ttf?b2e4cf0fab6c8ca66b7ffb01ee7a4f4c) format("truetype"), url(/fonts/nunito-v16-latin-regular.svg?29471884d190434b615163a0ece83c0f#Nunito) format("svg"); /* Legacy iOS */
 }
 /*!
  * Bootstrap v4.6.2 (https://getbootstrap.com/)
@@ -6087,8 +6105,7 @@ a.close.disabled {
   float: left;
   width: 100%;
   margin-right: -100%;
-  -webkit-backface-visibility: hidden;
-          backface-visibility: hidden;
+  backface-visibility: hidden;
   transition: transform 0.6s ease-in-out;
 }
 @media (prefers-reduced-motion: reduce) {

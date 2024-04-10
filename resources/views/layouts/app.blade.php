@@ -17,7 +17,18 @@
 
     <!-- More Scripts -->
     @yield ('header_scripts')
-    
+
+    <!-- Switches (custom checkboxes) -->
+    <style>
+    .toggle.ios, .toggle-on.ios, .toggle-off.ios { border-radius: 20rem; }
+    .toggle.ios .toggle-handle { border-radius: 20rem; }
+    .toggle-handle{
+      margin-top: 4px !important;
+    }
+    .toggle-group{
+      margin-top: -8px !important;
+    }
+    </style>
 </head>
 <body>
     @yield('divs4content')
@@ -43,6 +54,7 @@
                         <li class="nav-item"><a class="nav-link" href="{{ url('/provs') }}"> Provincias </a> </li>
                         <li class="nav-item"><a class="nav-link" href="{{ url('/aglos') }}"> Aglomerados </a> </li>
                         <li class="nav-item"><a class="nav-link" href="{{ url('/localidades') }}"> Localidades </a> </li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url('/entidades') }}"> Entidades </a> </li>
                         <li class="nav-item"><a class="nav-link" href="{{ url('/segmentador') }}"> Cargar </a> </li>
                         <li class="nav-item"><a class="nav-link" href="{{ url('/archivos') }}"> Archivos </a> </li>
                         <li class="nav-item"><a class="nav-link" href="{{
@@ -65,13 +77,14 @@
                                 </li>
                             @endif
                         @else
-                            <li class="nav-item btn">
+                            <li class="nav-item btn mr-4">
                                     <a class="nav-link" alt="Ver/Ocultar mensajes"
                                     title="Ver/Ocultar Menaajes flash"
                                     onclick="$('div.alert').toggle();">
                                     Mensajes</a>
                             </li>
-                            <li class="nav-item dropdown">
+                            <li class="nav-item dropdown" style="display: flex; align-items: center;">
+                                <img src="{{Auth::user()->getProfilePicURL()}}" style="border-radius: 50%;" width="30" height="30" class="d-inline-block align-top" alt="Foto de perfil">
                                 <a id="navbarDropdownLogin" class="nav-link
                                 dropdown-toggle" href="#logout" role="button"
                                 aria-controls=logout
@@ -82,6 +95,9 @@
                                 aria-labelledby="navbarDropdownLogin">
                                 <!-- DropDown Of Side Navbar -->
                                 <ul class="navbar-nav ml-auto">
+                                <li class="nav-item dropdown">
+                                  <a class="dropdown-item" href="{{ route('perfil') }}">{{ __('Perfil') }}</a>
+                                </li>
                                 <li class="nav-item dropdown">
                                     <a class="dropdown-item" href="{{ route('logout') }}"
                                        onclick="event.preventDefault();
@@ -96,6 +112,11 @@
                                 <li class="nav-item dropdown">
                                   <a class="dropdown-item" href="{{ route('archivos') }}">{{ __('Archivos') }}</a>
                                 </li>
+                                @if (Auth::user()->hasRole('Super Admin'))
+                                <li class="nav-item dropdown">
+                                  <a class="dropdown-item" href="{{ route('admin.listarUsuarios') }}">{{ __('Usuarios') }}</a>
+                                </li>
+                                @endif
                               </ul>
                              </div>
 
@@ -112,7 +133,7 @@
         </div>
             @yield('content_main')
         <div id="copyright" class="text-center justify-content-center"
-            style="display:block"><hr />© 2023 INDEC - Geoestadística
+            style="display:block"><hr />© 2024 INDEC - Geoestadística
             <div>{{ Git::branch() }} - {{ Git::version() }} -  {{ Git::lastCommitDate() }}</div>
             <div>{{ Git::submoduleStatus() }}</div>
 

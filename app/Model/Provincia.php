@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\View\ViewException;
+use GuzzleHttp\Exception\RequestException;
 
 class Provincia extends Model
 {
@@ -80,6 +82,9 @@ class Provincia extends Model
           $this->url_json,
           Arr::add($this->params,"cql_filter","link =  '".$this->codigo."'")
         );
+      } catch ( RequestException $e) {
+        flash(' Oh oh, algo salió mal: '.$e->getMessage(),[$e])->warning();
+        return null;
       } catch ( ConnectionException $e) {
         flash('Timeout de 5 seg. a: '.$this->url_json)->warning();
         return null;
@@ -113,4 +118,8 @@ class Provincia extends Model
         }
     }
 
+    // REtorna objeto provincia si existe según codigo.
+    static function getxCodigo(text $codigo) {
+
+    }
 }
