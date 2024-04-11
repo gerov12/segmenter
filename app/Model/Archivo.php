@@ -231,11 +231,33 @@ class Archivo extends Model
                 $control->save();
             }
         } else {
+            flash("Archivo ".$original_extension." ya existe. Cargado el  ".$file->created_at->format('Y-m-d').' por '.$file->user->name)->info();
             # Si no es su archivo y no está en sus archivos visibles lo agrego
             if (!$user->visible_files()->get()->contains($file) and !$user->mis_files()->get()->contains($file)){
                 $user->visible_files()->attach($file->id);
             }
-            flash("Archivo ".$original_extension." ya existe. Cargado el  ".$file->created_at->format('Y-m-d').' por '.$file->user->name)->info();
+            # Cargo nuevamente en storage en caso de que haya sido eliminado por error
+            if (!Storage::exists($file->nombre)){
+                $request_file->storeAs('segmentador', basename($file->nombre));
+                if ($tipo == 'shape'){
+                    if ($shape_files != null){
+                        $size_total = $file->size;
+                        $nombre = substr($file->nombre,0,-4);
+                        foreach ($shape_files as $shape_file) {
+                            if ($shape_file != null and $shape_file != ''){
+                                $extension = strtolower($shape_file->getClientOriginalExtension());
+                                if (!Storage::exists($nombre.'.'.$extension)){ //si se cargaron shapefiles chequeo que estén en storage
+                                    // si no están las guardo y sumo su tamaño al size
+                                    $shape_file->storeAs('segmentador', basename($nombre).'.'.$extension);
+                                    $size_total = $size_total + $shape_file->getSize();
+                                }
+                            };
+                        }
+                        $file->size = $size_total;
+                        $file->save();
+                    }
+                }
+            }
         }
         return $file;
     }
