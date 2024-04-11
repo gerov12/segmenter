@@ -461,7 +461,7 @@ class ArchivoController extends Controller
     }
 
     //no envio los obsoletos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
-    public function sincronizar_checksums($archivo_id = null){
+    public function sincronizar_checksums(Request $request, $archivo_id = null){
 
         //flash('Función aún en testeo...')->warning()->important();
         //return redirect('archivos');
@@ -470,12 +470,15 @@ class ArchivoController extends Controller
         try {
             $user = Auth::user();
             $success = true;
+            $tipo = $request->get('type');
             //si envié un archivo sincronizo ese
-            if ($archivo_id) {
+            if ($archivo_id && $tipo="individual") {
                 $archivo = Archivo::findOrFail($archivo_id);
                 if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                     $archivo->checksumSync();
-                    flash('Checksum sincronizado para el archivo ' . $archivo->nombre_original)->info();
+                    $respuesta = ['statusCode'=> 200,'message' => 'Checksum sincronizado para el archivo ' . $archivo->nombre_original];
+                    return response()->json($respuesta);
+                    $success = false;
                 } else {
                     $success = false;
                 }

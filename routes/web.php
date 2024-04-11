@@ -308,7 +308,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('archivos/limpiar/{archivo_id?}','ArchivoController@eliminar_repetidos')->name('limpiar_archivos'); //el parametro es opcional
     Route::post('archivos/limpiar/{archivo_id}/copias','ArchivoController@eliminar_repetidos')->name('limpiar_copias'); //eliminar las copias de un archivo
     Route::post('archivos/recalcular_cs/{archivo_id?}','ArchivoController@recalcular_checksums')->name('recalcular_checksums'); //el parametro es opcional
-    Route::get('archivos/sincronizar_cs/{archivo_id?}','ArchivoController@sincronizar_checksums')->name('sincronizar_checksums'); //el parametro es opcional
+    Route::post('archivos/sincronizar_cs/{archivo_id?}','ArchivoController@sincronizar_checksums')->name('sincronizar_checksums'); //el parametro es opcional
 
     Route::get('archivos/repetidos','ArchivoController@listar_repetidos')->name('archivos_repetidos');
     Route::get('archivos/checksums_obsoletos','ArchivoController@listar_checksums_obsoletos')->name('checksums_obsoletos');

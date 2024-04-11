@@ -19,6 +19,10 @@
     padding: 10px;
     text-align: center;
     }
+    tr {
+      transition: background-color 1s;
+    }
+
   </style>
   <!-- Modal info archivo -->
   <div class="modal fade" id="empModal" role="dialog">
@@ -349,8 +353,8 @@
             modalfooter.find("#checksum-file-download-button").css('display', 'none');
         }
 
-        // agrego el campo archivo-id al botón
-        botonRecalcular.attr('data-archivo-id', file_id);
+        // agrego el campo archivo-id al botón para recuperar en la animación
+        botonRecalcular.data('archivo-id', file_id);
 
         if (status !== 'old_check') {
           // actualizo la ruta del botón para que sea recalcular
@@ -405,7 +409,6 @@
               type: "individual"
             },
             success: function(response) {
-              console.log(response);
               var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
               var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
                                 '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
@@ -421,18 +424,20 @@
                     if (row.id === archivo_id) {
                         // encontré la fila
                         rowNode = table.row(index).node();
-                        console.log("Fila encontrada:", rowNode);
-                        return false;
+                        return false; //TODO: cortar el each cuando haya encontrado la fila que busco (esto no funciona)
                     }
                     index = index + 1;
                 });
                 var row = $(rowNode);
                 var originalColor = row.css('background-color');
                 row.css('background-color', 'lightgreen');
+                row.find('td:eq(6)').css('filter', 'blur(2px)');
                 setTimeout(function() {
-                    row.css('background-color', originalColor);
-                    table.draw();
-                }, 3000);
+                  row.css('background-color', originalColor);
+                }, 1500);
+                setTimeout(function() {
+                  table.draw();
+                }, 2000);
                 // llamar a la función de counts
               }
             }
@@ -474,8 +479,8 @@
                   });
                   $('#tabla-repetidos tbody').html(tableBody);
 
-                  // agrego el campo archivo-id al botón
-                  botonLimpiar.attr('data-archivo-id', archivo);
+                  // agrego el campo archivo-id al botón para recuperar en la animación
+                  botonLimpiar.data('archivo-id', archivo);
                   // si tengo los permisos necesarios
                   if (limpiables) {
                     // hago visible el botón
@@ -519,24 +524,33 @@
                 if (response.statusCode == 200) {
                   var table = $('#laravel_datatable').DataTable();
                   var copias = response.id_copias;
+                  var rowsData = table.rows().data();
                   for (const id_copia of copias) {
-                    var rowsData = table.rows().data();
                     var index = 0;
                     var rowNode;
                     rowsData.each(function(row) {
                         if (row.id === id_copia) {
-                            // encontré la fila
-                            rowNode = table.row(index).node();
-                            console.log("Fila encontrada:", rowNode);
-                            return false;
+                            // encontré la fila copia
+                            rowNodeCopia = table.row(index).node();
+                        }
+                        if (row.id === archivo_id) {
+                            // encontré la fila original (TODO: podría buscarla una única vez a fuera del for)
+                            rowNodeOriginal = table.row(index).node();
                         }
                         index = index + 1;
+                        //TODO: cortar el each cuando haya encontrado la fila que busco
                     });
-                    var row = $(rowNode);
-                    row.fadeOut(1000, function() {
-                        row.remove();
-                        table.draw();
-                    });
+                    if (typeof rowNodeCopia !== 'undefined') { //sirve para el caso en el cual las copias están en otra página
+                      var rowCopia = $(rowNodeCopia);
+                      rowCopia.fadeOut(1000, function() {
+                          rowCopia.remove();
+                      });
+                    }
+                    var rowOriginal = $(rowNodeOriginal);
+                    rowOriginal.find('td:eq(6)').css('filter', 'blur(2px)');
+                    setTimeout(function() {
+                      table.draw();
+                    }, 1000);
                   };
                   // llamar a la función de counts
                 }
@@ -579,8 +593,9 @@
                   $('#tabla-original tbody').html(tableBody);
                   $('#aclaracion-original').html('Al clickear en <span style="color:red">"Limpiar copia"</span> el usuario <b>' + owner + '</b> pasará a ser "observador" del siguiente archivo, eliminando el actual.');
 
-                  // agrego el campo archivo-id al botón
-                  botonLimpiar.attr('data-archivo-id', archivo);
+                  // agrego los campos archivo-id y original-id al botón para recuperar en la animación
+                  botonLimpiar.data('archivo-id', archivo);
+                  botonLimpiar.data('original-id', original.id);
                   // si tengo los permisos necesarios
                   if (limpiable) {
                     // hago visible el botón
@@ -607,6 +622,7 @@
     // confirm para limpiar copia desde el modal
     $('#delete-copy-button').on('click', function(event) {
       var archivo_id = $(this).data('archivo-id');
+      var original_id = $(this).data('original-id');
       if (confirm('Al confirmar se eliminará este archivo y pasarás a ser "observador" del archivo original. ¿Estás seguro?')) {
         $.ajax({
             url: 'archivos/limpiar/' + archivo_id,
@@ -629,16 +645,23 @@
                 var rowNode;
                 rowsData.each(function(row) {
                     if (row.id === archivo_id) {
-                        // encontré la fila
-                        rowNode = table.row(index).node();
-                        console.log("Fila encontrada:", rowNode);
-                        return false;
+                        // encontré la fila copia
+                        rowNodeCopia = table.row(index).node();
+                        console.log("Fila copia encontrada:", rowNodeCopia);
+                    }
+                    if (row.id === original_id) {
+                        // encontré la fila original
+                        rowNodeOriginal = table.row(index).node();
+                        console.log("Fila original encontrada:", rowNodeOriginal);
                     }
                     index = index + 1;
+                    //TODO: cortar el each cuando haya encontrado la fila que busco
                 });
-                var row = $(rowNode);
-                row.fadeOut(1000, function() {
-                    row.remove();
+                var rowCopia = $(rowNodeCopia);
+                var rowOriginal = $(rowNodeOriginal);
+                rowOriginal.find('td:eq(6)').css('filter', 'blur(2px)');
+                rowCopia.fadeOut(1000, function() {
+                    rowCopia.remove();
                     table.draw();
                 });
                 // llamar a la función de counts
