@@ -18,36 +18,38 @@
             {{Session::get('info')}}
           </div>
         @endif
-        <table class="table table-bordered" id="tabla-no-calculados">
-          @if($checksums_no_calculados !== null)
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Creación</th>
-              <th>Cargador</th>
-              <th>Checksum</th>
-              <th>*</th>
-            </tr>
-          </thead>
-          <tbody>
-            @foreach ($checksums_no_calculados as $archivo)
-            <tr>
-              <td>{{$archivo->nombre_original}}</td>
-              <td>{{$archivo->created_at->format('d-M-Y')}}</td>
-              <td>{{$archivo->user->name}}</td>
-              <td>{{$archivo->checksum}}</td>
-              @if ($archivo->ownedByUser(Auth::user()) || Auth::user()->can('Administrar Archivos', 'Ver Archivos'))
-              <td style="text-align: center;"><a href="{{route('recalcular_checksums', ['archivo_id' => $archivo->id])}}" onclick="return confirmarCalculo()" class="btn btn-success"> Recalcular </a></td>
-              @else
-              <td style="text-align: center;"><i class="bi bi-ban"></i></td>
-              @endif
-            </tr>
-            @endforeach
-          </tbody>
-          @else
-          <h1>No hay checksums no calculados</h1>
-          @endif
-        </table>
+        <div class="table-responsive">
+          <table class="table table-bordered" id="tabla-no-calculados">
+            @if($checksums_no_calculados !== null)
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Creación</th>
+                <th>Cargador</th>
+                <th>Checksum</th>
+                <th>*</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach ($checksums_no_calculados as $archivo)
+              <tr>
+                <td>{{$archivo->nombre_original}}</td>
+                <td>{{$archivo->created_at->format('d-M-Y')}}</td>
+                <td>{{$archivo->user->name}}</td>
+                <td>{{$archivo->checksum}}</td>
+                @if ($archivo->ownedByUser(Auth::user()) || Auth::user()->can('Administrar Archivos', 'Ver Archivos'))
+                <td style="text-align: center;"><a href="{{route('recalcular_checksums', ['archivo_id' => $archivo->id])}}" onclick="return confirmarCalculo()" class="btn btn-success"> Recalcular </a></td>
+                @else
+                <td style="text-align: center;"><i class="bi bi-ban"></i></td>
+                @endif
+              </tr>
+              @endforeach
+            </tbody>
+            @else
+            <h1>No hay checksums no calculados</h1>
+            @endif
+          </table>
+        </div>
       </div>
     </div>
 	</div>

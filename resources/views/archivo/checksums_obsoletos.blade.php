@@ -18,44 +18,46 @@
             {{Session::get('info')}}
           </div>
         @endif
-        <table class="table table-bordered" id="tabla-obsoletos">
-          @if($checksums_obsoletos !== null)
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Creación</th>
-              <th>Cargador</th>
-              <th>Checksum obsoleto</th>
-              <th>Checksum recalculado</th>
-              <th>*</th>
-            </tr>
-          </thead>
-          <tbody>
-            @foreach ($checksums_obsoletos as $archivo)
-            <tr>
-              <td>{{$archivo['archivo']->nombre_original}}</td>
-              <td>{{$archivo['archivo']->created_at->format('d-M-Y')}}</td>
-              <td>{{$archivo['archivo']->user->name}}</td>
-              <td>
-                {{$archivo['archivo']->checksum}} <br>
-                ({{$archivo['archivo']->updated_at->format('d-M-Y H:i:s')}})
-              </td>
-              <td>
-                {{$archivo['control']->checksum}} <br>
-                ({{$archivo['control']->updated_at->format('d-M-Y H:i:s')}})
-              </td>
-              @if ($archivo['archivo']->ownedByUser(Auth::user()) || Auth::user()->can('Administrar Archivos', 'Ver Archivos'))
-              <td style="text-align: center;"><a href="{{route('sincronizar_checksums', ['archivo_id' => $archivo['archivo']->id])}}" onclick="return confirmarSincronizacion()" class="btn btn-success"> Sincronizar </a></td>
-              @else
-              <td style="text-align: center;"><i class="bi bi-ban"></i></td>
-              @endif
-            </tr>
-            @endforeach
-          </tbody>
-          @else
-          <h1>No hay checksums obsoletos</h1>
-          @endif
-        </table>
+        <div class="table-responsive">
+          <table class="table table-bordered" id="tabla-obsoletos">
+            @if($checksums_obsoletos !== null)
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Creación</th>
+                <th>Cargador</th>
+                <th>Checksum obsoleto</th>
+                <th>Checksum recalculado</th>
+                <th>*</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach ($checksums_obsoletos as $archivo)
+              <tr>
+                <td>{{$archivo['archivo']->nombre_original}}</td>
+                <td>{{$archivo['archivo']->created_at->format('d-M-Y')}}</td>
+                <td>{{$archivo['archivo']->user->name}}</td>
+                <td>
+                  {{$archivo['archivo']->checksum}} <br>
+                  ({{$archivo['archivo']->updated_at->format('d-M-Y H:i:s')}})
+                </td>
+                <td>
+                  {{$archivo['control']->checksum}} <br>
+                  ({{$archivo['control']->updated_at->format('d-M-Y H:i:s')}})
+                </td>
+                @if ($archivo['archivo']->ownedByUser(Auth::user()) || Auth::user()->can('Administrar Archivos', 'Ver Archivos'))
+                <td style="text-align: center;"><a href="{{route('sincronizar_checksums', ['archivo_id' => $archivo['archivo']->id])}}" onclick="return confirmarSincronizacion()" class="btn btn-success"> Sincronizar </a></td>
+                @else
+                <td style="text-align: center;"><i class="bi bi-ban"></i></td>
+                @endif
+              </tr>
+              @endforeach
+            </tbody>
+            @else
+            <h1>No hay checksums obsoletos</h1>
+            @endif
+          </table>
+        </div>
       </div>
     </div>
 	</div>

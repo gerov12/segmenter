@@ -53,11 +53,12 @@ class ArchivoController extends Controller
                     if($data->id != $data->original->id){
                         $unico = false;
                         Log::warning($data->nombre_original." es copia!");
-                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-limpiable="' . $owned . '" data-target="#originalModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></button><br>';
+                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-limpiable="' . $owned . '" data-owner="' . $data->user->name . '" data-target="#originalModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></button><br>';
                     } else if ($data->copias_count > 1) {
                         $unico = false;
                         Log::info($data->nombre_original." es el archivo original! (Tiene ".$data->numCopias." copias)");
-                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-limpiables="' . $owned . '" data-target="#copiasModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copiado ('.$data->numCopias.')</span></button><br>';
+                        $info .= '<span class="badge badge-pill badge-primary"><span class="bi bi-file-earmark-check" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Original </span></span><br>';
+                        $info .= '<button class="badge badge-pill badge-warning" data-toggle="modal" data-info="false" data-archivo="'.$data->id.'" data-name="'.$data->nombre_original.'" data-limpiables="' . $owned . '" data-target="#copiasModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Ver copias ('.$data->numCopias.')</span></button><br>';
                     } else {
                         Log::info($data->nombre_original." es el archivo original!");
                     }
@@ -77,10 +78,10 @@ class ArchivoController extends Controller
                     } else {
                         Log::info($data->nombre_original.' checksum ok!');
                     }
-                    // if (!$data->checkStorage()){
-                    //     $storageOk = false;       
-                    //     $info .= '<span class="badge badge-pill badge-dark"><span class="bi bi-archive" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Problema de storage</span></span><br>';
-                    // }
+                    if (!$data->checkStorage()){
+                        $storageOk = false;       
+                        $info .= '<span class="badge badge-pill badge-dark"><span class="bi bi-archive" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Problema de storage</span></span><br>';
+                    }
                     if ($unico and $checksumCalculado and $checksumCorrecto and $storageOk){
                         $info .= '<span class="badge badge-pill badge-success"><span class="bi bi-check" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> OK</span></span><br>';
                     }
@@ -179,6 +180,13 @@ class ArchivoController extends Controller
         })->count();
 
         return ["repetidos"=>$count_archivos_repetidos, "null"=>$count_null_checksums, "error"=>$count_error_checksums, "old"=>$count_old_checksums];
+    }
+
+    public function updateCounts(){
+        $user = Auth::user();
+        $archivos = self::retrieveFiles($user);
+        $count_estados = self::countEstados($archivos);
+        return response()->json($count_estados);
     }
 
     /**
@@ -341,7 +349,7 @@ class ArchivoController extends Controller
     }
     
     //no envio los repetidos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
-    public function eliminar_repetidos($archivo_id = null, $copias = null) {
+    public function eliminar_repetidos(Request $request, $archivo_id = null) {
 
         //flash('Función aún en testeo...')->warning()->important();
         //return redirect('archivos');
@@ -352,26 +360,32 @@ class ArchivoController extends Controller
         try {
             $user = Auth::user();
             $success = true;
-            
-            if ($archivo_id && $copias) {
+            $tipo = $request->get('type');
+            if ($archivo_id && $tipo == "bulk") {
                 $archivo = Archivo::findOrFail($archivo_id);
                 if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                     $eliminados = 0;
                     $copias = $archivo->copias()->with('user')->where('id', '!=' , $archivo->id)->get();
+                    $id_copias = $copias->map(function($copia) {
+                        return $copia->id;
+                    });
                     foreach ($copias as $archivo){
                         $archivo->limpiarCopia();
                         $eliminados++;
                     }
-                    flash("Se limpiaron ". $eliminados . " copias de " . $archivo->nombre_original . ".")->info();
-                    return redirect('archivos');
+                    $respuesta = ['statusCode'=> 200, 'id_copias' => $id_copias, 'message' => "Se limpiaron ". $eliminados . " copias de " . $archivo->nombre_original . "."];
+                    return response()->json($respuesta);
+                    $success = false;
                 } else {
                     $success = false;
                 }
-            } else if ($archivo_id) {
+            } else if ($archivo_id && $tipo == "individual") {
                     $archivo = Archivo::findOrFail($archivo_id);
                     if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                         $archivo->limpiarCopia();
-                        flash('Se eliminó la copia ' . $archivo->nombre_original)->info();
+                        $respuesta = ['statusCode'=> 200,'message' => 'Se eliminó la copia ' . $archivo->nombre_original];
+                        return response()->json($respuesta);
+                        $success = false;
                     } else {
                         $success = false;
                     } 
@@ -396,8 +410,8 @@ class ArchivoController extends Controller
             if ($success == true) { 
                 return redirect('archivos');
             } else {
-                flash('No tienes permiso para hacer eso.')->error();
-                return back();
+                //flash('No tienes permiso para hacer eso.')->error();
+                //return back();
             }
         } catch (PermissionDoesNotExist $e) {
             flash('message', 'No existe el permiso "Administrar Archivos" o "Ver Archivos"')->error();
@@ -405,7 +419,7 @@ class ArchivoController extends Controller
     }
 
     //no envio los erroneos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
-    public function recalcular_checksums($archivo_id = null){
+    public function recalcular_checksums(Request $request, $archivo_id = null){
 
         //flash('Función aún en testeo...')->warning()->important();
         //return redirect('archivos');
@@ -414,12 +428,15 @@ class ArchivoController extends Controller
         try {
             $user = Auth::user();
             $success = true;
+            $tipo = $request->get('type');
             //si envié un archivo calculo ese
-            if ($archivo_id) {
+            if ($archivo_id && $tipo="individual") {
                 $archivo = Archivo::findOrFail($archivo_id);
                 if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                     $archivo->checksumRecalculate();
-                    flash('Checksum recalculado para el archivo ' . $archivo->nombre_original)->info();
+                    $respuesta = ['statusCode'=> 200,'message' => 'Checksum recalculado para el archivo ' . $archivo->nombre_original];
+                    return response()->json($respuesta);
+                    $success = false;
                 } else {
                     $success = false;
                 }           
@@ -451,7 +468,7 @@ class ArchivoController extends Controller
     }
 
     //no envio los obsoletos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
-    public function sincronizar_checksums($archivo_id = null){
+    public function sincronizar_checksums(Request $request, $archivo_id = null){
 
         //flash('Función aún en testeo...')->warning()->important();
         //return redirect('archivos');
@@ -460,12 +477,15 @@ class ArchivoController extends Controller
         try {
             $user = Auth::user();
             $success = true;
+            $tipo = $request->get('type');
             //si envié un archivo sincronizo ese
-            if ($archivo_id) {
+            if ($archivo_id && $tipo="individual") {
                 $archivo = Archivo::findOrFail($archivo_id);
                 if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                     $archivo->checksumSync();
-                    flash('Checksum sincronizado para el archivo ' . $archivo->nombre_original)->info();
+                    $respuesta = ['statusCode'=> 200,'message' => 'Checksum sincronizado para el archivo ' . $archivo->nombre_original];
+                    return response()->json($respuesta);
+                    $success = false;
                 } else {
                     $success = false;
                 }
