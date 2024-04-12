@@ -9,12 +9,13 @@
          @php
             $unico = false;
          @endphp
-         <button class="badge badge-pill badge-warning" data-toggle="modal" data-dismiss="modal" data-info="true" data-archivo="{{$archivo->id}}" data-name="{{$archivo->nombre_original}}" data-limpiable="{{$owned}}" data-target="#originalModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></button>
+         <button class="badge badge-pill badge-warning" data-toggle="modal" data-dismiss="modal" data-info="true" data-archivo="{{$archivo->id}}" data-name="{{$archivo->nombre_original}}" data-limpiable="{{$owned}}" data-owner="{{$archivo->user->name}}" data-target="#originalModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copia</span></button>
       @elseif ($archivo->copias_count > 1)
          @php
             $unico = false;
          @endphp
-         <button class="badge badge-pill badge-warning" data-toggle="modal" data-dismiss="modal" data-info="true" data-archivo="{{$archivo->id}}" data-name="{{$archivo->nombre_original}}" data-limpiables="{{$owned}}" data-target="#copiasModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Copiado ({{$archivo->numCopias}})</span></button>
+         <span class="badge badge-pill badge-primary"><span class="bi bi-file-earmark-check" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Original </span></span><br>
+         <button class="badge badge-pill badge-warning" data-toggle="modal" data-dismiss="modal" data-info="true" data-archivo="{{$archivo->id}}" data-name="{{$archivo->nombre_original}}" data-limpiables="{{$owned}}" data-target="#copiasModal"><span class="bi bi-copy" style="font-size: 0.8rem; color: rgb(0, 0, 0);"> Ver copias ({{$archivo->numCopias}})</span></button>
       @endif
 
       @if ($archivo->checksum_control == null)
@@ -34,12 +35,12 @@
       @endif
       
 
-      <!-- @if (!$archivo->checkStorage())
+      @if (!$archivo->checkStorage())
          @php
             $storageOk = false;
          @endphp       
          <span class="badge badge-pill badge-dark"><span class="bi bi-archive" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Problema de storage</span></span>
-      @endif -->
+      @endif
 
       @if ($unico and $checksumCalculado and $checksumCorrecto and $storageOk)
          <span class="badge badge-pill badge-success"><span class="bi bi-check" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> OK</span></span>

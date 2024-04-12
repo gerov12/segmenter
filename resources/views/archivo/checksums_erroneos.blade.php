@@ -18,44 +18,46 @@
             {{Session::get('info')}}
           </div>
         @endif
-        <table class="table table-bordered" id="tabla-erroneos">
-          @if($checksums_erroneos !== null)
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Creación</th>
-              <th>Cargador</th>
-              <th>Checksum obsoleto</th>
-              <th>Checksum recalculado</th>
-              <th>*</th>
-            </tr>
-          </thead>
-          <tbody>
-            @foreach ($checksums_erroneos as $archivo)
-            <tr>
-              <td>{{$archivo['archivo']->nombre_original}}</td>
-              <td>{{$archivo['archivo']->created_at->format('d-M-Y')}}</td>
-              <td>{{$archivo['archivo']->user->name}}</td>
-              <td>
-                {{$archivo['archivo']->checksum}} <br>
-                ({{$archivo['archivo']->updated_at->format('d-M-Y H:i:s')}})
-              </td>
-              <td>
-                {{$archivo['control']->checksum}} <br>
-                ({{$archivo['control']->updated_at->format('d-M-Y H:i:s')}})
-              </td>
-              @if ($archivo['archivo']->ownedByUser(Auth::user()) || Auth::user()->can('Administrar Archivos', 'Ver Archivos'))
-              <td style="text-align: center;"><a href="{{route('recalcular_checksums', ['archivo_id' => $archivo['archivo']->id])}}" onclick="return confirmarCalculo()" class="btn btn-success"> Recalcular </a></td>
-              @else
-              <td style="text-align: center;"><i class="bi bi-ban"></i></td>
-              @endif
-            </tr>
-            @endforeach
-          </tbody>
-          @else
-          <h1>No hay checksums con error</h1>
-          @endif
-        </table>
+        <div class="table-responsive">
+          <table class="table table-bordered" id="tabla-erroneos">
+            @if($checksums_erroneos !== null)
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Creación</th>
+                <th>Cargador</th>
+                <th>Checksum obsoleto</th>
+                <th>Checksum recalculado</th>
+                <th>*</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach ($checksums_erroneos as $archivo)
+              <tr>
+                <td>{{$archivo['archivo']->nombre_original}}</td>
+                <td>{{$archivo['archivo']->created_at->format('d-M-Y')}}</td>
+                <td>{{$archivo['archivo']->user->name}}</td>
+                <td>
+                  {{$archivo['archivo']->checksum}} <br>
+                  ({{$archivo['archivo']->updated_at->format('d-M-Y H:i:s')}})
+                </td>
+                <td>
+                  {{$archivo['control']->checksum}} <br>
+                  ({{$archivo['control']->updated_at->format('d-M-Y H:i:s')}})
+                </td>
+                @if ($archivo['archivo']->ownedByUser(Auth::user()) || Auth::user()->can('Administrar Archivos', 'Ver Archivos'))
+                <td style="text-align: center;"><a href="{{route('recalcular_checksums', ['archivo_id' => $archivo['archivo']->id])}}" onclick="return confirmarCalculo()" class="btn btn-success"> Recalcular </a></td>
+                @else
+                <td style="text-align: center;"><i class="bi bi-ban"></i></td>
+                @endif
+              </tr>
+              @endforeach
+            </tbody>
+            @else
+            <h1>No hay checksums con error</h1>
+            @endif
+          </table>
+        </div>
       </div>
     </div>
 	</div>
