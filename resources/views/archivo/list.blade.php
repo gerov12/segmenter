@@ -151,29 +151,16 @@
     <h2>Listado de Archivos</h2>
     <div id="botones-problemas">
       @if($count_archivos_repetidos > 0)
-<<<<<<< HEAD
-      <h4><a href="{{ route('archivos_repetidos') }}" class="badge badge-pill badge-warning"><i class="bi bi-copy mr-2"></i>Ver archivos repetidos ({{$count_archivos_repetidos}})</a></h4>
-      @endif
-=======
         <h4><a id="count_repetidos" href="{{ route('archivos_repetidos') }}" class="badge badge-pill badge-warning"><i class="bi bi-copy mr-2"></i>Ver archivos repetidos ({{$count_archivos_repetidos}})</a></h4>
       @else
         <h4><a id="count_repetidos" style="display:none" href="{{ route('archivos_repetidos') }}" class="badge badge-pill badge-warning"><i class="bi bi-copy mr-2"></i>Ver archivos repetidos ({{$count_archivos_repetidos}})</a></h4>
       @endif
 
->>>>>>> 2e757f149487565cf3f0c695eb955b3d4157c1ff
       @if($count_null_checksums > 0)
         <h4><a id="count_null" href="{{ route('checksums_no_calculados') }}" class="badge badge-pill badge-checksum"><i class="bi bi-exclamation-triangle mr-2"></i>Ver checksums no calculados ({{$count_null_checksums}})</a></h4>
       @else
         <h4><a id="count_null" style="display:none" href="{{ route('checksums_no_calculados') }}" class="badge badge-pill badge-checksum"><i class="bi bi-exclamation-triangle mr-2"></i>Ver checksums no calculados ({{$count_null_checksums}})</a></h4>
       @endif
-<<<<<<< HEAD
-      @if($count_error_checksums > 0)
-        <h4><a href="{{ route('checksums_erroneos') }}" class="badge badge-pill badge-danger"><i class="bi bi-x-circle mr-2"></i>Ver checksums con error ({{$count_error_checksums}})</a></h4>
-      @endif
-      @if($count_old_checksums > 0)
-        <h4><a href="{{ route('checksums_obsoletos') }}" class="badge badge-pill badge-danger"><i class="bi bi-calendar-x mr-2"></i>Ver checksums obsoletos ({{$count_old_checksums}})</a></h4>
-      @endif
-=======
 
       @if($count_error_checksums > 0)
         <h4><a id="count_error" href="{{ route('checksums_erroneos') }}" class="badge badge-pill badge-danger"><i class="bi bi-x-circle mr-2"></i>Ver checksums con error ({{$count_error_checksums}})</a></h4>
@@ -186,7 +173,6 @@
       @else
         <h4><a id="count_old" style="display:none" href="{{ route('checksums_obsoletos') }}" class="badge badge-pill badge-danger"><i class="bi bi-calendar-x mr-2"></i>Ver checksums obsoletos ({{$count_old_checksums}})</a></h4>
       @endif
->>>>>>> 2e757f149487565cf3f0c695eb955b3d4157c1ff
     </div>
     <br>
 
@@ -417,12 +403,6 @@
     $('#checksum-button').on('click', function(event) {
         event.preventDefault(); // evita que el botón dirija directamente a su href
         var buttonText = $(this).text().trim();
-<<<<<<< HEAD
-        var message = '¿Estás seguro de que deseas '+buttonText+'?';
-
-        if (confirm(message)) {
-            window.location.href = $(this).attr('href');
-=======
         var message = "";
         var archivo_id = $(this).data('archivo-id');
 
@@ -473,7 +453,6 @@
               }
             }
           });
->>>>>>> 2e757f149487565cf3f0c695eb955b3d4157c1ff
         }
     });
 
