@@ -151,16 +151,27 @@
     <h2>Listado de Archivos</h2>
     <div id="botones-problemas">
       @if($count_archivos_repetidos > 0)
-      <h4><a href="{{ route('archivos_repetidos') }}" class="badge badge-pill badge-warning"><i class="bi bi-copy mr-2"></i>Ver archivos repetidos ({{$count_archivos_repetidos}})</a></h4>
+        <h4><a id="count_repetidos" href="{{ route('archivos_repetidos') }}" class="badge badge-pill badge-warning"><i class="bi bi-copy mr-2"></i>Ver archivos repetidos ({{$count_archivos_repetidos}})</a></h4>
+      @else
+        <h4><a id="count_repetidos" style="display:none" href="{{ route('archivos_repetidos') }}" class="badge badge-pill badge-warning"><i class="bi bi-copy mr-2"></i>Ver archivos repetidos ({{$count_archivos_repetidos}})</a></h4>
       @endif 
+
       @if($count_null_checksums > 0)
-        <h4><a href="{{ route('checksums_no_calculados') }}" class="badge badge-pill badge-checksum"><i class="bi bi-exclamation-triangle mr-2"></i>Ver checksums no calculados ({{$count_null_checksums}})</a></h4>
+        <h4><a id="count_null" href="{{ route('checksums_no_calculados') }}" class="badge badge-pill badge-checksum"><i class="bi bi-exclamation-triangle mr-2"></i>Ver checksums no calculados ({{$count_null_checksums}})</a></h4>
+      @else
+        <h4><a id="count_null" style="display:none" href="{{ route('checksums_no_calculados') }}" class="badge badge-pill badge-checksum"><i class="bi bi-exclamation-triangle mr-2"></i>Ver checksums no calculados ({{$count_null_checksums}})</a></h4>
       @endif
+
       @if($count_error_checksums > 0) 
-        <h4><a href="{{ route('checksums_erroneos') }}" class="badge badge-pill badge-danger"><i class="bi bi-x-circle mr-2"></i>Ver checksums con error ({{$count_error_checksums}})</a></h4>
+        <h4><a id="count_error" href="{{ route('checksums_erroneos') }}" class="badge badge-pill badge-danger"><i class="bi bi-x-circle mr-2"></i>Ver checksums con error ({{$count_error_checksums}})</a></h4>
+      @else
+        <h4><a id="count_error" style="display:none" href="{{ route('checksums_erroneos') }}" class="badge badge-pill badge-danger"><i class="bi bi-x-circle mr-2"></i>Ver checksums con error ({{$count_error_checksums}})</a></h4>
       @endif 
+
       @if($count_old_checksums > 0) 
-        <h4><a href="{{ route('checksums_obsoletos') }}" class="badge badge-pill badge-danger"><i class="bi bi-calendar-x mr-2"></i>Ver checksums obsoletos ({{$count_old_checksums}})</a></h4>
+        <h4><a id="count_old" href="{{ route('checksums_obsoletos') }}" class="badge badge-pill badge-danger"><i class="bi bi-calendar-x mr-2"></i>Ver checksums obsoletos ({{$count_old_checksums}})</a></h4>
+      @else
+        <h4><a id="count_old" style="display:none" href="{{ route('checksums_obsoletos') }}" class="badge badge-pill badge-danger"><i class="bi bi-calendar-x mr-2"></i>Ver checksums obsoletos ({{$count_old_checksums}})</a></h4>
       @endif 
     </div>
     <br>
@@ -438,7 +449,7 @@
                 setTimeout(function() {
                   table.draw();
                 }, 2000);
-                // llamar a la función de counts
+                updateCounts();
               }
             }
           });
@@ -552,7 +563,7 @@
                       table.draw();
                     }, 1000);
                   };
-                  // llamar a la función de counts
+                  updateCounts();
                 }
               }
           });
@@ -664,7 +675,7 @@
                     rowCopia.remove();
                     table.draw();
                 });
-                // llamar a la función de counts
+                updateCounts();
               }
             }
         });
@@ -783,6 +794,41 @@
             $(location).attr('href',url);
            };
     });
+
+  function updateCounts() {
+    var token = $('meta[name="csrf-token"]').attr('content');
+    $.ajax({
+      url: "{{ route('contar_archivos') }}",
+      method: "GET",
+      success: function(data) {
+        console.log(data);
+        if (data.repetidos > 0) {
+            $('#count_repetidos').html('<i class="bi bi-copy mr-2"></i>Ver archivos repetidos (' + data.repetidos + ')');
+            $('#count_repetidos').css('display', 'inline-block')
+        } else {
+          $('#count_repetidos').css('display', 'none')
+        }
+        if (data.null > 0) {
+            $('#count_null').html('<i class="bi bi-exclamation-triangle mr-2"></i>Ver checksums no calculados (' + data.null + ')');
+            $('#count_null').css('display', 'inline-block')
+        } else {
+          $('#count_null').css('display', 'none')
+        }
+        if (data.error > 0) {
+            $('#count_error').html('<i class="bi bi-x-circle mr-2"></i>Ver checksums con error (' + data.error + ')');
+            $('#count_error').css('display', 'inline-block')
+        } else {
+          $('#count_error').css('display', 'none')
+        }
+        if (data.old > 0) {
+            $('#count_old').html('<i class="bi bi-calendar-x mr-2"></i>Ver checksums obsoletos (' + data.old + ')');
+            $('#count_old').css('display', 'inline-block')
+        } else {
+          $('#count_old').css('display', 'none')
+        }
+      }
+    });
+  }
 
 } );
 </script>

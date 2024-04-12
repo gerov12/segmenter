@@ -182,6 +182,13 @@ class ArchivoController extends Controller
         return ["repetidos"=>$count_archivos_repetidos, "null"=>$count_null_checksums, "error"=>$count_error_checksums, "old"=>$count_old_checksums];
     }
 
+    public function updateCounts(){
+        $user = Auth::user();
+        $archivos = self::retrieveFiles($user);
+        $count_estados = self::countEstados($archivos);
+        return response()->json($count_estados);
+    }
+
     /**
      * Show the form for creating a new resource.
      *
