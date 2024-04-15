@@ -345,7 +345,16 @@ class ArchivoController extends Controller
     {
 	    // Mensaje extraño
 	    $mensaje = $archivo->pasarData()?'ik0':'m4l';
-      return view('archivo.list');
+        $user = Auth::user();
+        $archivos = self::retrieveFiles($user);
+        $count_estados = self::countEstados($archivos);
+        return view('archivo.list')->with([
+            'data' => $archivos, 
+            'count_archivos_repetidos' => $count_estados["repetidos"],
+            'count_null_checksums' => $count_estados["null"],
+            'count_error_checksums' => $count_estados["error"],
+            'count_old_checksums' => $count_estados["old"]
+        ]);
     }
     
     //no envio los repetidos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
