@@ -288,18 +288,18 @@
    });
 
    // funcion abrir modal de checksum
-   $('#checksumModal').on('show.bs.modal', function(event) {
-        var button = $(event.relatedTarget); // botón que activó el modal
+   $(document).on('click', '#btn-checksum', function(event) {
+        var button = $(this); // botón que activó el modal
         var file_id = button.data('file'); 
         var nombre_original = button.data('name'); 
         var status = button.data('status'); 
         var recalculable = button.data('recalculable'); 
         var info = button.data('info');
+        var modal = $("#checksumModal");
+        modal.find('.modal-title').text('Info sobre checksum (' + nombre_original + ')');
 
-        $(this).find('.modal-title').text('Info sobre checksum (' + nombre_original + ')');
-
-        var modalBody = $(this).find('.modal-body');
-        var modalfooter = $(this).find('.modal-footer');
+        var modalBody = modal.find('.modal-body');
+        var modalfooter = modal.find('.modal-footer');
         var botonRecalcular = modalfooter.find('#checksum-button');
         var botonCerrar = modalfooter.find('#close-button-check');
         var botonVolver = modalfooter.find('#back-button-check');
@@ -395,8 +395,7 @@
             var url = "{{ url('archivo/') }}"+"/"+file_id+"/descargar";
             $(location).attr('href', url);
         });
-
-
+        modal.modal('show');
     });
 
     // confirm para recalcular/sincronizar desde el modal
@@ -457,14 +456,14 @@
     });
 
     //función abrir modal de copias
-    $('#copiasModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget); // botón que activó el modal
+    $(document).on('click', '#btn-ver-copias', function(event) {
+        var button = $(this); // botón que activó el modal
         var name = button.data('name');
-        var modal = this;
+        var modal = $('#copiasModal');
         var archivo = button.data('archivo');
         var info = button.data('info');
         var limpiables = button.data('limpiables');
-        var modalfooter = $(this).find('.modal-footer');
+        var modalfooter = modal.find('.modal-footer');
         var botonLimpiar = modalfooter.find('#delete-copies-button');
         var botonCerrar = modalfooter.find('#close-button-copias');
         var botonVolver = modalfooter.find('#back-button-copias');
@@ -474,7 +473,7 @@
             dataType: 'json',
             success: function(response){
                 if (response) {
-                  $(modal).find('.modal-title').text('Copias del archivo ' + name);
+                  modal.find('.modal-title').text('Copias del archivo ' + name);
 
                   // obtengo el listado de copias de este archivo
                   var copias = response;
@@ -510,6 +509,7 @@
                     botonVolver.css('display', 'none');
                     botonCerrar.css('display', 'block');
                   }
+                  modal.modal('show');
                 };
             }
         })
@@ -571,15 +571,15 @@
     });
 
     //función abrir modal de archivo original
-    $('#originalModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget); // botón que activó el modal
+    $(document).on('click', '#btn-ver-original', function(event) {
+        var button = $(this); // botón que activó el modal
         var name = button.data('name');
-        var modal = this;
+        var modal = $('#originalModal');
         var archivo = button.data('archivo');
         var owner = button.data('owner');
         var info = button.data('info');
         var limpiable = button.data('limpiable');
-        var modalfooter = $(this).find('.modal-footer');
+        var modalfooter = modal.find('.modal-footer');
         var botonLimpiar = modalfooter.find('#delete-copy-button');
         var botonCerrar = modalfooter.find('#close-button-original');
         var botonVolver = modalfooter.find('#back-button-original');
@@ -589,7 +589,7 @@
             dataType: 'json',
             success: function(response){
                 if (response) {
-                  $(modal).find('.modal-title').text('Original del archivo ' + name);
+                  modal.find('.modal-title').text('Original del archivo ' + name);
 
                   // obtengo el original de este archivo
                   var original = response;
@@ -625,6 +625,7 @@
                     botonVolver.css('display', 'none');
                     botonCerrar.css('display', 'block');
                   }
+                  modal.modal('show');
                 };
             }
         })
