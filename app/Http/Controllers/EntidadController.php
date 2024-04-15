@@ -17,13 +17,23 @@ class EntidadController extends Controller
     /**
      * Mostrar la Entidad
      */
-    public function show($entidad) //: View
+    public function show($entidad, Request $request) //: View
     {
-        return view('entidad.view', [
-            'entidad' => Entidad::findOrNew($entidad)
-            ,'provincia' => $entidad->provincia ?? new Provincia (['nombre'=>'No province','id'=>0,'codigo'=>0])
-            ,'svg' => $entidad->geometria ?? new Geometria([])
+      $oEntidad =  Entidad::findOrNew($entidad);
+      $oProvincia = $oEntidad->localidad->departamentos->first()->provincia;
+      if ($request->ajax()) {
+        return view('entidad.info', [
+            'entidad' => $oEntidad
+            ,'provincia' => $oProvincia ?? new Provincia (['nombre'=>'No province','id'=>0,'codigo'=>0])
+            ,'svg' => $oEntidad->geometria()->first()->getSVG(400,400) ?? (new Geometria([]))->getSVG()
         ]);
+      }else{
+        return view('entidad.view', [
+          'entidad' => $oEntidad
+          ,'provincia' => $oProvincia ?? new Provincia (['nombre'=>'No province','id'=>0,'codigo'=>0])
+          ,'svg' => $oEntidad->geometria()->first()->getSVG() ?? (new Geometria([]))->getSVG()
+      ]);
+      }
     }
 
     public function index()
@@ -69,7 +79,8 @@ class EntidadController extends Controller
            // Ents, pastores e árboles :D
            $aEnts=[];
            $entsQuery = Entidad::with(['localidad','localidad.departamentos',
-                                                'localidad.departamentos.provincia']);
+                                                'localidad.departamentos.provincia',
+                                              'geometria']);
            $codigo = (!empty($_GET["codigo"])) ? ($_GET["codigo"]) : ('');
            if ($codigo!='') {
               $provsQuery->where('codigo', '=', $codigo);
@@ -92,7 +103,9 @@ class EntidadController extends Controller
                                 'localidad' => $ent->localidad->nombre,
                                 'departamento' => $ent->localidad->departamentos->first()->nombre,
                                 'provincia' => $ent->localidad->departamentos->first()->provincia->nombre,
-                                'codprov'=> $ent->localidad->departamentos->first()->provincia->codigo];
+                                'codprov'=> $ent->localidad->departamentos->first()->provincia->codigo
+//                               , 'icon'=> $ent->geometria()->first()->getSVG(30,30)
+                              ];
         }
       return datatables()->of($aEnts)
                 ->addColumn('action', function($data){

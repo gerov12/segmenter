@@ -217,7 +217,9 @@ Route::middleware(['auth'])->group(function () {
 Route::get('provs-list', 'ProvinciaController@provsList');
 Route::get('provs','ProvinciaController@index');
 Route::get('prov/{provincia}','ProvinciaController@show');
+Route::get('provincia/{provincia}','ProvinciaController@show');
 Route::post('prov/{provincia}','ProvinciaController@show_post');
+
 Route::delete('provincia/{provincia}','ProvinciaController@destroy')->name('provincia.delete');
 
 // ---------- DEPARTAMENTOS --------
@@ -260,12 +262,20 @@ Route::post('aglo-segmenta-run/{aglomerado}','AglomeradoController@run_segmentar
 Route::get('entidades', 'EntidadController@index')->name('entidades');
 Route::get('entidad/{entidad}','EntidadController@show');
 Route::get('ents-list', 'EntidadController@entsList');
+Route::post('entidad/{entidad}','EntidadController@show');
 Route::get('ents','EntidadController@index');
 
 Route::middleware(['auth'])->group(function () {
   Route::get('entidades/cargar', 'EntidadController@cargar')->name('entidades.cargar');
   Route::post('entidades/cargar', 'EntidadController@store');
 });
+
+// ---------- OPERATIVOS ----------
+Route::get('operativos', 'OperativoController@index')->name('operativos');
+Route::get('operativo/{operativo}','OperativoController@show');
+Route::get('operativos-list', 'OperativoController@operativosList');
+Route::post('operativo/{operativo}','OperativoController@show');
+Route::get('operativo/seleccionar/{operativo}','OperativoController@seleccionar');
 
 
 // --------- SEGMENTACION X AGLOMERADO ---------

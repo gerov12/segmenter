@@ -14,7 +14,7 @@
     grid-template-columns: repeat(2, 1fr);
     text-align: center;
     justify-content: center;
-    } 
+    }
     .grid-item {
     padding: 10px;
     text-align: center;
@@ -55,9 +55,9 @@
       <!-- acá se carga el mensaje -->
       <h5 id="checksum-message" style="text-align: center"></h5>
       <br>
-      <div id="checksum-modal-info-1" style="text-align: center; font-size: 16px"></div> 
+      <div id="checksum-modal-info-1" style="text-align: center; font-size: 16px"></div>
       <br>
-      <div id="checksum-modal-info-2" style="text-align: center; font-size: 14px"></div> 
+      <div id="checksum-modal-info-2" style="text-align: center; font-size: 14px"></div>
     </div>
     <div class="modal-footer">
       <!-- se muestra botón descargar si corresponde -->
@@ -154,7 +154,7 @@
         <h4><a id="count_repetidos" href="{{ route('archivos_repetidos') }}" class="badge badge-pill badge-warning"><i class="bi bi-copy mr-2"></i>Ver archivos repetidos ({{$count_archivos_repetidos}})</a></h4>
       @else
         <h4><a id="count_repetidos" style="display:none" href="{{ route('archivos_repetidos') }}" class="badge badge-pill badge-warning"><i class="bi bi-copy mr-2"></i>Ver archivos repetidos ({{$count_archivos_repetidos}})</a></h4>
-      @endif 
+      @endif
 
       @if($count_null_checksums > 0)
         <h4><a id="count_null" href="{{ route('checksums_no_calculados') }}" class="badge badge-pill badge-checksum"><i class="bi bi-exclamation-triangle mr-2"></i>Ver checksums no calculados ({{$count_null_checksums}})</a></h4>
@@ -162,17 +162,17 @@
         <h4><a id="count_null" style="display:none" href="{{ route('checksums_no_calculados') }}" class="badge badge-pill badge-checksum"><i class="bi bi-exclamation-triangle mr-2"></i>Ver checksums no calculados ({{$count_null_checksums}})</a></h4>
       @endif
 
-      @if($count_error_checksums > 0) 
+      @if($count_error_checksums > 0)
         <h4><a id="count_error" href="{{ route('checksums_erroneos') }}" class="badge badge-pill badge-danger"><i class="bi bi-x-circle mr-2"></i>Ver checksums con error ({{$count_error_checksums}})</a></h4>
       @else
         <h4><a id="count_error" style="display:none" href="{{ route('checksums_erroneos') }}" class="badge badge-pill badge-danger"><i class="bi bi-x-circle mr-2"></i>Ver checksums con error ({{$count_error_checksums}})</a></h4>
-      @endif 
+      @endif
 
-      @if($count_old_checksums > 0) 
+      @if($count_old_checksums > 0)
         <h4><a id="count_old" href="{{ route('checksums_obsoletos') }}" class="badge badge-pill badge-danger"><i class="bi bi-calendar-x mr-2"></i>Ver checksums obsoletos ({{$count_old_checksums}})</a></h4>
       @else
         <h4><a id="count_old" style="display:none" href="{{ route('checksums_obsoletos') }}" class="badge badge-pill badge-danger"><i class="bi bi-calendar-x mr-2"></i>Ver checksums obsoletos ({{$count_old_checksums}})</a></h4>
-      @endif 
+      @endif
     </div>
     <br>
 
@@ -200,7 +200,7 @@
     </div>
   </div>
 @endsection
-@section('footer_scripts')  
+@section('footer_scripts')
  <script>
  $(document).ready( function () {
      $.ajaxSetup({
@@ -240,7 +240,7 @@
                 }
 },
          processing: true,
-         serverSide: true,
+         serverSide: false,
          ajax: {
           url: "{{ url('archivos') }}",
           type: 'GET',
@@ -274,12 +274,12 @@
           url: "{{ url('archivo') }}"+"\\"+data.id,
           type: 'post',
           data: {id: data.id,format: 'html'},
-          success: function(response){ 
+          success: function(response){
             // Add response in Modal body
             $('#empModal .modal-body').html(response);
 
             // Display Modal
-            $('#empModal').modal('show'); 
+            $('#empModal').modal('show');
             $
           }
         });
@@ -370,8 +370,8 @@
         if (status !== 'old_check') {
           // actualizo la ruta del botón para que sea recalcular
           botonRecalcular.attr('href', "{{ route('recalcular_checksums', ':archivo_id') }}".replace(':archivo_id', file_id)).text("Recalcular Checksum");
-        }   
-       
+        }
+
         if (recalculable) {
           // hago visible el botón
           botonRecalcular.css('display', 'block');
@@ -410,7 +410,7 @@
         } else if (buttonText === "Recalcular Checksum") {
             message = '¿Estás seguro de que deseas recalcular el checksum?';
         }
-        
+
         if (message !== "" && confirm(message)) {
           $.ajax({
             url: $(this).attr("href"),
@@ -615,7 +615,7 @@
                     // lo oculto
                     botonLimpiar.css('display', 'none');
                   }
-                  
+
                   if (info === true) {
                     // si vengo de info permito volver
                     botonVolver.css('display', 'block');
@@ -715,7 +715,7 @@
             $(location).attr('href',url);
            };
     });
-  
+
 // Función de botón Borrar.
     table.on('click', '.btn_arch_delete', function () {
       var $ele = $(this).parent().parent();
@@ -727,7 +727,7 @@
          type: "DELETE",
 	 data: {id: data.id,
                 _token:'{{ csrf_token() }}'},
-         success: function(response){ 
+         success: function(response){
 	     // Add response in Modal body
        if(response=='ok'){
         if(response.statusCode==200){
@@ -761,7 +761,7 @@
          type: "PUT",
 	 data: {id: data.id,
                 _token:'{{ csrf_token() }}'},
-         success: function(response){ 
+         success: function(response){
 	     // Add response in Modal body
 	     if(response.statusCode==200){
 	          row.fadeOut().remove();
@@ -780,7 +780,7 @@
       });
       };
     });
-  
+
   $('#btnFiterSubmitSearch').click(function(){
      $('#laravel_datatable').DataTable().draw(true);
   });
