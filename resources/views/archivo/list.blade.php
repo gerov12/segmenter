@@ -431,9 +431,11 @@
                 var index = 0;
                 var rowNode;
                 rowsData.each(function(row) {
+                    console.log("id: " + archivo_id + " / row: " + row.id + " / index: " + index);
                     if (row.id === archivo_id) {
                         // encontré la fila
                         rowNode = table.row(index).node();
+                        console.log("Fila encontrada:", rowNode);
                         return false; //TODO: cortar el each cuando haya encontrado la fila que busco (esto no funciona)
                     }
                     index = index + 1;
@@ -540,13 +542,16 @@
                     var index = 0;
                     var rowNode;
                     rowsData.each(function(row) {
+                        console.log("id: " + archivo_id + " / row: " + row.id + " / index: " + index);
                         if (row.id === id_copia) {
                             // encontré la fila copia
                             rowNodeCopia = table.row(index).node();
+                            console.log("Fila copia encontrada:", rowNodeCopia);
                         }
                         if (row.id === archivo_id) {
                             // encontré la fila original (TODO: podría buscarla una única vez a fuera del for)
                             rowNodeOriginal = table.row(index).node();
+                            console.log("Fila original encontrada:", rowNodeOriginal);
                         }
                         index = index + 1;
                         //TODO: cortar el each cuando haya encontrado la fila que busco
@@ -656,6 +661,7 @@
                 var index = 0;
                 var rowNode;
                 rowsData.each(function(row) {
+                    console.log("id: " + archivo_id + " / row: " + row.id + " / index: " + index);
                     if (row.id === archivo_id) {
                         // encontré la fila copia
                         rowNodeCopia = table.row(index).node();
