@@ -436,7 +436,6 @@ class ArchivoController extends Controller
 
         try {
             $user = Auth::user();
-            $success = true;
             $tipo = $request->get('type');
             //si envié un archivo calculo ese
             if ($archivo_id && $tipo="individual") {
@@ -444,32 +443,37 @@ class ArchivoController extends Controller
                 if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                     $archivo->checksumRecalculate();
                     $respuesta = ['statusCode'=> 200,'message' => 'Checksum recalculado para el archivo ' . $archivo->nombre_original];
-                    return response()->json($respuesta);
-                    $success = false;
                 } else {
-                    $success = false;
-                }           
-            } else {
-                if ($user->can(['Administrar Archivos', 'Ver Archivos'])){
-                    $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
+                    $respuesta = ['statusCode'=> 403,'message' => 'No tienes permiso para hacer eso.'];
+                }
+                return response()->json($respuesta);
+            } else if (!$archivo_id && $tipo="bulk"){
+                $estado = $request->get('status');
+                $todos = self::retrieveFiles($user);
+                if ($estado = "no_calculados"){
+                    $archivos = $todos->filter(function ($archivo) {
+                        return $archivo->checksum_control === null;
+                    });
+                } else if ($estado = "erroneos"){
+                    $checksums_calculados = $todos->filter(function ($archivo) {
+                        return $archivo->checksum_control !== null;
+                    });
+                    $archivos = $checksums_calculados->filter(function ($archivo) {
                         return !$archivo->checksumOk and !$archivo->checksumObsoleto;
                     });
-                    $recalculados = 0;
-                    foreach ($archivos as $archivo){
-                            $archivo->checksumRecalculate();
-                            $recalculados++;
-                    }
-                    flash($recalculados . " checksums recalculados.")->info();
-                } else {
-                    $success = false;
                 }
-            }
-
-            if ($success == true) { 
-                return redirect('archivos');
-            } else {
-                flash('No tienes permiso para hacer eso.')->error();
-                return back();
+                if (!$user->can(['Administrar Archivos', 'Ver Archivos'])){
+                    $archivos = $archivos->filter(function ($archivo) use ($user) {
+                        return $archivo->ownedByUser($user); // si no tengo permisos me quedo solo con los míos
+                    });
+                }
+                $recalculados = 0;
+                foreach ($archivos as $archivo){
+                        $archivo->checksumRecalculate();
+                        $recalculados++;
+                }
+                $respuesta = ['statusCode'=> 200,'message' => $recalculados . " checksums recalculados."];
+                return response()->json($respuesta);
             }
         } catch (PermissionDoesNotExist $e) {
             flash('No existe el permiso "Administrar Archivos" o "Ver Archivos"')->error();
@@ -530,11 +534,15 @@ class ArchivoController extends Controller
             return $archivo->esCopia;
         });
         $repetidos = [];
+        $owned_count = self::count_owned_files($archivos);
         foreach ($archivos as $archivo){
             $original = $archivo->original;
             $repetidos[] = [$original,$archivo];
         }
-        return view('archivo.repetidos', compact('repetidos'));
+        return view('archivo.repetidos')->with([
+            "repetidos"=>$repetidos,
+            "owned"=>$owned_count
+        ]);
     }
 
     public function listar_checksums_no_calculados(){
@@ -543,7 +551,11 @@ class ArchivoController extends Controller
         $checksums_no_calculados = $archivos->filter(function ($archivo) {
             return $archivo->checksum_control === null;
         });
-        return view('archivo.checksums_no_calculados', compact('checksums_no_calculados'));
+        $owned_count = self::count_owned_files($checksums_no_calculados);
+        return view('archivo.checksums_no_calculados')->with([
+            "checksums_no_calculados"=>$checksums_no_calculados,
+            "owned"=>$owned_count
+        ]);
     }
 
     public function listar_checksums_obsoletos(){
@@ -554,13 +566,18 @@ class ArchivoController extends Controller
         });
         $checksums_obsoletos = $checksums_calculados->filter(function ($archivo) {
             return !$archivo->checksumOk and $archivo->checksumObsoleto;
-        })->map(function ($archivo) {
+        });
+        $owned_count = self::count_owned_files($checksums_obsoletos);
+        $checksums_obsoletos = $checksums_obsoletos->map(function ($archivo) {
             return [
                 'archivo' => $archivo,
                 'control' => $archivo->checksum_control
             ];
         });
-        return view('archivo.checksums_obsoletos', compact('checksums_obsoletos'));
+        return view('archivo.checksums_obsoletos')->with([
+            "checksums_obsoletos"=>$checksums_obsoletos,
+            "owned"=>$owned_count
+        ]);
     }
 
     public function listar_checksums_erroneos(){
@@ -571,12 +588,62 @@ class ArchivoController extends Controller
         });
         $checksums_erroneos = $checksums_calculados->filter(function ($archivo) {
             return !$archivo->checksumOk and !$archivo->checksumObsoleto;
-        })->map(function ($archivo) {
+        });
+        $owned_count = self::count_owned_files($checksums_erroneos);
+        $checksums_erroneos = $checksums_erroneos->map(function ($archivo) {
             return [
                 'archivo' => $archivo,
                 'control' => $archivo->checksum_control
             ];
         });
-        return view('archivo.checksums_erroneos', compact('checksums_erroneos'));
+        return view('archivo.checksums_erroneos')->with([
+            "checksums_erroneos"=>$checksums_erroneos,
+            "owned"=>$owned_count
+        ]);
+    }
+
+    private static function count_owned_files($archivos){
+        $user = Auth::user();
+        $owned = $archivos->filter(function ($archivo) use ($user){
+            return ($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'));
+        })->count();
+        return $owned;
+    }
+
+    public function update_owned_count(Request $request){
+        $user = Auth::user();
+        $estado = $request->get('estado');
+        switch ($estado) {
+            case "repetidos":
+                $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
+                    return $archivo->esCopia;
+                });
+                break;
+            case "no_calculados":
+                $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
+                    return $archivo->checksum_control === null;
+                });
+                break;
+            case "obsoletos":
+                $all = self::retrieveFiles($user);
+                $checksums_calculados = $all->filter(function ($archivo) {
+                    return $archivo->checksum_control !== null;
+                });
+                $archivos = $checksums_calculados->filter(function ($archivo) {
+                    return !$archivo->checksumOk and $archivo->checksumObsoleto;
+                });
+                break;
+            case "erroneos":
+                $all = self::retrieveFiles($user);
+                $checksums_calculados = $all->filter(function ($archivo) {
+                    return $archivo->checksum_control !== null;
+                });
+                $archivos = $checksums_calculados->filter(function ($archivo) {
+                    return !$archivo->checksumOk and !$archivo->checksumObsoleto;
+                });
+                break;
+        }
+        $count = self::count_owned_files($archivos);
+        return response()->json($count);
     }
 }
