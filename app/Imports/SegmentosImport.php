@@ -25,6 +25,9 @@ class SegmentosImport implements ToModel, WithHeadingRow, WithBatchInserts, With
 
 public function model(array $row)
 {
+    //validar los encabezados de la fiila
+   // $this->validarEncabezados($row);
+    
     try {
         // Map missing or incorrect fields to expected names
         $data = [
@@ -42,15 +45,19 @@ public function model(array $row)
             'seg' => $row['seg'] ,
             'vivs' => $row['vivs'] ?? $row['viviendas'] ?? '1',
         ];
-        $this->contadorRegistros++; //debe informar cantidad de registros importados exitosamente
+         //debe informar cantidad de registros importados exitosamente
         return new Segmento($data);
+        $this->contadorRegistros++;
     } catch (\ErrorException $e) {
         Log::error('Error durante la importación: ' . $e);
+  
         // Obtener información sobre el campo y el valor recibido
         $campo = $e->getMessage();
         $valorRecibido = $row[$campo] ?? 'Incorrecto ';
+  
         // Agregar un mensaje a la colección de errores
         $this->errores[] = "Error en el campo '$campo': valor recibido '$valorRecibido' no es válido.";
+  
         // Retornar un valor nulo para omitir esta fila
         if (!$this->errorMostrado) { // Solo mostrar el error si no se ha mostrado antes
             flash('Error en el campo '. $campo . ': valor recibido ' . $valorRecibido . ' no es válido')->error()->important();

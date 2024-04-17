@@ -43,6 +43,31 @@
     </div>
 </div>
 
+<table class="table">
+    <thead>
+        <tr>
+            <th>Provincia</th>
+            <th>Departamento</th>
+            <th>Localidad</th>
+            <th>Segmento</th>
+            <th>Viviendas</th>
+        </tr>
+    </thead>
+    <tbody>
+    @isset($segmentosImportados)
+         @foreach ($segmentosImportados as $segmento)
+            <tr>
+                <td>{{ $segmento->nom_prov }}</td>li
+                <td>{{ $segmento->nom_dpto }}</td>
+                <td>{{ $segmento->nom_loc }}</td>
+                <td>{{ $segmento->seg }}</td>
+                <td>{{ $segmento->vivs }}</td>
+            </tr>
+        @endforeach 
+    @endisset
+
+    </tbody>
+</table>
 <!--
 <h1>Cargar segmentos</h1>
 
