@@ -489,7 +489,6 @@ class ArchivoController extends Controller
 
         try {
             $user = Auth::user();
-            $success = true;
             $tipo = $request->get('type');
             //si envié un archivo sincronizo ese
             if ($archivo_id && $tipo="individual") {
@@ -497,31 +496,30 @@ class ArchivoController extends Controller
                 if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                     $archivo->checksumSync();
                     $respuesta = ['statusCode'=> 200,'message' => 'Checksum sincronizado para el archivo ' . $archivo->nombre_original];
-                    return response()->json($respuesta);
-                    $success = false;
                 } else {
-                    $success = false;
+                    $respuesta = ['statusCode'=> 403,'message' => 'No tienes permiso para hacer eso.'];
                 }
-            } else {
-                if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
-                    $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
-                        return !$archivo->checksumOk and $archivo->checksumObsoleto;
+                return response()->json($respuesta);
+            } else if (!$archivo_id && $tipo="bulk"){
+                $todos = self::retrieveFiles($user);
+                $checksums_calculados = $todos->filter(function ($archivo) {
+                    return $archivo->checksum_control !== null;
+                });
+                $archivos = $checksums_calculados->filter(function ($archivo) {
+                    return !$archivo->checksumOk and $archivo->checksumObsoleto;
+                });
+                if (!$user->can(['Administrar Archivos', 'Ver Archivos'])){
+                    $archivos = $archivos->filter(function ($archivo) use ($user) {
+                        return $archivo->ownedByUser($user); // si no tengo permisos me quedo solo con los míos
                     });
-                    $sincronizados = 0;
-                    foreach ($archivos as $archivo){
-                        $archivo->checksumSync();
-                        $sincronizados++;
-                    }
-                    flash($sincronizados . " checksums sincronizados.")->info();
-                } else {
-                    $success = false;
                 }
-            }
-            if ($success == true) {
-                return redirect('archivos');
-            } else {
-                flash('No tienes permiso para hacer eso.')->error();
-                return back();
+                $sincronizados = 0;
+                foreach ($archivos as $archivo){
+                    $archivo->checksumSync();
+                    $sincronizados++;
+                }
+                $respuesta = ['statusCode'=> 200,'message' => $sincronizados . " checksums sincronizados."];
+                return response()->json($respuesta);
             }
         } catch (PermissionDoesNotExist $e) {
             flash('No existe el permiso "Administrar Archivos" o "Ver Archivos"')->error();
