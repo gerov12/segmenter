@@ -18,40 +18,42 @@
             {{Session::get('info')}}
           </div>
         @endif
-        <table class="table table-bordered" id="tabla-repetidos">
-          @if($repetidos !== null)
-          <thead>
-            <tr>
-              <th>Nombre original</th>
-              <th>Nombre copia</th>
-              <th>Creación original</th>
-              <th>Creación copia</th>
-              <th>Dueño original</th>
-              <th>Dueño copia</th>
-              <th>*</th>
-            </tr>
-          </thead>
-          <tbody>
-            @foreach ($repetidos as $archivo)
-            <tr>
-              <td>{{$archivo[0]->nombre_original}}</td>
-              <td>{{$archivo[1]->nombre_original}}</td>
-              <td>{{$archivo[0]->created_at->format('d-M-Y')}}</td>
-              <td>{{$archivo[1]->created_at->format('d-M-Y')}}</td>
-              <td>{{$archivo[0]->user->name}}</td>
-              <td>{{$archivo[1]->user->name}}</td>
-              @if ($archivo[0]->ownedByUser(Auth::user()) || $archivo[1]->ownedByUser(Auth::user()) || Auth::user()->can('Administrar Archivos', 'Ver Archivos'))
-              <td style="text-align: center;"><a href="{{route('limpiar_archivos', ['archivo_id' => $archivo[1]->id])}}" onclick="return confirmarLimpieza()" class="btn btn-danger"> Limpiar </a></td>
-              @else
-              <td style="text-align: center;"><i class="bi bi-ban"></i></td>
-              @endif
-            </tr>
-            @endforeach
-          </tbody>
-          @else
-          <h1>No hay archivos repetidos</h1>
-          @endif
-        </table>
+        <div class="table-responsive">
+          <table class="table table-bordered" id="tabla-repetidos">
+            @if($repetidos !== null)
+            <thead>
+              <tr>
+                <th>Nombre original</th>
+                <th>Nombre copia</th>
+                <th>Creación original</th>
+                <th>Creación copia</th>
+                <th>Dueño original</th>
+                <th>Dueño copia</th>
+                <th>*</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach ($repetidos as $archivo)
+              <tr>
+                <td>{{$archivo[0]->nombre_original}}</td>
+                <td>{{$archivo[1]->nombre_original}}</td>
+                <td>{{$archivo[0]->created_at->format('d-M-Y')}}</td>
+                <td>{{$archivo[1]->created_at->format('d-M-Y')}}</td>
+                <td>{{$archivo[0]->user->name}}</td>
+                <td>{{$archivo[1]->user->name}}</td>
+                @if ($archivo[0]->ownedByUser(Auth::user()) || $archivo[1]->ownedByUser(Auth::user()) || Auth::user()->can('Administrar Archivos', 'Ver Archivos'))
+                <td style="text-align: center;"><a href="{{route('limpiar_archivos', ['archivo_id' => $archivo[1]->id])}}" onclick="return confirmarLimpieza()" class="btn btn-danger"> Limpiar </a></td>
+                @else
+                <td style="text-align: center;"><i class="bi bi-ban"></i></td>
+                @endif
+              </tr>
+              @endforeach
+            </tbody>
+            @else
+            <h1>No hay archivos repetidos</h1>
+            @endif
+          </table>
+        </div>
       </div>
     </div>
 	</div>

@@ -65,7 +65,7 @@ class Archivo extends Model
             $checksums[] = $checksum;
             foreach ($shape_files as $key => $shape_file) {
                 // Hay e00 con shapefiles con valor null
-                if ($shape_file != null and $shape_file != ''){
+                if (Storage::exists($shape_file)){ //si no existe el storage para el shapefile no lo tengo en cuenta para el checksum
                   $checksums[] =  md5_file($shape_file);//->getRealPath());
                 }
             }
@@ -231,11 +231,33 @@ class Archivo extends Model
                 $control->save();
             }
         } else {
+            flash("Archivo ".$original_extension." ya existe. Cargado el  ".$file->created_at->format('Y-m-d').' por '.$file->user->name)->info();
             # Si no es su archivo y no está en sus archivos visibles lo agrego
             if (!$user->visible_files()->get()->contains($file) and !$user->mis_files()->get()->contains($file)){
                 $user->visible_files()->attach($file->id);
             }
-            flash("Archivo ".$original_extension." ya existe. Cargado el  ".$file->created_at->format('Y-m-d').' por '.$file->user->name)->info();
+            # Cargo nuevamente en storage en caso de que haya sido eliminado por error
+            if (!Storage::exists($file->nombre)){
+                $request_file->storeAs('segmentador', basename($file->nombre));
+                if ($tipo == 'shape'){
+                    if ($shape_files != null){
+                        $size_total = $file->size;
+                        $nombre = substr($file->nombre,0,-4);
+                        foreach ($shape_files as $shape_file) {
+                            if ($shape_file != null and $shape_file != ''){
+                                $extension = strtolower($shape_file->getClientOriginalExtension());
+                                if (!Storage::exists($nombre.'.'.$extension)){ //si se cargaron shapefiles chequeo que estén en storage
+                                    // si no están las guardo y sumo su tamaño al size
+                                    $shape_file->storeAs('segmentador', basename($nombre).'.'.$extension);
+                                    $size_total = $size_total + $shape_file->getSize();
+                                }
+                            };
+                        }
+                        $file->size = $size_total;
+                        $file->save();
+                    }
+                }
+            }
         }
         return $file;
     }
@@ -724,12 +746,14 @@ class Archivo extends Model
             $c = $nombre_copia . $extension;
             if(Storage::exists($c)) {
                 if(Storage::exists($o)) {
-                    # si existe el archivo original entonces elimino la copia
-                    Log::info("Existe el archivo ".$extension." original en el storage. Se eliminará la copia");
-                    if(Storage::delete($c)){
-                        Log::info('Se borró el archivo: '.  $this->nombre_original . " extension " . $extension);
-                    }else{
-                        Log::error('NO se borró el archivo: '.$this->nombre_original . " extension " . $extension);
+                    # si existe el archivo original y la copia tiene storage distinto entonces elimino la copia
+                    if ($o != $c) { //así no elimino el storage original por error (causando problemas de checksum)
+                        Log::info("Existe el archivo ".$extension." original en el storage. Se eliminará la copia");
+                        if(Storage::delete($c)){
+                            Log::info('Se borró el archivo: '.  $this->nombre_original . " extension " . $extension);
+                        }else{
+                            Log::error('NO se borró el archivo: '.$this->nombre_original . " extension " . $extension);
+                        }
                     }
                 } else {
                     # si no existe entonces el archivo copia reemplaza al original en el storage (son el mismo por lo que no hay problema)
@@ -745,17 +769,19 @@ class Archivo extends Model
         Log::info("Verificando storage");
         $copia = $this;
         if(Storage::exists($original->nombre)) {
-            # si existe el archivo original entonces elimino la copia
-            Log::info("Existe el archivo original en el storage. Se eliminará la copia");
-            if(Storage::delete($copia->nombre)){
-                Log::info('Se borró el archivo: '.$copia->nombre. ' nombre original:'. $copia->nombre_original);
-            }else{
-                Log::error('NO se borró el archivo: '.$copia->nombre. ' nombre original:'.$copia->nombre_original);
+            # si existe el archivo original y la copia tiene storage distinto entonces elimino la copia
+            if ($original->nombre != $copia->nombre) { //así no elimino el storage original por error (causando problemas de checksum)
+                Log::info("Existe el archivo original en el storage. Se eliminará la copia");
+                if(Storage::delete($copia->nombre)){
+                    Log::info('Se borró el archivo: '.$copia->nombre. ' nombre original:'. $copia->nombre_original);
+                }else{
+                    Log::error('NO se borró el archivo: '.$copia->nombre. ' nombre original:'.$copia->nombre_original);
+                }
             }
         } else {
             # si no existe entonces el archivo copia reemplaza al original en el storage (son el mismo por lo que no hay problema)
             Log::error("No existe el archivo original en el storage. Se reutiliza la copia");
-            $original->update(['nombre' => $copia->nombre]);
+            Storage::move($copia->nombre, $original->nombre); 
         }
     }
 

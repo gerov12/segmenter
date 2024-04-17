@@ -14,11 +14,15 @@
     grid-template-columns: repeat(2, 1fr);
     text-align: center;
     justify-content: center;
-    } 
+    }
     .grid-item {
     padding: 10px;
     text-align: center;
     }
+    tr {
+      transition: background-color 1s;
+    }
+
   </style>
   <!-- Modal info archivo -->
   <div class="modal fade" id="empModal" role="dialog">
@@ -51,15 +55,15 @@
       <!-- acá se carga el mensaje -->
       <h5 id="checksum-message" style="text-align: center"></h5>
       <br>
-      <div id="checksum-modal-info-1" style="text-align: center; font-size: 16px"></div> 
+      <div id="checksum-modal-info-1" style="text-align: center; font-size: 16px"></div>
       <br>
-      <div id="checksum-modal-info-2" style="text-align: center; font-size: 14px"></div> 
+      <div id="checksum-modal-info-2" style="text-align: center; font-size: 14px"></div>
     </div>
     <div class="modal-footer">
       <!-- se muestra botón descargar si corresponde -->
       <button id="checksum-file-download-button" type="button" class="btn_descarga btn-sm btn-secondary" > Descargar Archivo </button>
       <!-- al botón se le carga la ruta correspondiente en el script y se muestra si corresponde -->
-      <button id="checksum-button" type="button" class="btn-sm btn-success"></button>
+      <button id="checksum-button" type="button" class="btn-sm btn-success" data-dismiss="modal"></button>
       <button id="close-button-check" type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
       <button id="back-button-check" class="btn-sm btn-primary float-right btn-detalles" data-target="#empModal" data-toggle="modal" data-dismiss="modal">Volver</button>
     </div>
@@ -91,7 +95,7 @@
       </div>
       <div class="modal-footer">
         <!-- al botón se le carga la ruta correspondiente en el script y se muestra si corresponde -->
-        <button id="delete-copies-button" type="button" class="btn-sm btn-danger">Limpiar copias</button>
+        <button id="delete-copies-button" type="button" class="btn-sm btn-danger" data-dismiss="modal">Limpiar copias</button>
         <button id="close-button-copias" type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
         <button id="back-button-copias" class="btn-sm btn-primary float-right btn-detalles" data-target="#empModal" data-toggle="modal" data-dismiss="modal">Volver</button>
       </div>
@@ -107,7 +111,11 @@
         <h4 class="modal-title"></h4>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" id="body-modal-original">
+        <div id="aclaracion-original">
+          <!-- acá se carga la aclaración de qué hace el botón limpiar -->
+        </div>
+        <br>
         <table class="table table-bordered" id="tabla-original">
           <thead>
             <tr>
@@ -123,7 +131,7 @@
       </div>
       <div class="modal-footer">
         <!-- al botón se le carga la ruta correspondiente en el script y se muestra si corresponde -->
-        <button id="delete-copy-button" type="button" class="btn-sm btn-danger">Limpiar copia</button>
+        <button id="delete-copy-button" type="button" class="btn-sm btn-danger" data-dismiss = modal>Limpiar copia</button>
         <button id="close-button-original" type="button" class="btn-sm btn-primary float-right btn-detalles" data-dismiss="modal">Cerrar</button>
         <button id="back-button-original" class="btn-sm btn-primary float-right btn-detalles" data-target="#empModal" data-toggle="modal" data-dismiss="modal">Volver</button>
       </div>
@@ -132,26 +140,39 @@
   </div>
 
   <div class="container">
-    @if(Session::has('message'))
-      <div class="alert alert-danger alert-dismissible" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        {{Session::get('message')}}
-      </div>
-    @endif
+    <div id="alert-container">
+      @if(Session::has('message'))
+        <div class="alert alert-danger alert-dismissible" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          {{Session::get('message')}}
+        </div>
+      @endif
+    </div>
     <h2>Listado de Archivos</h2>
     <div id="botones-problemas">
       @if($count_archivos_repetidos > 0)
-      <h4><a href="{{ route('archivos_repetidos') }}" class="badge badge-pill badge-warning"><i class="bi bi-copy mr-2"></i>Ver archivos repetidos ({{$count_archivos_repetidos}})</a></h4>
-      @endif 
-      @if($count_null_checksums > 0)
-        <h4><a href="{{ route('checksums_no_calculados') }}" class="badge badge-pill badge-checksum"><i class="bi bi-exclamation-triangle mr-2"></i>Ver checksums no calculados ({{$count_null_checksums}})</a></h4>
+        <h4><a id="count_repetidos" href="{{ route('archivos_repetidos') }}" class="badge badge-pill badge-warning"><i class="bi bi-copy mr-2"></i>Ver archivos repetidos ({{$count_archivos_repetidos}})</a></h4>
+      @else
+        <h4><a id="count_repetidos" style="display:none" href="{{ route('archivos_repetidos') }}" class="badge badge-pill badge-warning"><i class="bi bi-copy mr-2"></i>Ver archivos repetidos ({{$count_archivos_repetidos}})</a></h4>
       @endif
-      @if($count_error_checksums > 0) 
-        <h4><a href="{{ route('checksums_erroneos') }}" class="badge badge-pill badge-danger"><i class="bi bi-x-circle mr-2"></i>Ver checksums con error ({{$count_error_checksums}})</a></h4>
-      @endif 
-      @if($count_old_checksums > 0) 
-        <h4><a href="{{ route('checksums_obsoletos') }}" class="badge badge-pill badge-danger"><i class="bi bi-calendar-x mr-2"></i>Ver checksums obsoletos ({{$count_old_checksums}})</a></h4>
-      @endif 
+
+      @if($count_null_checksums > 0)
+        <h4><a id="count_null" href="{{ route('checksums_no_calculados') }}" class="badge badge-pill badge-checksum"><i class="bi bi-exclamation-triangle mr-2"></i>Ver checksums no calculados ({{$count_null_checksums}})</a></h4>
+      @else
+        <h4><a id="count_null" style="display:none" href="{{ route('checksums_no_calculados') }}" class="badge badge-pill badge-checksum"><i class="bi bi-exclamation-triangle mr-2"></i>Ver checksums no calculados ({{$count_null_checksums}})</a></h4>
+      @endif
+
+      @if($count_error_checksums > 0)
+        <h4><a id="count_error" href="{{ route('checksums_erroneos') }}" class="badge badge-pill badge-danger"><i class="bi bi-x-circle mr-2"></i>Ver checksums con error ({{$count_error_checksums}})</a></h4>
+      @else
+        <h4><a id="count_error" style="display:none" href="{{ route('checksums_erroneos') }}" class="badge badge-pill badge-danger"><i class="bi bi-x-circle mr-2"></i>Ver checksums con error ({{$count_error_checksums}})</a></h4>
+      @endif
+
+      @if($count_old_checksums > 0)
+        <h4><a id="count_old" href="{{ route('checksums_obsoletos') }}" class="badge badge-pill badge-danger"><i class="bi bi-calendar-x mr-2"></i>Ver checksums obsoletos ({{$count_old_checksums}})</a></h4>
+      @else
+        <h4><a id="count_old" style="display:none" href="{{ route('checksums_obsoletos') }}" class="badge badge-pill badge-danger"><i class="bi bi-calendar-x mr-2"></i>Ver checksums obsoletos ({{$count_old_checksums}})</a></h4>
+      @endif
     </div>
     <br>
 
@@ -179,7 +200,7 @@
     </div>
   </div>
 @endsection
-@section('footer_scripts')  
+@section('footer_scripts')
  <script>
  $(document).ready( function () {
      $.ajaxSetup({
@@ -219,7 +240,7 @@
                 }
 },
          processing: true,
-         serverSide: true,
+         serverSide: false,
          ajax: {
           url: "{{ url('archivos') }}",
           type: 'GET',
@@ -253,12 +274,12 @@
           url: "{{ url('archivo') }}"+"\\"+data.id,
           type: 'post',
           data: {id: data.id,format: 'html'},
-          success: function(response){ 
+          success: function(response){
             // Add response in Modal body
             $('#empModal .modal-body').html(response);
 
             // Display Modal
-            $('#empModal').modal('show'); 
+            $('#empModal').modal('show');
             $
           }
         });
@@ -267,18 +288,18 @@
    });
 
    // funcion abrir modal de checksum
-   $('#checksumModal').on('show.bs.modal', function(event) {
-        var button = $(event.relatedTarget); // botón que activó el modal
+   $(document).on('click', '#btn-checksum', function(event) {
+        var button = $(this); // botón que activó el modal
         var file_id = button.data('file'); 
         var nombre_original = button.data('name'); 
         var status = button.data('status'); 
         var recalculable = button.data('recalculable'); 
         var info = button.data('info');
+        var modal = $("#checksumModal");
+        modal.find('.modal-title').text('Info sobre checksum (' + nombre_original + ')');
 
-        $(this).find('.modal-title').text('Info sobre checksum (' + nombre_original + ')');
-
-        var modalBody = $(this).find('.modal-body');
-        var modalfooter = $(this).find('.modal-footer');
+        var modalBody = modal.find('.modal-body');
+        var modalfooter = modal.find('.modal-footer');
         var botonRecalcular = modalfooter.find('#checksum-button');
         var botonCerrar = modalfooter.find('#close-button-check');
         var botonVolver = modalfooter.find('#back-button-check');
@@ -342,11 +363,15 @@
             // oculto botón descargar
             modalfooter.find("#checksum-file-download-button").css('display', 'none');
         }
+
+        // agrego el campo archivo-id al botón para recuperar en la animación
+        botonRecalcular.data('archivo-id', file_id);
+
         if (status !== 'old_check') {
           // actualizo la ruta del botón para que sea recalcular
           botonRecalcular.attr('href', "{{ route('recalcular_checksums', ':archivo_id') }}".replace(':archivo_id', file_id)).text("Recalcular Checksum");
-        }   
-       
+        }
+
         if (recalculable) {
           // hago visible el botón
           botonRecalcular.css('display', 'block');
@@ -370,36 +395,75 @@
             var url = "{{ url('archivo/') }}"+"/"+file_id+"/descargar";
             $(location).attr('href', url);
         });
-
-
+        modal.modal('show');
     });
 
-    // confirm para recalcular desde el modal
+    // confirm para recalcular/sincronizar desde el modal
     $('#checksum-button').on('click', function(event) {
         event.preventDefault(); // evita que el botón dirija directamente a su href
         var buttonText = $(this).text().trim();
         var message = "";
+        var archivo_id = $(this).data('archivo-id');
 
         if (buttonText === "Sincronizar Checksum") {
             message = '¿Estás seguro de que deseas sincronizar el checksum?';
         } else if (buttonText === "Recalcular Checksum") {
             message = '¿Estás seguro de que deseas recalcular el checksum?';
         }
-        
+
         if (message !== "" && confirm(message)) {
-            window.location.href = $(this).attr('href');
+          $.ajax({
+            url: $(this).attr("href"),
+            type: 'POST',
+            data: {
+              type: "individual"
+            },
+            success: function(response) {
+              var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+              var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                                response.message +
+                              '</div>';
+              $('#alert-container').html(alertHtml);
+              if (response.statusCode == 200) {
+                var table = $('#laravel_datatable').DataTable();
+                var rowsData = table.rows().data();
+                var index = 0;
+                var rowNode;
+                rowsData.each(function(row) {
+                    if (row.id === archivo_id) {
+                        // encontré la fila
+                        rowNode = table.row(index).node();
+                        return false; //TODO: cortar el each cuando haya encontrado la fila que busco (esto no funciona)
+                    }
+                    index = index + 1;
+                });
+                var row = $(rowNode);
+                var originalColor = row.css('background-color');
+                row.css('background-color', 'lightgreen');
+                row.find('td:eq(6)').css('filter', 'blur(2px)');
+                setTimeout(function() {
+                  row.css('background-color', originalColor);
+                }, 1500);
+                setTimeout(function() {
+                  table.draw();
+                }, 2000);
+                updateCounts();
+              }
+            }
+          });
         }
     });
 
     //función abrir modal de copias
-    $('#copiasModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget); // botón que activó el modal
+    $(document).on('click', '#btn-ver-copias', function(event) {
+        var button = $(this); // botón que activó el modal
         var name = button.data('name');
-        var modal = this;
+        var modal = $('#copiasModal');
         var archivo = button.data('archivo');
         var info = button.data('info');
         var limpiables = button.data('limpiables');
-        var modalfooter = $(this).find('.modal-footer');
+        var modalfooter = modal.find('.modal-footer');
         var botonLimpiar = modalfooter.find('#delete-copies-button');
         var botonCerrar = modalfooter.find('#close-button-copias');
         var botonVolver = modalfooter.find('#back-button-copias');
@@ -409,7 +473,7 @@
             dataType: 'json',
             success: function(response){
                 if (response) {
-                  $(modal).find('.modal-title').text('Copias del archivo ' + name);
+                  modal.find('.modal-title').text('Copias del archivo ' + name);
 
                   // obtengo el listado de copias de este archivo
                   var copias = response;
@@ -425,8 +489,8 @@
                   });
                   $('#tabla-repetidos tbody').html(tableBody);
 
-                  // actualizo la ruta del botón
-                  botonLimpiar.attr('href', "{{ route('limpiar_copias', [':archivo_id', ':copias']) }}".replace(':archivo_id', archivo).replace(':copias', true));
+                  // agrego el campo archivo-id al botón para recuperar en la animación
+                  botonLimpiar.data('archivo-id', archivo);
                   // si tengo los permisos necesarios
                   if (limpiables) {
                     // hago visible el botón
@@ -445,6 +509,7 @@
                     botonVolver.css('display', 'none');
                     botonCerrar.css('display', 'block');
                   }
+                  modal.modal('show');
                 };
             }
         })
@@ -452,21 +517,69 @@
 
     // confirm para limpiar copias de un archivo desde el modal
     $('#delete-copies-button').on('click', function(event) {
-        event.preventDefault(); // evita que el botón diriga directamente a su href
-        if (confirm('Al confirmar se eliminarán todas las copias de este archivo y los usuarios que las cargaron pasarán a ser "observadores" del original. ¿Estás seguro?')) {
-            window.location.href = $(this).attr('href');
+        var archivo_id = $(this).data('archivo-id');
+        if (confirm('Al confirmar se eliminarán las copias listadas y sus usuarios pasarán a ser "observadores" de este archivo. ¿Estás seguro?')) {
+          $.ajax({
+              url: 'archivos/limpiar/' + archivo_id + '/copias',
+              type: 'POST',
+              data: {
+                type: "bulk"
+              },
+              success: function(response) {
+                var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+                var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                                response.message +
+                              '</div>';
+                $('#alert-container').html(alertHtml);
+                if (response.statusCode == 200) {
+                  var table = $('#laravel_datatable').DataTable();
+                  var copias = response.id_copias;
+                  var rowsData = table.rows().data();
+                  for (const id_copia of copias) {
+                    var index = 0;
+                    var rowNode;
+                    rowsData.each(function(row) {
+                        if (row.id === id_copia) {
+                            // encontré la fila copia
+                            rowNodeCopia = table.row(index).node();
+                        }
+                        if (row.id === archivo_id) {
+                            // encontré la fila original (TODO: podría buscarla una única vez a fuera del for)
+                            rowNodeOriginal = table.row(index).node();
+                        }
+                        index = index + 1;
+                        //TODO: cortar el each cuando haya encontrado la fila que busco
+                    });
+                    if (typeof rowNodeCopia !== 'undefined') { //sirve para el caso en el cual las copias están en otra página
+                      var rowCopia = $(rowNodeCopia);
+                      rowCopia.fadeOut(1000, function() {
+                          rowCopia.remove();
+                      });
+                    }
+                    var rowOriginal = $(rowNodeOriginal);
+                    rowOriginal.find('td:eq(6)').css('filter', 'blur(2px)');
+                    setTimeout(function() {
+                      table.draw();
+                    }, 1000);
+                  };
+                  updateCounts();
+                }
+              }
+          });
         }
     });
 
     //función abrir modal de archivo original
-    $('#originalModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget); // botón que activó el modal
+    $(document).on('click', '#btn-ver-original', function(event) {
+        var button = $(this); // botón que activó el modal
         var name = button.data('name');
-        var modal = this;
+        var modal = $('#originalModal');
         var archivo = button.data('archivo');
+        var owner = button.data('owner');
         var info = button.data('info');
         var limpiable = button.data('limpiable');
-        var modalfooter = $(this).find('.modal-footer');
+        var modalfooter = modal.find('.modal-footer');
         var botonLimpiar = modalfooter.find('#delete-copy-button');
         var botonCerrar = modalfooter.find('#close-button-original');
         var botonVolver = modalfooter.find('#back-button-original');
@@ -476,7 +589,7 @@
             dataType: 'json',
             success: function(response){
                 if (response) {
-                  $(modal).find('.modal-title').text('Original del archivo ' + name);
+                  modal.find('.modal-title').text('Original del archivo ' + name);
 
                   // obtengo el original de este archivo
                   var original = response;
@@ -489,9 +602,11 @@
                   tableBody += '<td>' + original.user.name + '</td>';
                   tableBody += '</tr>';
                   $('#tabla-original tbody').html(tableBody);
+                  $('#aclaracion-original').html('Al clickear en <span style="color:red">"Limpiar copia"</span> el usuario <b>' + owner + '</b> pasará a ser "observador" del siguiente archivo, eliminando el actual.');
 
-                  // actualizo la ruta del botón
-                  botonLimpiar.attr('href', "{{ route('limpiar_archivos', ':archivo_id') }}".replace(':archivo_id', archivo));
+                  // agrego los campos archivo-id y original-id al botón para recuperar en la animación
+                  botonLimpiar.data('archivo-id', archivo);
+                  botonLimpiar.data('original-id', original.id);
                   // si tengo los permisos necesarios
                   if (limpiable) {
                     // hago visible el botón
@@ -510,6 +625,7 @@
                     botonVolver.css('display', 'none');
                     botonCerrar.css('display', 'block');
                   }
+                  modal.modal('show');
                 };
             }
         })
@@ -517,10 +633,54 @@
 
     // confirm para limpiar copia desde el modal
     $('#delete-copy-button').on('click', function(event) {
-        event.preventDefault(); // evita que el botón diriga directamente a su href
-        if (confirm('Al confirmar se eliminará este archivo y pasarás a ser "observador" del archivo original. ¿Estás seguro?')) {
-            window.location.href = $(this).attr('href');
-        }
+      var archivo_id = $(this).data('archivo-id');
+      var original_id = $(this).data('original-id');
+      if (confirm('Al confirmar se eliminará este archivo y pasarás a ser "observador" del archivo original. ¿Estás seguro?')) {
+        $.ajax({
+            url: 'archivos/limpiar/' + archivo_id,
+            type: 'POST',
+            data: {
+              type: "individual"
+            },
+            success: function(response) {
+              console.log(response);
+              var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+              var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                                response.message +
+                              '</div>';
+              $('#alert-container').html(alertHtml);
+              if (response.statusCode == 200) {
+                var table = $('#laravel_datatable').DataTable();
+                var rowsData = table.rows().data();
+                var index = 0;
+                var rowNode;
+                rowsData.each(function(row) {
+                    if (row.id === archivo_id) {
+                        // encontré la fila copia
+                        rowNodeCopia = table.row(index).node();
+                        console.log("Fila copia encontrada:", rowNodeCopia);
+                    }
+                    if (row.id === original_id) {
+                        // encontré la fila original
+                        rowNodeOriginal = table.row(index).node();
+                        console.log("Fila original encontrada:", rowNodeOriginal);
+                    }
+                    index = index + 1;
+                    //TODO: cortar el each cuando haya encontrado la fila que busco
+                });
+                var rowCopia = $(rowNodeCopia);
+                var rowOriginal = $(rowNodeOriginal);
+                rowOriginal.find('td:eq(6)').css('filter', 'blur(2px)');
+                rowCopia.fadeOut(1000, function() {
+                    rowCopia.remove();
+                    table.draw();
+                });
+                updateCounts();
+              }
+            }
+        });
+      }
     });
 
   // Funcion de botón Ver.
@@ -555,7 +715,7 @@
             $(location).attr('href',url);
            };
     });
-  
+
 // Función de botón Borrar.
     table.on('click', '.btn_arch_delete', function () {
       var $ele = $(this).parent().parent();
@@ -567,7 +727,7 @@
          type: "DELETE",
 	 data: {id: data.id,
                 _token:'{{ csrf_token() }}'},
-         success: function(response){ 
+         success: function(response){
 	     // Add response in Modal body
        if(response=='ok'){
         if(response.statusCode==200){
@@ -601,7 +761,7 @@
          type: "PUT",
 	 data: {id: data.id,
                 _token:'{{ csrf_token() }}'},
-         success: function(response){ 
+         success: function(response){
 	     // Add response in Modal body
 	     if(response.statusCode==200){
 	          row.fadeOut().remove();
@@ -620,7 +780,7 @@
       });
       };
     });
-  
+
   $('#btnFiterSubmitSearch').click(function(){
      $('#laravel_datatable').DataTable().draw(true);
   });
@@ -635,6 +795,41 @@
             $(location).attr('href',url);
            };
     });
+
+  function updateCounts() {
+    var token = $('meta[name="csrf-token"]').attr('content');
+    $.ajax({
+      url: "{{ route('contar_archivos') }}",
+      method: "GET",
+      success: function(data) {
+        console.log(data);
+        if (data.repetidos > 0) {
+            $('#count_repetidos').html('<i class="bi bi-copy mr-2"></i>Ver archivos repetidos (' + data.repetidos + ')');
+            $('#count_repetidos').css('display', 'inline-block')
+        } else {
+          $('#count_repetidos').css('display', 'none')
+        }
+        if (data.null > 0) {
+            $('#count_null').html('<i class="bi bi-exclamation-triangle mr-2"></i>Ver checksums no calculados (' + data.null + ')');
+            $('#count_null').css('display', 'inline-block')
+        } else {
+          $('#count_null').css('display', 'none')
+        }
+        if (data.error > 0) {
+            $('#count_error').html('<i class="bi bi-x-circle mr-2"></i>Ver checksums con error (' + data.error + ')');
+            $('#count_error').css('display', 'inline-block')
+        } else {
+          $('#count_error').css('display', 'none')
+        }
+        if (data.old > 0) {
+            $('#count_old').html('<i class="bi bi-calendar-x mr-2"></i>Ver checksums obsoletos (' + data.old + ')');
+            $('#count_old').css('display', 'inline-block')
+        } else {
+          $('#count_old').css('display', 'none')
+        }
+      }
+    });
+  }
 
 } );
 </script>
