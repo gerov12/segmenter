@@ -114,6 +114,7 @@
       })
     }
   };
+
   function confirmarCalculoBulk(){
     if (confirm("¿Estás seguro de que deseas recalcular los checksums? Esta acción es irreversible.")){
       $.ajax({
@@ -135,12 +136,10 @@
             $('#tabla-no-calculados tbody tr').each(function() {
                 var row = $(this);
                 row.fadeOut(1000, function() {
-                    row.remove();
                     updateCount("no_calculados");
                     $('#tabla-no-calculados').DataTable().clear().draw();
                 });
             });
-            
           }
         }
       })

@@ -2,10 +2,11 @@
 
 @section('content')
 <div class="container">
+<div id="alert-container"></div>
 <h2>Listado de archivos con checksums con error </h2>
   @can('Administrar Archivos', 'Ver Archivos')
     @if(count($checksums_erroneos) > 0)
-    <h4><a href="{{route('recalcular_checksums')}}" onclick="return confirmarCalculoBulk()" class="btn btn-success"> Recalcular ({{count($checksums_erroneos)}})</a></h4>
+    <h4><button id="bulk-button" onclick="return confirmarCalculoBulk()" class="btn btn-success"> Recalcular ({{$owned}})</button></h4>
     @endif
   @endcan
   <br>
@@ -20,7 +21,6 @@
         @endif
         <div class="table-responsive">
           <table class="table table-bordered" id="tabla-erroneos">
-            @if($checksums_erroneos !== null)
             <thead>
               <tr>
                 <th>Nombre</th>
@@ -33,7 +33,7 @@
             </thead>
             <tbody>
               @foreach ($checksums_erroneos as $archivo)
-              <tr>
+              <tr id="{{$archivo['archivo']->id}}">
                 <td>{{$archivo['archivo']->nombre_original}}</td>
                 <td>{{$archivo['archivo']->created_at->format('d-M-Y')}}</td>
                 <td>{{$archivo['archivo']->user->name}}</td>
@@ -46,16 +46,13 @@
                   ({{$archivo['control']->updated_at->format('d-M-Y H:i:s')}})
                 </td>
                 @if ($archivo['archivo']->ownedByUser(Auth::user()) || Auth::user()->can('Administrar Archivos', 'Ver Archivos'))
-                <td style="text-align: center;"><a href="{{route('recalcular_checksums', ['archivo_id' => $archivo['archivo']->id])}}" onclick="return confirmarCalculo()" class="btn btn-success"> Recalcular </a></td>
+                <td style="text-align: center;"><button onclick="return confirmarCalculo({{$archivo['archivo']->id}})" class="btn btn-success"> Recalcular </button></td>
                 @else
                 <td style="text-align: center;"><i class="bi bi-ban"></i></td>
                 @endif
               </tr>
               @endforeach
             </tbody>
-            @else
-            <h1>No hay checksums con error</h1>
-            @endif
           </table>
         </div>
       </div>
@@ -65,8 +62,6 @@
 
 @endsection
 @section('footer_scripts')
-<script>src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"</script>
-<script>src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap4.min.js"</script>
 <script>
   $('#tabla-erroneos').DataTable({
     language: {
@@ -100,11 +95,83 @@
   });
 </script>
 <script type="text/javascript">
-  function confirmarCalculo(){
-    return confirm("¿Estás seguro de que deseas recalcular el checksum? Esta acción es irreversible.");
+  function confirmarCalculo(archivo_id){
+    if (confirm("¿Estás seguro de que deseas recalcular el checksum? Esta acción es irreversible.")){
+      $.ajax({
+        url: '/archivos/recalcular_cs/' + archivo_id,
+        type: 'POST',
+        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+        data: {
+          type: "individual"
+        },
+        success: function(response) {
+          var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+          var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                            response.message +
+                          '</div>';
+          $('#alert-container').html(alertHtml);
+          if (response.statusCode == 200) {
+            var row = $('#'+archivo_id);
+            var table = $('#tabla-erroneos').DataTable();
+            row.fadeOut(1000, function() {
+                table.row(row).remove();
+                updateCount("erroneos");
+                table.draw();
+            }); 
+          }
+        }
+      })
+    }
   };
+
   function confirmarCalculoBulk(){
-    return confirm("¿Estás seguro de que deseas recalcular el checksum? Esta acción es irreversible.");
+    if (confirm("¿Estás seguro de que deseas recalcular los checksums? Esta acción es irreversible.")){
+      $.ajax({
+        url: '/archivos/recalcular_cs/',
+        type: 'POST',
+        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+        data: {
+          type: "bulk",
+          status: "erroneos"
+        },
+        success: function(response) {
+          var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+          var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                            response.message +
+                          '</div>';
+          $('#alert-container').html(alertHtml);
+          if (response.statusCode == 200) {
+            $('#tabla-erroneos tbody tr').each(function() {
+                var row = $(this);
+                row.fadeOut(1000, function() {
+                    updateCount("erroneos");
+                    $('#tabla-erroneos').DataTable().clear().draw();
+                });
+            });
+          }
+        }
+      })
+    }
   };
+
+  function updateCount(estado) {
+    var token = $('meta[name="csrf-token"]').attr('content');
+    $.ajax({
+      url: "{{ route('contar_owned') }}",
+      method: "POST",
+      headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+      data: {estado: estado},
+      success: function(data) {
+        if (data > 0) {
+            $('#bulk-button').text('Recalcular (' + data + ')');
+            $('#bulk-button').css('display', 'inline-block')
+        } else {
+          $('#bulk-button').css('display', 'none')
+        }
+      }
+    });
+  }
 </script>
 @endsection

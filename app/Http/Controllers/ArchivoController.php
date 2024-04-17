@@ -450,11 +450,11 @@ class ArchivoController extends Controller
             } else if (!$archivo_id && $tipo="bulk"){
                 $estado = $request->get('status');
                 $todos = self::retrieveFiles($user);
-                if ($estado = "no_calculados"){
+                if ($estado == "no_calculados"){
                     $archivos = $todos->filter(function ($archivo) {
                         return $archivo->checksum_control === null;
                     });
-                } else if ($estado = "erroneos"){
+                } else if ($estado == "erroneos"){
                     $checksums_calculados = $todos->filter(function ($archivo) {
                         return $archivo->checksum_control !== null;
                     });
