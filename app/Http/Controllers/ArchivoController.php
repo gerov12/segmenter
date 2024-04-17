@@ -368,59 +368,50 @@ class ArchivoController extends Controller
 
         try {
             $user = Auth::user();
-            $success = true;
             $tipo = $request->get('type');
-            if ($archivo_id && $tipo == "bulk") {
-                $archivo = Archivo::findOrFail($archivo_id);
-                if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
-                    $eliminados = 0;
-                    $copias = $archivo->copias()->with('user')->where('id', '!=' , $archivo->id)->get();
-                    $id_copias = $copias->map(function($copia) {
-                        return $copia->id;
-                    });
-                    foreach ($copias as $archivo){
-                        $archivo->limpiarCopia();
-                        $eliminados++;
-                    }
-                    $respuesta = ['statusCode'=> 200, 'id_copias' => $id_copias, 'message' => "Se limpiaron ". $eliminados . " copias de " . $archivo->nombre_original . "."];
-                    return response()->json($respuesta);
-                    $success = false;
-                } else {
-                    $success = false;
-                }
-            } else if ($archivo_id && $tipo == "individual") {
+            if ($archivo_id) {
+                if($tipo == "individual") { //copia
                     $archivo = Archivo::findOrFail($archivo_id);
                     if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                         $archivo->limpiarCopia();
                         $respuesta = ['statusCode'=> 200,'message' => 'Se eliminó la copia ' . $archivo->nombre_original];
-                        return response()->json($respuesta);
-                        $success = false;
                     } else {
-                        $success = false;
+                        $respuesta = ['statusCode'=> 403,'message' => 'No tienes permiso para hacer eso.'];
                     } 
-            } else {
-                if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
-                    // Para todos los archivos
-                    $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
-                        return $archivo->esCopia;
-                    });
-                    $eliminados = 0;
-                    foreach ($archivos as $archivo){
-                        $archivo->limpiarCopia();
-                        $eliminados++;
+                } else if ($tipo == "bulk") { //bulk de copias de un original
+                    $archivo = Archivo::findOrFail($archivo_id);
+                    if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
+                        $eliminados = 0;
+                        $copias = $archivo->copias()->with('user')->where('id', '!=' , $archivo->id)->get();
+                        $id_copias = $copias->map(function($copia) {
+                            return $copia->id;
+                        });
+                        foreach ($copias as $archivo){
+                            $archivo->limpiarCopia();
+                            $eliminados++;
+                        }
+                        $respuesta = ['statusCode'=> 200, 'id_copias' => $id_copias, 'message' => "Se limpiaron ". $eliminados . " copias de " . $archivo->nombre_original . "."];
+                    } else {
+                        $respuesta = ['statusCode'=> 403,'message' => 'No tienes permiso para hacer eso.'];
                     }
-                    flash($eliminados . " archivos copia limpiados.")->info();
-                    return redirect('archivos');
-                } else {
-                    $success = false;
                 }
-            }
-
-            if ($success == true) { 
-                return redirect('archivos');
-            } else {
-                //flash('No tienes permiso para hacer eso.')->error();
-                //return back();
+                return response()->json($respuesta);
+            } else if (!$archivo_id && $tipo="bulk"){ //bulk total
+                $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
+                    return $archivo->esCopia;
+                });
+                if (!$user->can(['Administrar Archivos', 'Ver Archivos'])){
+                    $archivos = $archivos->filter(function ($archivo) use ($user) {
+                        return $archivo->ownedByUser($user); // si no tengo permisos me quedo solo con los míos
+                    });
+                }
+                $eliminados = 0;
+                foreach ($archivos as $archivo){
+                    $archivo->limpiarCopia();
+                    $eliminados++;
+                }
+                $respuesta = ['statusCode'=> 200,'message' => $eliminados . " archivos copia limpiados."];
+                return response()->json($respuesta);
             }
         } catch (PermissionDoesNotExist $e) {
             flash('message', 'No existe el permiso "Administrar Archivos" o "Ver Archivos"')->error();
