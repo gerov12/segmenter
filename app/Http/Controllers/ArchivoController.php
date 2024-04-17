@@ -406,11 +406,13 @@ class ArchivoController extends Controller
                     });
                 }
                 $eliminados = 0;
+                $done_ids = [];
                 foreach ($archivos as $archivo){
                     $archivo->limpiarCopia();
                     $eliminados++;
+                    array_push($done_ids, $archivo->id);
                 }
-                $respuesta = ['statusCode'=> 200,'message' => $eliminados . " archivos copia limpiados."];
+                $respuesta = ['statusCode'=> 200,'message' => $eliminados . " archivos copia limpiados.", 'done_files' => $done_ids];
                 return response()->json($respuesta);
             }
         } catch (PermissionDoesNotExist $e) {
@@ -459,11 +461,13 @@ class ArchivoController extends Controller
                     });
                 }
                 $recalculados = 0;
+                $done_ids = [];
                 foreach ($archivos as $archivo){
                         $archivo->checksumRecalculate();
                         $recalculados++;
+                        array_push($done_ids, $archivo->id);
                 }
-                $respuesta = ['statusCode'=> 200,'message' => $recalculados . " checksums recalculados."];
+                $respuesta = ['statusCode'=> 200,'message' => $recalculados . " checksums recalculados.", 'done_files' => $done_ids];
                 return response()->json($respuesta);
             }
         } catch (PermissionDoesNotExist $e) {
@@ -505,11 +509,13 @@ class ArchivoController extends Controller
                     });
                 }
                 $sincronizados = 0;
+                $done_ids = [];
                 foreach ($archivos as $archivo){
                     $archivo->checksumSync();
                     $sincronizados++;
+                    array_push($done_ids, $archivo->id);
                 }
-                $respuesta = ['statusCode'=> 200,'message' => $sincronizados . " checksums sincronizados."];
+                $respuesta = ['statusCode'=> 200,'message' => $sincronizados . " checksums sincronizados.", 'done_files' => $done_ids];
                 return response()->json($respuesta);
             }
         } catch (PermissionDoesNotExist $e) {

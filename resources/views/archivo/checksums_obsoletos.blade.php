@@ -4,11 +4,9 @@
 <div class="container">
 <div id="alert-container"></div>
 <h2>Listado de archivos con checksums obsoletos </h2>
-  @can('Administrar Archivos', 'Ver Archivos')
-    @if(count($checksums_obsoletos) > 0)
-    <h4><button id="bulk-button" onclick="return confirmarSincronizacionBulk()" class="btn btn-success"> Sincronizar ({{$owned}})</button></h4>
-    @endif
-  @endcan
+  @if(count($checksums_obsoletos) > 0)
+  <h4><button id="bulk-button" onclick="return confirmarSincronizacionBulk()" class="btn btn-success"> Sincronizar ({{$owned}})</button></h4>
+  @endif
   <br>
 	<div class="row justify-content-center">
     <div class="card w-100">
@@ -142,12 +140,17 @@
                           '</div>';
           $('#alert-container').html(alertHtml);
           if (response.statusCode == 200) {
+            var table = $('#tabla-obsoletos').DataTable();
             $('#tabla-obsoletos tbody tr').each(function() {
-                var row = $(this);
+              var row = $(this);
+              var rowId = row.attr('id');
+              if (response.done_files.includes(Number(rowId))) {
                 row.fadeOut(1000, function() {
+                    table.row(row).remove();
                     updateCount("obsoletos");
-                    $('#tabla-obsoletos').DataTable().clear().draw();
+                    table.draw();
                 });
+              }
             });
           }
         }

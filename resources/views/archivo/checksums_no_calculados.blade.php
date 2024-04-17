@@ -133,12 +133,17 @@
                           '</div>';
           $('#alert-container').html(alertHtml);
           if (response.statusCode == 200) {
+            var table = $('#tabla-no-calculados').DataTable();
             $('#tabla-no-calculados tbody tr').each(function() {
-                var row = $(this);
+              var row = $(this);
+              var rowId = row.attr('id');
+              if (response.done_files.includes(Number(rowId))) {
                 row.fadeOut(1000, function() {
+                    table.row(row).remove();
                     updateCount("no_calculados");
-                    $('#tabla-no-calculados').DataTable().clear().draw();
+                    table.draw();
                 });
+              }
             });
           }
         }
