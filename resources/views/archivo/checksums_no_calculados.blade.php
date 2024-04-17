@@ -19,7 +19,6 @@
         @endif
         <div class="table-responsive">
           <table class="table table-bordered" id="tabla-no-calculados">
-            @if(count($checksums_no_calculados) > 0)
             <thead>
               <tr>
                 <th>Nombre</th>
@@ -44,9 +43,6 @@
               </tr>
               @endforeach
             </tbody>
-            @else
-            <h2>No hay checksums no calculados</h2>
-            @endif
           </table>
         </div>
       </div>
@@ -107,14 +103,12 @@
           $('#alert-container').html(alertHtml);
           if (response.statusCode == 200) {
             var row = $('#'+archivo_id);
+            var table = $('#tabla-no-calculados').DataTable();
             row.fadeOut(1000, function() {
-              row.remove();
-            });
-            updateCount("no_calculados");
-            if ($('#tabla-no-calculados tbody').children().length == 0) {
-              $('#tabla-no-calculados').DataTable().destroy();
-              $('#tabla-no-calculados').html('<h2>Se resolvieron todos los casos :D</h2>');
-            }
+                table.row(row).remove();
+                updateCount("no_calculados");
+                table.draw();
+            }); 
           }
         }
       })
@@ -142,13 +136,11 @@
                 var row = $(this);
                 row.fadeOut(1000, function() {
                     row.remove();
+                    updateCount("no_calculados");
+                    $('#tabla-no-calculados').DataTable().clear().draw();
                 });
             });
-            updateCount("no_calculados");
-            if ($('#tabla-no-calculados tbody').children().length == 0) {
-              $('#tabla-no-calculados').DataTable().destroy();
-              $('#tabla-no-calculados').html('<h2>Se resolvieron todos los casos :D</h2>');
-            }
+            
           }
         }
       })
@@ -163,7 +155,6 @@
       headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
       data: {estado: estado},
       success: function(data) {
-        console.log(data);
         if (data > 0) {
             $('#bulk-button').text('Recalcular (' + data + ')');
             $('#bulk-button').css('display', 'inline-block')
