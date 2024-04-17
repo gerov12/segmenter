@@ -587,6 +587,7 @@
                   // obtengo el original de este archivo
                   var original = response;
                   console.log(original.nombre_original);
+                  console.log(owner);
                   // contruyo la tabla para la info del original
                   var tableBody = '';
                   tableBody += '<tr>';
@@ -595,7 +596,11 @@
                   tableBody += '<td>' + original.user.name + '</td>';
                   tableBody += '</tr>';
                   $('#tabla-original tbody').html(tableBody);
-                  $('#aclaracion-original').html('Al clickear en <span style="color:red">"Limpiar copia"</span> el usuario <b>' + owner + '</b> pasará a ser "observador" del siguiente archivo, eliminando el actual.');
+                  if (owner !== original.user.name) {
+                    $('#aclaracion-original').html('Al clickear en <span style="color:red">"Limpiar copia"</span> el usuario <b>' + owner + '</b> pasará a ser "observador" del siguiente archivo, eliminando el actual.');
+                  } else {
+                    $('#aclaracion-original').html('');
+                  }
 
                   // agrego los campos archivo-id y original-id al botón para recuperar en la animación
                   botonLimpiar.data('archivo-id', archivo);
