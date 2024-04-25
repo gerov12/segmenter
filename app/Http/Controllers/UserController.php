@@ -39,20 +39,35 @@ class UserController extends Controller
     return view('perfil', compact('usuario', 'permisos', 'permisos_roles', 'filtros', 'filtros_roles', 'roles'));
   }
 
+  public function verificarModificacion($user, $campo, $actual, $nuevo) {
+    if ($user->hasRole('Super Admin')) {
+      return response()->json(['statusCode'=> 403,'message' => 'No se puede modificar el ' + $campo + ' del Super Admin']);
+    }
+    if ($empty($nuevo)) {
+      return response()->json(['statusCode'=> 403,'message' => 'El ' + $campo + ' no puede estár vacío']);
+    }
+    if ($nuevo == $actual) {
+      return response()->json(['statusCode'=> 304, 'message' => 'El nuevo' + $campo + ' debe ser distinto del actual.']);
+    }
+  }
+
   public function editarUsername(Request $request) {
     $user = Auth::user();
-    $user->name = $request->input('newUsername');
+    $nombre = $request->input('newUsername');
+    verificarModificacion($user, "nombre de usuario", $user->name, $nombre);
+    $user->name = $nombre;
     $user->save();
     return response()->json(['statusCode'=> 200,'message' => 'Nombre de usuario actualizado correctamente!']);
   }
 
   public function editarEmail(Request $request) {
+    $user = Auth::user();
     $email = $request->input('newEmail');
+    verificarModificacion($user, "email", $user->email, $email);
     $emailOwner = User::where('email', $email)->first();
     if ($emailOwner) {
       return response()->json(['statusCode'=> 304, 'message' => 'El email ya está en uso.']);
     }
-    $user = Auth::user();
     $user->email = $request->input('newEmail');
     $user->save();
     return response()->json(['statusCode'=> 200, 'message' => 'Email actualizado correctamente!']);
