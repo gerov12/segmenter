@@ -248,7 +248,11 @@
       @endif
     </div>
 
-    <button class="password-button" data-toggle="modal" id="btn-trigger-modal-password" data-target="#passwordModal">Cambiar contraseña</button>
+    <!-- <form method="POST" action="{{ route('password.email') }}">
+      @csrf
+      <input type="hidden" id="email" name="email" value="{{$usuario->email}}" />
+      <button type="submit" class="password-button" id="btn-trigger-modal-password">Cambiar contraseña</button>
+    </form> -->
   </div>
   @if ($usuario->hasRole('Super Admin') or $usuario->email_verified_at != null)
   <button class="mode-button" onclick="toggleEditMode()"><i class="bi bi-pen"></i></button> <!-- Botón de edición -->
