@@ -194,6 +194,22 @@ Route::middleware(['auth'])->group(function () {
     Route::get('users/{user}/filter', 'UserController@editarFiltroUsuario')->name('admin.editarFiltroUsuario');
 });
 
+// ---------- EMAIL ----------
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+Route::get('/email/verify', function () {
+    return redirect('perfil');
+})->middleware('auth')->name('verification.notice');
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill();
+    return redirect('perfil')->with('message', 'Se ha verificado el email correctamente!');
+})->middleware(['auth','signed'])->name('verification.verify');
+use Illuminate\Http\Request; 
+Route::post('/email/verification-notification', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+ 
+    return back()->with('message', 'Se ha enviado un mail de verificación!');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
 // ---------- FILTROS ----------
 Route::middleware(['auth'])->group(function () {
     Route::get('filtros', 'FilterController@listarFiltros')->name('admin.listarFiltros');

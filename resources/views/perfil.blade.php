@@ -204,6 +204,12 @@
 <body>
 <div id="alert-container">
     <!-- acá se cargan las alertas de los scripts -->
+    @if(Session::has('message'))
+      <div class="alert alert-success alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        {{Session::get('message')}}
+      </div>
+    @endif
 </div>
 <div class="profile-container">
   <div class="profile-picture-container">
@@ -247,8 +253,11 @@
   @if ($usuario->hasRole('Super Admin') or $usuario->email_verified_at != null)
   <button class="mode-button" onclick="toggleEditMode()"><i class="bi bi-pen"></i></button> <!-- Botón de edición -->
   @else
-  <button class="email-verify-button">Verificar Email</button> <!-- Botón de verificar mail -->
-  @endif
+  <form method="POST" action="{{ route('verification.send') }}">
+    @csrf
+    <button href="{{route('verification.send')}}" class="email-verify-button">Verificar Email</button> <!-- Botón de verificar mail -->
+  </form>
+    @endif
   <div class="buttons-container">
     <hr class="divider"> <!-- Línea divisoria -->
     <button class="modal-button" data-toggle="modal" id="btn-trigger-modal-permisos" data-target="#permisosModal">Mis Permisos</button>
