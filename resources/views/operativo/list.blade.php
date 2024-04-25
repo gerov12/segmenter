@@ -8,7 +8,7 @@
             <!-- Modal content-->
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Info de Entidad</h4>
+                    <h4 class="modal-title">Info de operativo</h4>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
                 <div class="modal-body">
@@ -23,11 +23,8 @@
 
     <div class="container">
       <div class="row">
-        <div class="col-lg-12">
-          <a href="{{ url('/entidades/cargar') }}">Ir a Cargar Entidades</a>
-        </div>
       </div>
-        <h4>Listado de Entidades</h4>
+        <h4>Listado de operativos</h4>
         <div class="row">
             <div class="col-lg-12">
                 <table
@@ -36,12 +33,8 @@
                     <thead>
                         <tr>
                             <th>Id</th>
-                            <th>Código</th>
                             <th>Nombre</th>
-                            <th>Localidad</th>
-                            <th>Departamento</th>
-                            <th>Provincia</th>
-                            <th>Acciones</th>
+                            <th>Observación</th>
                         </tr>
                     </thead>
                 </table>
@@ -92,7 +85,7 @@
                         processing: true,
                         serverSide: true,
                         ajax: {
-                            url: "{{ url('ents-list') }}",
+                            url: "{{ url('operativos-list') }}",
                             type: 'GET',
                             data: function(d) {
                                 d.codigo = $('#codigo').val();
@@ -104,29 +97,12 @@
                                 name: 'id'
                             },
                             {
-                                data: 'codigo',
-                                name: 'codigo'
-                            },
-                            {
                                 data: 'nombre',
                                 name: 'nombre'
-                            },{
-                                data: 'localidad',
-                                name: 'localidad'
                             },
                             {
-                                data: 'departamento',
-                                name: 'departamento'
-                            },
-                            {
-                                data: 'provincia',
-                                name: 'provincia'
-                            },
-                            {
-                                visible: false,
-                                searchable: false,
-                                data: 'action',
-                                name: 'action'
+                                data: 'observacion',
+                                name: 'observacion'
                             },
                         ]
                     });
@@ -136,7 +112,7 @@
                         if ((data != null) && (propagacion == false)) {
                             // AJAX request
                             $.ajax({
-                                url: "{{ url('entidad') }}" + "/" + data.id,
+                                url: "{{ url('operativo') }}" + "/" + data.id,
                                 type: 'post',
                                 data: {
                                     id: data.id,
@@ -158,9 +134,9 @@
                     table.on('click', '.btn_ent', function() {
                         var row = $(this).closest('tr');
                         var data = table.row(row).data();
-                        console.log('Ver Entidad: ' + data.codigo);
+                        console.log('Ver operativo: ' + data.codigo);
                         if (typeof data !== 'undefined') {
-                            url = "{{ url('entidad') }}" + "/" + data.id;
+                            url = "{{ url('operativo') }}" + "/" + data.id;
                             $(location).attr('href', url);
                         };
                     });
@@ -170,19 +146,19 @@
                     });
 
                     // Función de botón Borrar.
-                    table.on('click', '.btn_ent_delete', function() {
+                    table.on('click', '.btn_op_delete', function() {
                         propagacion = true;
                         var $ele = $(this).parent().parent();
                         var row = $(this).closest('tr');
                         var data = table.row(row).data();
                         if ((typeof data !== 'undefined') &&
-                            (confirm('El elemento “' + data.codigo +
-                                    '” va a ser borrado de la tabla entidades, ¿es correcto? \n'+
+                            (confirm('El elemento “' + data.id +
+                                    '” va a ser borrado de la tabla operativos, ¿es correcto? \n'+
                                     'Selecccionar el motivo por el cual se borra el elemento( '+
                                     'en este caso “Error de Ingreso”)' +
                                     ''))) {
                                     $.ajax({
-                                        url: "{{ url('entidad') }}" + "\\" + data.id,
+                                        url: "{{ url('operativo') }}" + "\\" + data.id,
                                         type: "DELETE",
                                         data: {
                                             id: data.id,
@@ -192,7 +168,7 @@
                                             // Add response in Modal body
                                             if (response.statusCode == 200) {
                                                 row.fadeOut().remove();
-                                                alert("Se eliminó el registro de la entidad");
+                                                alert("Se eliminó el registro de la operativo");
                                                 $('.modal-body').html(response.message);
                                             } else if (response.statusCode == 405) {
                                                 alert("Error al intentar borrar");

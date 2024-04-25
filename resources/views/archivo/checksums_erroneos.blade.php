@@ -3,9 +3,9 @@
 @section('content')
 <div class="container">
 <div id="alert-container"></div>
-<h2>Listado de archivos repetidos </h2>
-  @if(count($repetidos) > 0)
-  <h4><button id="bulk-button" onclick="return confirmarLimpiezaBulk()" class="btn btn-danger"> Limpiar ({{$owned}})</button></h4>
+<h2>Listado de archivos con checksums con error </h2>
+  @if(count($checksums_erroneos) > 0)
+  <h4><button id="bulk-button" onclick="return confirmarCalculoBulk()" class="btn btn-success"> Recalcular ({{$owned}})</button></h4>
   @endif
   <br>
 	<div class="row justify-content-center">
@@ -18,29 +18,33 @@
           </div>
         @endif
         <div class="table-responsive">
-          <table class="table table-bordered" id="tabla-repetidos">
+          <table class="table table-bordered" id="tabla-erroneos">
             <thead>
               <tr>
-                <th>Nombre original</th>
-                <th>Nombre copia</th>
-                <th>Creación original</th>
-                <th>Creación copia</th>
-                <th>Dueño original</th>
-                <th>Dueño copia</th>
+                <th>Nombre</th>
+                <th>Creación</th>
+                <th>Cargador</th>
+                <th>Checksum obsoleto</th>
+                <th>Checksum recalculado</th>
                 <th>*</th>
               </tr>
             </thead>
             <tbody>
-              @foreach ($repetidos as $archivo)
-              <tr id="{{$archivo[1]->id}}">
-                <td>{{$archivo[0]->nombre_original}}</td>
-                <td>{{$archivo[1]->nombre_original}}</td>
-                <td>{{$archivo[0]->created_at->format('d-M-Y')}}</td>
-                <td>{{$archivo[1]->created_at->format('d-M-Y')}}</td>
-                <td>{{$archivo[0]->user->name}}</td>
-                <td>{{$archivo[1]->user->name}}</td>
-                @if ($archivo[0]->ownedByUser(Auth::user()) || $archivo[1]->ownedByUser(Auth::user()) || Auth::user()->can('Administrar Archivos', 'Ver Archivos'))
-                <td style="text-align: center;"><button onclick="return confirmarLimpieza({{$archivo[1]->id}})" class="btn btn-danger"> Limpiar </button></td>
+              @foreach ($checksums_erroneos as $archivo)
+              <tr id="{{$archivo['archivo']->id}}">
+                <td>{{$archivo['archivo']->nombre_original}}</td>
+                <td>{{$archivo['archivo']->created_at->format('d-M-Y')}}</td>
+                <td>{{$archivo['archivo']->user->name}}</td>
+                <td>
+                  {{$archivo['archivo']->checksum}} <br>
+                  ({{$archivo['archivo']->updated_at->format('d-M-Y H:i:s')}})
+                </td>
+                <td>
+                  {{$archivo['control']->checksum}} <br>
+                  ({{$archivo['control']->updated_at->format('d-M-Y H:i:s')}})
+                </td>
+                @if ($archivo['archivo']->ownedByUser(Auth::user()) || Auth::user()->can('Administrar Archivos', 'Ver Archivos'))
+                <td style="text-align: center;"><button onclick="return confirmarCalculo({{$archivo['archivo']->id}})" class="btn btn-success"> Recalcular </button></td>
                 @else
                 <td style="text-align: center;"><i class="bi bi-ban"></i></td>
                 @endif
@@ -53,11 +57,11 @@
     </div>
 	</div>
 </div>
-@endsection
 
+@endsection
 @section('footer_scripts')
 <script>
-  $('#tabla-repetidos').DataTable({
+  $('#tabla-erroneos').DataTable({
     language: {
       "sProcessing":     "Procesando...",
       "sLengthMenu":     "Mostrar _MENU_ registros",
@@ -89,10 +93,10 @@
   });
 </script>
 <script type="text/javascript">
-  function confirmarLimpieza(archivo_id){
-    if (confirm('¿Estás seguro de que deseas eliminar el archivo repetido?. El usuario que cargó la copia pasará a ser "observador" del orignal. Esta acción es irreversible.')) {
+  function confirmarCalculo(archivo_id){
+    if (confirm("¿Estás seguro de que deseas recalcular el checksum? Esta acción es irreversible.")){
       $.ajax({
-        url: '/archivos/limpiar/' + archivo_id,
+        url: '/archivos/recalcular_cs/' + archivo_id,
         type: 'POST',
         headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
         data: {
@@ -107,10 +111,10 @@
           $('#alert-container').html(alertHtml);
           if (response.statusCode == 200) {
             var row = $('#'+archivo_id);
-            var table = $('#tabla-repetidos').DataTable();
+            var table = $('#tabla-erroneos').DataTable();
             row.fadeOut(1000, function() {
                 table.row(row).remove();
-                updateCount("repetidos");
+                updateCount("erroneos");
                 table.draw();
             }); 
           }
@@ -119,14 +123,15 @@
     }
   };
 
-  function confirmarLimpiezaBulk(){
-    if (confirm("¿Estás seguro de que deseas limpiar todos los archivos repetidos? Esta acción es irreversible.")) {
+  function confirmarCalculoBulk(){
+    if (confirm("¿Estás seguro de que deseas recalcular los checksums? Esta acción es irreversible.")){
       $.ajax({
-        url: '/archivos/limpiar/',
+        url: '/archivos/recalcular_cs/',
         type: 'POST',
         headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
         data: {
-          type: "bulk"
+          type: "bulk",
+          status: "erroneos"
         },
         success: function(response) {
           var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
@@ -136,14 +141,14 @@
                           '</div>';
           $('#alert-container').html(alertHtml);
           if (response.statusCode == 200) {
-            var table = $('#tabla-repetidos').DataTable();
-            $('#tabla-repetidos tbody tr').each(function() {
+            var table = $('#tabla-erroneos').DataTable();
+            $('#tabla-erroneos tbody tr').each(function() {
               var row = $(this);
               var rowId = row.attr('id');
               if (response.done_files.includes(Number(rowId))) {
                 row.fadeOut(1000, function() {
                     table.row(row).remove();
-                    updateCount("repetidos");
+                    updateCount("erroneos");
                     table.draw();
                 });
               }
@@ -163,7 +168,7 @@
       data: {estado: estado},
       success: function(data) {
         if (data > 0) {
-            $('#bulk-button').text('Limpiar (' + data + ')');
+            $('#bulk-button').text('Recalcular (' + data + ')');
             $('#bulk-button').css('display', 'inline-block')
         } else {
           $('#bulk-button').css('display', 'none')

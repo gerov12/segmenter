@@ -233,7 +233,9 @@ Route::middleware(['auth'])->group(function () {
 Route::get('provs-list', 'ProvinciaController@provsList');
 Route::get('provs','ProvinciaController@index');
 Route::get('prov/{provincia}','ProvinciaController@show');
+Route::get('provincia/{provincia}','ProvinciaController@show');
 Route::post('prov/{provincia}','ProvinciaController@show_post');
+
 Route::delete('provincia/{provincia}','ProvinciaController@destroy')->name('provincia.delete');
 
 // ---------- DEPARTAMENTOS --------
@@ -276,12 +278,20 @@ Route::post('aglo-segmenta-run/{aglomerado}','AglomeradoController@run_segmentar
 Route::get('entidades', 'EntidadController@index')->name('entidades');
 Route::get('entidad/{entidad}','EntidadController@show');
 Route::get('ents-list', 'EntidadController@entsList');
+Route::post('entidad/{entidad}','EntidadController@show');
 Route::get('ents','EntidadController@index');
 
 Route::middleware(['auth'])->group(function () {
   Route::get('entidades/cargar', 'EntidadController@cargar')->name('entidades.cargar');
   Route::post('entidades/cargar', 'EntidadController@store');
 });
+
+// ---------- OPERATIVOS ----------
+Route::get('operativos', 'OperativoController@index')->name('operativos');
+Route::get('operativo/{operativo}','OperativoController@show');
+Route::get('operativos-list', 'OperativoController@operativosList');
+Route::post('operativo/{operativo}','OperativoController@show');
+Route::get('operativo/seleccionar/{operativo}','OperativoController@seleccionar');
 
 
 // --------- SEGMENTACION X AGLOMERADO ---------
@@ -320,12 +330,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('archivo/{archivo}/descargar','ArchivoController@descargar');
     Route::get('archivo/{archivo}/procesar','ArchivoController@procesar');
     Route::get('archivo/{archivo}/pasar_data','ArchivoController@pasarData');
-    Route::get('archivos/limpiar','ArchivoController@eliminar_repetidos')->name('limpiar_archivos');
+
+    Route::post('archivos/limpiar/{archivo_id?}','ArchivoController@eliminar_repetidos')->name('limpiar_archivos'); //el parametro es opcional
+    Route::post('archivos/limpiar/{archivo_id}/copias','ArchivoController@eliminar_repetidos')->name('limpiar_copias'); //eliminar las copias de un archivo
+    Route::post('archivos/recalcular_cs/{archivo_id?}','ArchivoController@recalcular_checksums')->name('recalcular_checksums'); //el parametro es opcional
+    Route::post('archivos/sincronizar_cs/{archivo_id?}','ArchivoController@sincronizar_checksums')->name('sincronizar_checksums'); //el parametro es opcional
+    Route::post('archivos/contar_autorizados','ArchivoController@update_owned_count')->name('contar_owned');
+    Route::get('archivos/contar','ArchivoController@updateCounts')->name('contar_archivos');
     Route::get('archivos/repetidos','ArchivoController@listar_repetidos')->name('archivos_repetidos');
-    Route::get('archivos/recalcular_cs/{archivo_id?}','ArchivoController@recalcular_checksums')->name('recalcular_checksums'); //el parametro es opcional
     Route::get('archivos/checksums_obsoletos','ArchivoController@listar_checksums_obsoletos')->name('checksums_obsoletos');
+    Route::get('archivos/checksums_erroneos','ArchivoController@listar_checksums_erroneos')->name('checksums_erroneos');
     Route::get('archivos/checksums_no_calculados','ArchivoController@listar_checksums_no_calculados')->name('checksums_no_calculados');
+
     Route::get('archivo/{archivo}/copias','ArchivoController@getCopias');
+    Route::get('archivo/{archivo}/original','ArchivoController@getOriginal');
 });
 
 // ---------- TABLERO ---------

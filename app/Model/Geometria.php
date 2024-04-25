@@ -3,6 +3,7 @@
 namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Geometria extends Model
 {
@@ -23,10 +24,11 @@ class Geometria extends Model
     }
 
       // return SVG Geometria poligono
-    public function getSVG() {
+    public function getSVG( $width = 600, $height = 400) {
       //    Utiliza tablas listado_geo, r3 junto a segmentacion y manzanas.
-          $width = 600;
           $escalar = false;
+          $perimeter = 2400;
+          $stroke = 2;
           $extent = DB::select("SELECT box2d(st_collect(poligono)) box FROM
           ".$this->table."
           WHERE id='".$this->id."' ");
@@ -84,8 +86,8 @@ class Geometria extends Model
                   ,'#555','#CCC','#A00','#0A0','#00A','#F00','#0F0','#00F','#008','#800','#080'];
            */
           $svg = DB::select("
-WITH shapes (geom, attribute, tipo) AS (
-  ( SELECT st_buffer(st_collect(poligono),1,'endcap=flat join=round') wkb_geometry, codigo as attribute, 'A' as tipo FROM
+WITH shapes (geom, attribute, tipo) AS
+  ( SELECT st_buffer(st_collect(poligono),1,'endcap=flat join=round') wkb_geometry, ".$this->id." as attribute, 'A'::text as tipo FROM
   ".$this->table."
   WHERE id='".$this->id."'
   ),
@@ -98,7 +100,7 @@ WITH shapes (geom, attribute, tipo) AS (
        fill=\"gray\"'
               WHEN tipo='mza' THEN 'stroke=\"white\"
               stroke-width=\"1\" fill=\"#BBBBC5\"'
-              WHEN attribute < 5 THEN 'stroke=\"none\"
+              WHEN attribute < 5 THEN 'stroke=\"gray\"
               stroke-width=\"".$stroke."\" fill=\"#' || attribute*20 || 'AAAA\"'
               WHEN attribute < 10 THEN 'stroke=\"none\"
        stroke-width=\"".$stroke."\" fill=\"#00' || (attribute-5)*20 || '00\"'
@@ -122,8 +124,7 @@ WITH shapes (geom, attribute, tipo) AS (
    ) foo order by orden asc
 )
 SELECT concat(
-       '<svg id=\"geometria_".$this->codigo."_botonera\"xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0
- \" height=\"80\" width=\"".$width."\">',
+"./*       '<svg id=\"geometria_".$this->codigo."_botonera\"xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 60 60\" height=\"80\" width=\"".$width."\">',
  '<circle style=\"opacity: 10%;\" class=\"compass\" cx=\"".(+30)."\" cy=\"".(30)."\" r=\"28\"></circle>
        <circle style=\"opacity: 20%;\" class=\"button\" cx=\"".(+30)."\" cy=\"".(36)."\"
        r=\"7\"
@@ -137,6 +138,7 @@ onclick=\"zoom(1.1)\"/>
 <path style=\"opacity: 10%;\" class=\"button\" onclick=\"pan(-25, 0)\" d=\"M".(+55)." ".(+30)." l-10 -6 a35 20 0 0 1 0 12z\" />
 ',
  '</svg>',
+ */"
        '<svg id=\"geometria_".$this->codigo."\"xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"".$viewBox.
  "\" height=\"".$height."\" width=\"".$width."\">',
  ' <g id=\"matrix-group\" transform=\"matrix(1 0 0 1 0 0)\">',

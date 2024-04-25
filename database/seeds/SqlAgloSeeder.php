@@ -1,6 +1,9 @@
 <?php
+namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 
 class SqlAgloSeeder extends Seeder
 {
@@ -11,9 +14,6 @@ class SqlAgloSeeder extends Seeder
      */
     public function run()
     {
-        Eloquent::unguard();
-
-//        $this->call('SqlSeeder');
         $this->command->info('Sembrando aglomerados...');
         $path = 'app/developer_docs/aglomerados.sql';
         DB::unprepared(file_get_contents($path));

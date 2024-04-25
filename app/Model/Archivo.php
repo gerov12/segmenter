@@ -60,14 +60,12 @@ class Archivo extends Model
 
     // Funciona para checksum shape (varios files)
     private static function checksumCalculate($request_file, $shape_files = []){
-        // O generar archivo comprimido de una vez :/
-        // DO IT
         $checksum = md5_file($request_file); //->getRealPath());
         if ($shape_files != null){
             $checksums[] = $checksum;
             foreach ($shape_files as $key => $shape_file) {
                 // Hay e00 con shapefiles con valor null
-                if ($shape_file != null and $shape_file != ''){
+                if (Storage::exists($shape_file)){ //si no existe el storage para el shapefile no lo tengo en cuenta para el checksum
                   $checksums[] =  md5_file($shape_file);//->getRealPath());
                 }
             }
@@ -76,7 +74,7 @@ class Archivo extends Model
         return $checksum;
     }
 
-    //recalcula el checksum según corresponda para archivos con checksums obsoletos
+    //recalcula el checksum según corresponda para archivos con checksums no calculados o erroneos
     public function checksumRecalculate(){
         if ($this->isMultiArchivo()){
             // si soy multiarchivo calculo el checksum en base a mis shapefiles
@@ -84,12 +82,10 @@ class Archivo extends Model
             $shp = array_shift($shape_files);
             $checksum = $this->checksumCalculate($shp, $shape_files);
         } else {
-            $checksum = md5(Storage::get($this->nombre));
+            $file = Storage::get($this->nombre);
+            $checksum = md5($file);
         }
-        // guardo el nuevo checksum en el archivo
-        //$this->checksum = $checksum;
-        //$this->save();
-
+        
         // guardo el checksum en su checksum_control
         $control = $this->checksum_control;
         if (!$control) {
@@ -100,6 +96,22 @@ class Archivo extends Model
         } else {
             $control->checksum = $checksum;
             $control->save();
+            $control->touch(); //actualizo el updated at a pesar de que el checksum no cambie
+            // esto permite pasar del estado "error en checksum" al estado "checksum obsoleto"
+            // una vez que el usuario decide que es correcto recalcular el checksum de un archivo con error
+        }
+    }
+
+    //sincroniza el checksum del archivo con el calculado en su control
+    public function checksumSync(){
+        $this->checksumRecalculate(); //recalculo primero ya que el control puede estar mal tambien
+        $control = $this->checksum_control;
+        if ($control) {
+            // guardo el nuevo checksum en el archivo
+            $this->checksum = $control->checksum;
+            $this->save();
+        } else {
+            Log::error($this->nombre_original.' no tiene el checksum calculado con el nuevo método!');
         }
     }
 
@@ -126,13 +138,27 @@ class Archivo extends Model
         return $result;
     }
 
+    // Funciona para verificar si el error en el checksum se debe a que el calculo es obsoleto o no
+    public function getchecksumObsoletoAttribute(){
+        $result = true;
+        $control = $this->checksum_control;
+        if($control) {
+            if ($this->updated_at >= $control->updated_at) {
+                $result = false;
+            }
+        } else {
+            Log::warning($this->nombre_original.' no tiene el checksum calculado con el nuevo método!');
+        }
+        return $result;
+    }
+
     public function checkStorage(){
         $result = true;
         if ( $this->isMultiArchivo() ){
             $nombre = explode(".",$this->nombre)[0];
             $nombre_original = explode(".",$this->nombre_original)[0];
             // busco para cada extension
-            $extensiones = [".dbf", ".shx", ".prj"];
+            $extensiones = [".shp", ".shx", ".dbf", ".prj"];
             foreach ($extensiones as $extension) {
                 $n = $nombre . $extension;
                 if(Storage::exists($n)) {
@@ -205,11 +231,33 @@ class Archivo extends Model
                 $control->save();
             }
         } else {
+            flash("Archivo ".$original_extension." ya existe. Cargado el  ".$file->created_at->format('Y-m-d').' por '.$file->user->name)->info();
             # Si no es su archivo y no está en sus archivos visibles lo agrego
             if (!$user->visible_files()->get()->contains($file) and !$user->mis_files()->get()->contains($file)){
                 $user->visible_files()->attach($file->id);
             }
-            flash("Archivo ".$original_extension." ya existe. Cargado el  ".$file->created_at->format('Y-m-d').' por '.$file->user->name)->info();
+            # Cargo nuevamente en storage en caso de que haya sido eliminado por error
+            if (!Storage::exists($file->nombre)){
+                $request_file->storeAs('segmentador', basename($file->nombre));
+                if ($tipo == 'shape'){
+                    if ($shape_files != null){
+                        $size_total = $file->size;
+                        $nombre = substr($file->nombre,0,-4);
+                        foreach ($shape_files as $shape_file) {
+                            if ($shape_file != null and $shape_file != ''){
+                                $extension = strtolower($shape_file->getClientOriginalExtension());
+                                if (!Storage::exists($nombre.'.'.$extension)){ //si se cargaron shapefiles chequeo que estén en storage
+                                    // si no están las guardo y sumo su tamaño al size
+                                    $shape_file->storeAs('segmentador', basename($nombre).'.'.$extension);
+                                    $size_total = $size_total + $shape_file->getSize();
+                                }
+                            };
+                        }
+                        $file->size = $size_total;
+                        $file->save();
+                    }
+                }
+            }
         }
         return $file;
     }
@@ -691,19 +739,21 @@ class Archivo extends Model
         $nombre_copia = explode(".",$this->nombre)[0];
 
         // busco para cada extension
-        $extensiones = [".dbf", ".shx", ".prj"];
+        $extensiones = [".shp", ".shx", ".dbf", ".prj"];
         foreach ($extensiones as $extension) {
             Log::info("Verificando archivos con extensión ".$extension." en el storage");
             $o = $nombre_original . $extension;
             $c = $nombre_copia . $extension;
             if(Storage::exists($c)) {
                 if(Storage::exists($o)) {
-                    # si existe el archivo original entonces elimino la copia
-                    Log::info("Existe el archivo ".$extension." original en el storage. Se eliminará la copia");
-                    if(Storage::delete($c)){
-                        Log::info('Se borró el archivo: '.  $this->nombre_original . " extension " . $extension);
-                    }else{
-                        Log::error('NO se borró el archivo: '.$this->nombre_original . " extension " . $extension);
+                    # si existe el archivo original y la copia tiene storage distinto entonces elimino la copia
+                    if ($o != $c) { //así no elimino el storage original por error (causando problemas de checksum)
+                        Log::info("Existe el archivo ".$extension." original en el storage. Se eliminará la copia");
+                        if(Storage::delete($c)){
+                            Log::info('Se borró el archivo: '.  $this->nombre_original . " extension " . $extension);
+                        }else{
+                            Log::error('NO se borró el archivo: '.$this->nombre_original . " extension " . $extension);
+                        }
                     }
                 } else {
                     # si no existe entonces el archivo copia reemplaza al original en el storage (son el mismo por lo que no hay problema)
@@ -719,22 +769,25 @@ class Archivo extends Model
         Log::info("Verificando storage");
         $copia = $this;
         if(Storage::exists($original->nombre)) {
-            # si existe el archivo original entonces elimino la copia
-            Log::info("Existe el archivo original en el storage. Se eliminará la copia");
-            if(Storage::delete($copia->nombre)){
-                Log::info('Se borró el archivo: '.$copia->nombre. ' nombre original:'. $copia->nombre_original);
-            }else{
-                Log::error('NO se borró el archivo: '.$copia->nombre. ' nombre original:'.$copia->nombre_original);
+            # si existe el archivo original y la copia tiene storage distinto entonces elimino la copia
+            if ($original->nombre != $copia->nombre) { //así no elimino el storage original por error (causando problemas de checksum)
+                Log::info("Existe el archivo original en el storage. Se eliminará la copia");
+                if(Storage::delete($copia->nombre)){
+                    Log::info('Se borró el archivo: '.$copia->nombre. ' nombre original:'. $copia->nombre_original);
+                }else{
+                    Log::error('NO se borró el archivo: '.$copia->nombre. ' nombre original:'.$copia->nombre_original);
+                }
             }
         } else {
             # si no existe entonces el archivo copia reemplaza al original en el storage (son el mismo por lo que no hay problema)
             Log::error("No existe el archivo original en el storage. Se reutiliza la copia");
-            $original->update(['nombre' => $copia->nombre]);
+            Storage::move($copia->nombre, $original->nombre); 
         }
     }
 
-    public function limpiar_copia(Archivo $original){
+    public function limpiarCopia(){
         $owner = $this->user;
+        $original = $this->original()->first();
         # En caso de ser necesario le permito al usuario ver el archivo original
         if (($original->user_id != $owner->id) and (!$owner->visible_files()->get()->contains($original))){
             $owner->visible_files()->attach($original->id);
@@ -762,6 +815,10 @@ class Archivo extends Model
             # Elimino la relación con todos los viewers
             $this->viewers()->detach();
             Log::info("Se eliminaron los viewers de la copia.");
+        }
+        $control = $this->checksum_control;
+        if ($control) {
+            $control->delete();
         }
         $this->delete();
         Log::info("Se eliminó el registro perteneciente a la copia");

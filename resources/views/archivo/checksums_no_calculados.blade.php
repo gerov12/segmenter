@@ -2,12 +2,11 @@
 
 @section('content')
 <div class="container">
-<h2>Listado de archivos con checksums no calculados </h2>
-  @can('Administrar Archivos', 'Ver Archivos')
-    @if(count($checksums_no_calculados) > 0)
-    <h4><a href="{{route('recalcular_checksums')}}" onclick="return confirmarCalculo()" class="btn btn-success"> Recalcular ({{count($checksums_no_calculados)}})</a></h4>
-    @endif
-  @endcan
+<div id="alert-container"></div>
+<h2>Listado de archivos con checksums no calculados con el nuevo método</h2>
+  @if(count($checksums_no_calculados) > 0)
+    <h4><button id="bulk-button" onclick="return confirmarCalculoBulk()" class="btn btn-success"> Recalcular ({{$owned}})</button></h4>
+  @endif
   <br>
 	<div class="row justify-content-center">
     <div class="card w-100">
@@ -18,30 +17,34 @@
             {{Session::get('info')}}
           </div>
         @endif
-        <table class="table table-bordered" id="tabla-no-calculados">
-          @if($checksums_no_calculados !== null)
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Creación</th>
-              <th>Cargador</th>
-              <th>Checksum</th>
-            </tr>
-          </thead>
-          <tbody>
-            @foreach ($checksums_no_calculados as $archivo)
-            <tr>
-              <td>{{$archivo->nombre_original}}</td>
-              <td>{{$archivo->created_at->format('d-M-Y')}}</td>
-              <td>{{$archivo->user->name}}</td>
-              <td>{{$archivo->checksum}}</td>
-            </tr>
-            @endforeach
-          </tbody>
-          @else
-          <h1>No hay checksums no calculados</h1>
-          @endif
-        </table>
+        <div class="table-responsive">
+          <table class="table table-bordered" id="tabla-no-calculados">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Creación</th>
+                <th>Cargador</th>
+                <th>Checksum</th>
+                <th>*</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach ($checksums_no_calculados as $archivo)
+              <tr id="{{$archivo->id}}">
+                <td>{{$archivo->nombre_original}}</td>
+                <td>{{$archivo->created_at->format('d-M-Y')}}</td>
+                <td>{{$archivo->user->name}}</td>
+                <td>{{$archivo->checksum}}</td>
+                @if ($archivo->ownedByUser(Auth::user()) || Auth::user()->can('Administrar Archivos', 'Ver Archivos'))
+                <td style="text-align: center;"><button onclick="return confirmarCalculo({{$archivo->id}})" class="btn btn-success"> Recalcular </button></td>
+                @else
+                <td style="text-align: center;"><i class="bi bi-ban"></i></td>
+                @endif
+              </tr>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 	</div>
@@ -49,8 +52,6 @@
 
 @endsection
 @section('footer_scripts')
-<script>src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"</script>
-<script>src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap4.min.js"</script>
 <script>
   $('#tabla-no-calculados').DataTable({
     language: {
@@ -84,8 +85,88 @@
   });
 </script>
 <script type="text/javascript">
-  function confirmarCalculo(){
-    return confirm("¿Estás seguro de que deseas recalcular el checksum? Esta acción es irreversible.");
+  function confirmarCalculo(archivo_id){
+    if (confirm("¿Estás seguro de que deseas recalcular el checksum? Esta acción es irreversible.")){
+      $.ajax({
+        url: '/archivos/recalcular_cs/' + archivo_id,
+        type: 'POST',
+        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+        data: {
+          type: "individual"
+        },
+        success: function(response) {
+          var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+          var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                            response.message +
+                          '</div>';
+          $('#alert-container').html(alertHtml);
+          if (response.statusCode == 200) {
+            var row = $('#'+archivo_id);
+            var table = $('#tabla-no-calculados').DataTable();
+            row.fadeOut(1000, function() {
+                table.row(row).remove();
+                updateCount("no_calculados");
+                table.draw();
+            }); 
+          }
+        }
+      })
+    }
   };
+
+  function confirmarCalculoBulk(){
+    if (confirm("¿Estás seguro de que deseas recalcular los checksums? Esta acción es irreversible.")){
+      $.ajax({
+        url: '/archivos/recalcular_cs/',
+        type: 'POST',
+        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+        data: {
+          type: "bulk",
+          status: "no_calculados"
+        },
+        success: function(response) {
+          var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+          var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                            response.message +
+                          '</div>';
+          $('#alert-container').html(alertHtml);
+          if (response.statusCode == 200) {
+            var table = $('#tabla-no-calculados').DataTable();
+            $('#tabla-no-calculados tbody tr').each(function() {
+              var row = $(this);
+              var rowId = row.attr('id');
+              if (response.done_files.includes(Number(rowId))) {
+                row.fadeOut(1000, function() {
+                    table.row(row).remove();
+                    updateCount("no_calculados");
+                    table.draw();
+                });
+              }
+            });
+          }
+        }
+      })
+    }
+  };
+
+  function updateCount(estado) {
+    var token = $('meta[name="csrf-token"]').attr('content');
+    $.ajax({
+      url: "{{ route('contar_owned') }}",
+      method: "POST",
+      headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+      data: {estado: estado},
+      success: function(data) {
+        if (data > 0) {
+            $('#bulk-button').text('Recalcular (' + data + ')');
+            $('#bulk-button').css('display', 'inline-block')
+        } else {
+          $('#bulk-button').css('display', 'none')
+        }
+      }
+    });
+  }
 </script>
 @endsection

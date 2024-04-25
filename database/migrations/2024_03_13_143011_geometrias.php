@@ -17,7 +17,7 @@ return new class extends Migration
         If (! Schema::hasTable('geometrias')){
           Schema::create('geometrias', function (Blueprint $table) {
              $table->bigIncrements('id')->index();
-             $table->polygon('poligono')->isGeometry()->nullable();
+             $table->Multipolygon('poligono')->isGeometry()->nullable();
              $table->point('punto')->isGeometry() ->nullable();
              $table->binary('topogeometria')->nullable();
              $table->timestamps();
