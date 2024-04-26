@@ -204,12 +204,19 @@
 <body>
 <div id="alert-container">
     <!-- acá se cargan las alertas de los scripts -->
+    <!-- para el mail -->
     @if(Session::has('message'))
       <div class="alert alert-success alert-dismissible" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         {{Session::get('message')}}
       </div>
     @endif
+    <!-- para la contraseña -->
+    @if (session('status'))
+      <div class="alert alert-success" role="alert">
+          {{ session('status') }}
+      </div>
+  @endif
 </div>
 <div class="profile-container">
   <div class="profile-picture-container">
@@ -248,11 +255,11 @@
       @endif
     </div>
 
-    <!-- <form method="POST" action="{{ route('password.email') }}">
+    <form method="POST" action="{{ route('password.email') }}">
       @csrf
       <input type="hidden" id="email" name="email" value="{{$usuario->email}}" />
       <button type="submit" class="password-button" id="btn-trigger-modal-password">Cambiar contraseña</button>
-    </form> -->
+    </form>
   </div>
   @if ($usuario->hasRole('Super Admin') or $usuario->email_verified_at != null)
   <button class="mode-button" onclick="toggleEditMode()"><i class="bi bi-pen"></i></button> <!-- Botón de edición -->
