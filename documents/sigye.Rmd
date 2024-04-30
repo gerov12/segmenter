@@ -1,7 +1,7 @@
 ---
 title: "SIGyE"
 author: "Coordinación de geoestadística"
-date: "2024-04-26"
+date: "2024-04-30"
 output:
   pdf_document: default
   html_document:
@@ -25,7 +25,7 @@ options(knitr.table.format = "latex")
 
 dotenv::load_dot_env()
 
-dsn_database <- Sys.getenv("DATABASE_DB") #= "sistema"   # Specify the name of your Database
+dsn_database <- Sys.getenv("DATABASE_DB") # Specify the name of your Database
 # Specify host name e.g.:"aws-us-east-1-portal.4.dblayer.com"
 dsn_hostname <- Sys.getenv("DATABASE_HOST") #
 dsn_port <- Sys.getenv("DATABASE_PORT") # Specify your port number. e.g. 98939
@@ -126,6 +126,7 @@ Consulta y acceso a la Base de Datos geográfica y geoestadística.
 - Parajes
 - Bases Antárticas
 - Regiones
+- Vías de circulación
 
 \newpage
 
