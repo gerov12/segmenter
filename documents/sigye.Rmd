@@ -298,6 +298,10 @@ knitr::kable(df, caption = "Tabla paraje", digits = 2, longtable = TRUE) %>%
 
 :TODO
 
+### Vías de circulación
+
+:TODO
+
 \elandscape
 
 ## Metas
