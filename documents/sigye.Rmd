@@ -134,6 +134,12 @@ Consulta y acceso a la Base de Datos geográfica y geoestadística.
 \newpage
 \blandscape
 
+# Base de Datos
+
+## Unidades Geoestadísticas
+
+### Provncias
+
 ```{r provincias, warning=FALSE}
 campos <- dbListFields(con, "provincia")
 
@@ -147,6 +153,8 @@ knitr::kable(df, caption = "Tabla provincia", border_left = TRUE, border_right =
   kable_styling(latex_options = c("repeat_header")) %>%
   row_spec(0, angle = 70)
 ```
+
+### Departamentos
 
 ```{r departamentos, warning=FALSE}
 campos <- dbListFields(con, "departamentos")
@@ -162,6 +170,7 @@ knitr::kable(df, caption = "Tabla departamentos", border_left = TRUE, border_rig
   row_spec(0, angle = 70)
 ```
 
+### Fracciones
 
 ```{r fracciones, warning=FALSE}
 campos <- dbListFields(con, "fraccion")
@@ -177,6 +186,7 @@ knitr::kable(df, caption = "Tabla fraccion", border_left = TRUE, border_right = 
   row_spec(0, angle = 70)
 ```
 
+### Radios
 
 ```{r radios, warning=FALSE}
 campos <- dbListFields(con, "radio")
@@ -192,7 +202,9 @@ knitr::kable(df, caption = "Tabla radio", border_left = TRUE, border_right = TRU
   row_spec(0, angle = 70)
 ```
 
+## Modelo Geográfico
 
+### Localidades
 
 ```{r localidades, warning=FALSE}
 campos <- dbListFields(con, "localidad")
@@ -207,8 +219,83 @@ knitr::kable(df, caption = "Tabla Localidad", digits = 2, longtable = TRUE) %>%
   kable_styling(latex_options = c("repeat_header")) %>%
   row_spec(0, angle = 70)
 
+```
+
+### Aglomerados
+
+```{r aglomerados, warning=FALSE}
+campos <- dbListFields(con, "aglomerados")
+
+print("Campos de tabla aglomerados")
+knitr::kable(campos, format = "simple", caption = "Campos de tabla aglomerados")
+
+df <- dbGetQuery(con, "SELECT * FROM aglomerados order by random() limit 5")
+knitr::kable(df, caption = "Tabla aglomerados", digits = 2, longtable = TRUE) %>%
+  kable_styling(font_size = 8) %>%
+  kable_styling(latex_options = "striped", full_width = F)  %>%
+  kable_styling(latex_options = c("repeat_header")) %>%
+  row_spec(0, angle = 70)
 
 ```
+
+### Entidades
+
+```{r entidades, warning=FALSE}
+campos <- dbListFields(con, "entidades")
+
+print("Campos de tabla entidades")
+knitr::kable(campos, format = "simple", caption = "Campos de tabla entidades")
+
+df <- dbGetQuery(con, "SELECT * FROM entidades order by random() limit 5")
+knitr::kable(df, caption = "Tabla entidades", digits = 2, longtable = TRUE) %>%
+  kable_styling(font_size = 8) %>%
+  kable_styling(latex_options = "striped", full_width = F)  %>%
+  kable_styling(latex_options = c("repeat_header")) %>%
+  row_spec(0, angle = 70)
+
+```
+
+### Gobiernos Locales
+
+```{r gobierno_locales, warning=FALSE}
+campos <- dbListFields(con, "gobierno_local")
+
+print("Campos de tabla gobierno_local")
+knitr::kable(campos, format = "simple", caption = "Campos de tabla gobierno_local")
+
+# df <- dbGetQuery(con, "SELECT * FROM gobierno_local order by random() limit 5")
+# knitr::kable(df, caption = "Tabla gobierno_local", digits = 2, longtable = TRUE) %>%
+#   kable_styling(font_size = 8) %>%
+#   kable_styling(latex_options = "striped", full_width = F)  %>%
+#   kable_styling(latex_options = c("repeat_header")) %>%
+#   row_spec(0, angle = 70)
+
+```
+
+### Parajes
+
+```{r parajes, warning=FALSE}
+campos <- dbListFields(con, "paraje")
+
+print("Campos de tabla paraje")
+knitr::kable(campos, format = "simple", caption = "Campos de tabla paraje")
+
+df <- dbGetQuery(con, "SELECT * FROM paraje order by random() limit 5")
+knitr::kable(df, caption = "Tabla paraje", digits = 2, longtable = TRUE) %>%
+  kable_styling(font_size = 8) %>%
+  kable_styling(latex_options = "striped", full_width = F)  %>%
+  kable_styling(latex_options = c("repeat_header")) %>%
+  row_spec(0, angle = 70)
+
+```
+
+### Bases Antárticas
+
+:TODO
+
+### Regiones
+
+:TODO
 
 \elandscape
 
