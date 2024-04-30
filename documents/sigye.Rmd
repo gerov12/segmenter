@@ -27,10 +27,10 @@ dotenv::load_dot_env()
 
 dsn_database <- Sys.getenv("DATABASE_DB") #= "sistema"   # Specify the name of your Database
 # Specify host name e.g.:"aws-us-east-1-portal.4.dblayer.com"
-dsn_hostname <- Sys.getenv("DATABASE_HOST") #= "172.26.67.64"
-dsn_port <- Sys.getenv("DATABASE_PORT") #= "5432"                # Specify your port number. e.g. 98939
-dsn_uid <- Sys.getenv("DATABASE_USER") #"mreta"         # Specify your username. e.g. "admin"
-dsn_pwd <- Sys.getenv("DATABASE_PASSWORD") #= "m4nureta"        # Specify your password. e.g. "xxx"
+dsn_hostname <- Sys.getenv("DATABASE_HOST") #
+dsn_port <- Sys.getenv("DATABASE_PORT") # Specify your port number. e.g. 98939
+dsn_uid <- Sys.getenv("DATABASE_USER") # Specify your username. e.g. "admin"
+dsn_pwd <- Sys.getenv("DATABASE_PASSWORD") # Specify your password. e.g. "xxx"
 
 tryCatch({
     drv <- dbDriver("PostgreSQL")
