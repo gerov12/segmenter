@@ -213,6 +213,10 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('roles/{role}', 'RoleController@eliminarRol')->name('admin.eliminarRol');
 });
 
+// ---------- COMPARACIONES GEONODE ---------- //
+Route::get('compare/atributos/{capa}', 'CompareController@listarAtributos')->name('compare.atributos');
+Route::post('compare/comparar/{capa}', 'CompareController@comparar')->name('compare.comparar');
+
 // ---------- PROVINCIAS --------
 Route::get('provs-list', 'ProvinciaController@provsList');
 Route::get('provs','ProvinciaController@index');
