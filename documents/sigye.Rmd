@@ -3,10 +3,12 @@ title: "SIGyE"
 author: "Coordinación de geoestadística"
 date: "2024-05-03"
 output:
-  pdf_document: default
+  pdf_document:
+    toc: TRUE
   html_document:
     df_print: paged
-  word_document: default
+  word_document:
+    toc: TRUE
 header-includes:
 - \usepackage{pdflscape}
 - \newcommand{\blandscape}{\begin{landscape}}
@@ -47,83 +49,81 @@ tryCatch({
     })
 ```
 
-
 # Sistema de Integración Geográfica y Estadística (INDEC)
 
 Un proyecto de [Geoestadística](geoestadistica) en la DNME para el INDEC Argentina.
 
 ## Objetivos
 
-- Administración de la unidades geoestadísticas básicas y sus relaciones con el modelo geográfico social/legal para el manejo de la información estadística.
+1.  Administración de la unidades geoestadísticas básicas y sus relaciones con el modelo geográfico social/legal para el manejo de la información estadística.
 
-- Control intrínseco que da la consistencia para las unidades geoestadísticas. (Topología)
+2.  Control intrínseco que da la consistencia para las unidades geoestadísticas. (Topología)
 
-- Mantenimiento de la trazabilidad de las unidades geoestadísticas a lo largo del tiempo.
+3.  Mantenimiento de la trazabilidad de las unidades geoestadísticas a lo largo del tiempo.
 
-- Administración de las relaciones del modelo geográfico y sus modificaciones a lo largo del tiempo y su participación en los distintos operativos.
+4.  Administración de las relaciones del modelo geográfico y sus modificaciones a lo largo del tiempo y su participación en los distintos operativos.
 
-- Preparación de los datos para diferentes publicaciones y aplicativos.
+5.  Preparación de los datos para diferentes publicaciones y aplicativos.
 
-- Generación y mantenimiento de la base de datos multifinalitaria para el cruce de datos estadísticos provenientes de diferentes fuentes adecuándose a los distintos ámbitos y los diferentes grados de cobertura.
+6.  Generación y mantenimiento de la base de datos multifinalitaria para el cruce de datos estadísticos provenientes de diferentes fuentes adecuándose a los distintos ámbitos y los diferentes grados de cobertura.
 
-- Carga de archivos Shape (.shp, .shx, .dbf, .prj) con datos de cartografía urbana.
+7.  Carga de archivos Shape (.shp, .shx, .dbf, .prj) con datos de cartografía urbana.
 
-- Carga de archivos E00 (.e00) con datos de cartografía urbana.
+8.  Carga de archivos E00 (.e00) con datos de cartografía urbana.
 
-- Carga de archivos DBF de listado de viviendas ADRA.
+9.  Carga de archivos DBF de listado de viviendas ADRA.
 
-- Carga de archivos PxxRad en formato DBF. DAtos de Radios, tipo de radio y su relación con localidad/entidad
+10. Carga de archivos PxxRad en formato DBF. DAtos de Radios, tipo de radio y su relación con localidad/entidad
 
 ## Metas
 
-- Catálogo de imágenes versionado, censo2020, censo 2018 (Anabella)
+1.  Catálogo de imágenes versionado, censo2020, censo 2018 (Anabella)
 
-- Completamiento de otras unidades geográficas:
-  . Entidades
-  . Gobiernos Locales
-  
-- Integración de datos básicos censo 2022
+2.  Completamiento de otras unidades geográficas: . Entidades . Gobiernos Locales
 
-- Integración de datos de otros registros administrativos.
+3.  Integración de datos básicos censo 2022
 
-- Consumir geoservicio de geolocalización de INDEC (JC - ArcGis) a evaluar alternativas API GeoRef / Naminatim
+4.  Integración de datos de otros registros administrativos.
 
-- Relevamiento de visores a fin de incorporar/sincronizar intercambio de datos con el sistema.
+5.  Consumir geoservicio de geolocalización de INDEC (JC - ArcGis) a evaluar alternativas API GeoRef / Naminatim
 
-- Baja de Elementos (*)
+6.  Relevamiento de visores a fin de incorporar/sincronizar intercambio de datos con el sistema.
 
-- Capacitar recursos humanos para... desgloce de capacitaciones..
+7.  Baja de Elementos (\*)
 
-- Incorporar las normativas vigentes en cuanto a nombre de calles y numeración.
+8.  Capacitar recursos humanos para... desgloce de capacitaciones..
 
-- Reportes de vías de circulación (http://172.22.26.215/reportes_2022)
+9.  Incorporar las normativas vigentes en cuanto a nombre de calles y numeración.
 
-- Sistema de gestión de informes (informes generados por operario)
+10. Reportes de vías de circulación (<http://172.22.26.215/reportes_2022>)
 
-- Generación de layers en topología y edición.
+11. Sistema de gestión de informes (informes generados por operario)
 
-- Generación de "mapa base INDEC" asociado según operativo/tag
+12. Generación de layers en topología y edición.
 
-- Incorporar reportes de areas conflictivas: por limites, doble asignación, imputación, etc.
+13. Generación de "mapa base INDEC" asociado según operativo/tag
 
-- CODIFICACIÓN: Incorporar procedimientos para la validación y/o generación de códigos para los distintos objetos geográficos.
+14. Incorporar reportes de areas conflictivas: por limites, doble asignación, imputación, etc.
 
-- Verificación (tag: verificado?)
+15. CODIFICACIÓN: Incorporar procedimientos para la validación y/o generación de códigos para los distintos objetos geográficos.
 
-- Carga ADRA / Actualización de Domicilios
+16. Verificación (tag: verificado?)
 
-- Integración de alturas de ADRA a Base geográfica. (pensando en otras fuentes)
+17. Carga ADRA / Actualización de Domicilios
 
-- Manual de estilos
+18. Integración de alturas de ADRA a Base geográfica. (pensando en otras fuentes)
 
+19. Manual de estilos
 
 ### Actividades
 
-(*)
-- Borrar Provincia
-- Borrar Departamentos
-- Borrar Localidad
+(\*)
 
+[x] Borrar Provincia
+
+[ ] Borrar Departamentos
+
+[ ] Borrar Localidad
 
 ## Desarrollo
 
@@ -141,10 +141,10 @@ Segmentación de radios urbanos.
 
 El sistema web prepara los datos y dispara los procesos del submódulo de segmentación, ésto incluye:
 
-- Generación de grafo (Adyacencia de lados) para el cálculo de la continuidad de los segmentos.
-- Diferentes procesos según la distribución de las viviendas, para área según su densidad.
-- Generación de descripción de los segmentos.
-- Planillas R3 con resumen de la segmentación para cada radio.
+-   Generación de grafo (Adyacencia de lados) para el cálculo de la continuidad de los segmentos.
+-   Diferentes procesos según la distribución de las viviendas, para área según su densidad.
+-   Generación de descripción de los segmentos.
+-   Planillas R3 con resumen de la segmentación para cada radio.
 
 ### Plugin QGIS
 
@@ -158,34 +158,41 @@ Consulta y acceso a la Base de Datos geográfica y geoestadística.
 
 **Unidades Básicas del Marco Geoestadístico**
 
-- Provincias
-- Departamentos
-- Fracciones
-- Radios
-- Manzanas
-- Lados de Manzanas
-- Viviendas
+-   Provincias
 
-+ segmentos
+-   Departamentos
+
+-   Fracciones
+
+-   Radios
+
+-   Manzanas
+
+-   Lados de Manzanas
+
+-   Viviendas
+
+-   segmentos
 
 **Relaciones de unidades del modelo Geográfico**
 
-- Localidades
-- Aglomerados
-- Entidades
-- Gobiernos Locales
-- Parajes
-- Bases Antárticas
-- Regiones
-- Vías de circulación
+-   Localidades
+-   Aglomerados
+-   Entidades
+-   Gobiernos Locales
+-   Parajes
+-   Bases Antárticas
+-   Regiones
+-   Vías de circulación
 
 \newpage
 
 ![Diagrama de Base de Datos](./images/diagrama.base.de.datos.geoestadistica.png)
 
+```{=tex}
 \newpage
 \blandscape
-
+```
 # Base de Datos
 
 ## Unidades Geoestadísticas
@@ -355,7 +362,6 @@ knitr::kable(df, caption = "Tabla paraje", digits = 2, longtable = TRUE) %>%
 
 \elandscape
 
-
 ### Resultados esperados
 
 ## Esquema de interacción
@@ -367,7 +373,6 @@ knitr::kable(df, caption = "Tabla paraje", digits = 2, longtable = TRUE) %>%
 ... codgeo
 
 ... vías de circulación
-
 
 ```{r fin, warning=FALSE}
 dbDisconnect(con)
