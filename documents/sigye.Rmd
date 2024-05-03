@@ -74,6 +74,22 @@ Un proyecto de [Geoestadística](geoestadistica) en la DNME para el INDEC Argent
 
 - Carga de archivos PxxRad en formato DBF. DAtos de Radios, tipo de radio y su relación con localidad/entidad
 
+## Metas
+
+- Catálogo de imágenes versionado, censo2020, censo 2018 (Anabella)
+
+- Completamiento de otras unidades geográficas:
+  . Entidades
+  . Gobiernos Locales
+  
+- Integración de datos básicos censo 2022
+
+- Integración de datos de otros registros administracíon.
+
+
+
+### Actividades
+
 ## Desarrollo
 
 ## Componentes (técnicos y accesorios - capacitación-)
@@ -304,9 +320,6 @@ knitr::kable(df, caption = "Tabla paraje", digits = 2, longtable = TRUE) %>%
 
 \elandscape
 
-## Metas
-
-### Actividades
 
 ### Resultados esperados
 
@@ -319,6 +332,33 @@ knitr::kable(df, caption = "Tabla paraje", digits = 2, longtable = TRUE) %>%
 ... codgeo
 
 ... vías de circulación
+
+
+### Informe Viviendas Rural por Provincia
+
+```{r parajes, warning=FALSE}
+campos <- dbListFields(con, "public.viviendas_segrural")
+
+print("Campos de tabla public.viviendas_segrural")
+knitr::kable(campos, format = "simple", caption = "Campos de tabla paraje")
+
+df <- dbGetQuery(con, "SELECT prov, sum(vivs) viviendas
+from (
+SELECT  prov, dpto, codloc, frac, radio, 
+  max(CASE when cantviv = '' then 0::integer else cantviv::integer end::integer) vivs, count(*) registros
+	FROM public.viviendas_segrural
+  where not (prov ilike '(%')
+  GROUP BY prov, dpto, codloc, frac, radio
+  ORDER BY count(*) desc) foo
+    GROUP BY prov 
+  ORDER BY prov asc;")
+knitr::kable(df, caption = "Tabla paraje", digits = 2, longtable = TRUE) %>%
+  kable_styling(font_size = 8) %>%
+  kable_styling(latex_options = "striped", full_width = F)  %>%
+  kable_styling(latex_options = c("repeat_header")) %>%
+  row_spec(0, angle = 70)
+
+```
 
 
 ```{r fin, warning=FALSE}
