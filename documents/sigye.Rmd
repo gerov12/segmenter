@@ -1,7 +1,7 @@
 ---
 title: "SIGyE"
 author: "Coordinación de geoestadística"
-date: "2024-04-30"
+date: "2024-05-03"
 output:
   pdf_document: default
   html_document:
@@ -84,11 +84,46 @@ Un proyecto de [Geoestadística](geoestadistica) en la DNME para el INDEC Argent
   
 - Integración de datos básicos censo 2022
 
-- Integración de datos de otros registros administracíon.
+- Integración de datos de otros registros administrativos.
 
+- Consumir geoservicio de geolocalización de INDEC (JC - ArcGis) a evaluar alternativas API GeoRef / Naminatim
+
+- Relevamiento de visores a fin de incorporar/sincronizar intercambio de datos con el sistema.
+
+- Baja de Elementos (*)
+
+- Capacitar recursos humanos para... desgloce de capacitaciones..
+
+- Incorporar las normativas vigentes en cuanto a nombre de calles y numeración.
+
+- Reportes de vías de circulación (http://172.22.26.215/reportes_2022)
+
+- Sistema de gestión de informes (informes generados por operario)
+
+- Generación de layers en topología y edición.
+
+- Generación de "mapa base INDEC" asociado según operativo/tag
+
+- Incorporar reportes de areas conflictivas: por limites, doble asignación, imputación, etc.
+
+- CODIFICACIÓN: Incorporar procedimientos para la validación y/o generación de códigos para los distintos objetos geográficos.
+
+- Verificación (tag: verificado?)
+
+- Carga ADRA / Actualización de Domicilios
+
+- Integración de alturas de ADRA a Base geográfica. (pensando en otras fuentes)
+
+- Manual de estilos
 
 
 ### Actividades
+
+(*)
+- Borrar Provincia
+- Borrar Departamentos
+- Borrar Localidad
+
 
 ## Desarrollo
 
@@ -332,33 +367,6 @@ knitr::kable(df, caption = "Tabla paraje", digits = 2, longtable = TRUE) %>%
 ... codgeo
 
 ... vías de circulación
-
-
-### Informe Viviendas Rural por Provincia
-
-```{r parajes, warning=FALSE}
-campos <- dbListFields(con, "public.viviendas_segrural")
-
-print("Campos de tabla public.viviendas_segrural")
-knitr::kable(campos, format = "simple", caption = "Campos de tabla paraje")
-
-df <- dbGetQuery(con, "SELECT prov, sum(vivs) viviendas
-from (
-SELECT  prov, dpto, codloc, frac, radio, 
-  max(CASE when cantviv = '' then 0::integer else cantviv::integer end::integer) vivs, count(*) registros
-	FROM public.viviendas_segrural
-  where not (prov ilike '(%')
-  GROUP BY prov, dpto, codloc, frac, radio
-  ORDER BY count(*) desc) foo
-    GROUP BY prov 
-  ORDER BY prov asc;")
-knitr::kable(df, caption = "Tabla paraje", digits = 2, longtable = TRUE) %>%
-  kable_styling(font_size = 8) %>%
-  kable_styling(latex_options = "striped", full_width = F)  %>%
-  kable_styling(latex_options = c("repeat_header")) %>%
-  row_spec(0, angle = 70)
-
-```
 
 
 ```{r fin, warning=FALSE}
