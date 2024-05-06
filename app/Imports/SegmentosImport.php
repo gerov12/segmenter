@@ -46,9 +46,10 @@ public function model(array $row)
             'vivs' => $row['vivs'] ?? $row['viviendas'] ?? '1',
         ];
          //debe informar cantidad de registros importados exitosamente
-        return new Segmento($data);
-        $this->contadorRegistros++;
-    } catch (\ErrorException $e) {
+         $this->contadorRegistros++;
+         return new Segmento($data);
+
+        } catch (\ErrorException $e) {
         Log::error('Error durante la importación: ' . $e);
   
         // Obtener información sobre el campo y el valor recibido
@@ -95,8 +96,8 @@ public function model(array $row)
     }
     public function mostrarMensajeExito()
     {
-        if ($this->contadorRegistros > 0 && !$errorMostrado) {
+        if ($this->contadorRegistros > 0 && !$this->errorMostrado) {
             flash ('Proceso eixtoso. Se importaron ' . $this->contadorRegistros . ' registros.' ) ->success();
         }
     }
-}
+    }

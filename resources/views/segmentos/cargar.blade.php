@@ -43,31 +43,52 @@
     </div>
 </div>
 
+@isset($datos)
 <table class="table">
     <thead>
         <tr>
-            <th>Provincia</th>
-            <th>Departamento</th>
-            <th>Localidad</th>
+            <th>Prov</th>
+            <th>Nom Prov</th>
+            <th>Dpto</th>
+            <th>Nom Depto</th>
+            <th>codloc</th>
+            <th>Nom Loc</th>
+            <th>Fraccion</th>
+            <th>Radio</th>
             <th>Segmento</th>
-            <th>Viviendas</th>
+            <th>viviendas</th>
+            <th>¿Existe?</th>
+    
+            
+          
         </tr>
     </thead>
+
     <tbody>
-    @isset($segmentosImportados)
-         @foreach ($segmentosImportados as $segmento)
+        @foreach ($datos as $fila)
             <tr>
-                <td>{{ $segmento->nom_prov }}</td>li
-                <td>{{ $segmento->nom_dpto }}</td>
-                <td>{{ $segmento->nom_loc }}</td>
-                <td>{{ $segmento->seg }}</td>
-                <td>{{ $segmento->vivs }}</td>
+                <td>{{ $fila['prov'] }}</td>
+                <td>{{ $fila['nom_prov']  ?? $fila['nomprov']}}</td>
+                <td>{{ $fila['dpto'] ?? $fila['depto'] }}</td>
+                <td>{{$fila['nom_dpto'] ?? $fila['nomdepto']}}</td>
+                <td>{{$fila['codloc']}}</td>
+                <td>{{$fila['nom_loc'] ?? $fila['nomloc'] }}</td>
+                <td>{{$fila['frac']}}</td>
+                <td>{{$fila['radio']}}</td>
+                <td>{{$fila['seg']}}</td>
+                <td>{{$fila['viviendas']}}</td>
+                <td>{{ isset($fila['existe']) ? ($fila['existe'] ? 'Sí' : 'No') : 'No' }}</td>
             </tr>
-        @endforeach 
-    @endisset
+        @endforeach
 
     </tbody>
 </table>
+<form action="/cargarsegmentos" method="post" enctype="multipart/form-data">
+    @csrf
+    <input type="file" name="tabla_segmentos" hidden>
+    <button type="submit">Confirmar importación</button>
+</form>
+@endisset
 <!--
 <h1>Cargar segmentos</h1>
 

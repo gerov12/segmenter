@@ -50,7 +50,7 @@ class CargarSegmentos extends Controller
             flash('Error: Solo se pueden cargar archivos de tipo Excel')->error()->important();
             return back();
         }
-            //dd($oArchivoCargado);
+//dd($oArchivoCargado);
        if($oArchivoCargado->wasRecentlyCreated){
         flash('el archivo es nuevo... se procesa')->important()->success();
         // Insertar los datos en la base de datos
@@ -83,12 +83,6 @@ class CargarSegmentos extends Controller
         // Manejar la excepción
         flash('Error durante la importación: ' . $e->getMessage())->error();
     }
-    }
-    public function getSegmentosImportados()
-        {
-            
-            $segmentosImportados = Segmento::latest()->get();
-            return view('segmentos.cargar', compact('segmentosImportados'));
-        }
+}
 }
 
