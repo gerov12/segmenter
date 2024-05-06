@@ -427,16 +427,13 @@
               $('#alert-container').html(alertHtml);
               if (response.statusCode == 200) {
                 var table = $('#laravel_datatable').DataTable();
-                var rowsData = table.rows().data();
-                var index = 0;
                 var rowNode;
-                rowsData.each(function(row) {
-                    if (row.id === archivo_id) {
-                        // encontré la fila
-                        rowNode = table.row(index).node();
-                        return false; //TODO: cortar el each cuando haya encontrado la fila que busco (esto no funciona)
+                table.rows().every(function () {
+                    var data = this.data();
+                    if (data.id === archivo_id) {
+                        rowNode = this.node();
+                        return false;
                     }
-                    index = index + 1;
                 });
                 var row = $(rowNode);
                 var originalColor = row.css('background-color');
@@ -446,7 +443,7 @@
                   row.css('background-color', originalColor);
                 }, 1500);
                 setTimeout(function() {
-                  table.draw();
+                  table.ajax.reload();
                 }, 2000);
                 updateCounts();
               }
@@ -535,34 +532,30 @@
                 if (response.statusCode == 200) {
                   var table = $('#laravel_datatable').DataTable();
                   var copias = response.id_copias;
-                  var rowsData = table.rows().data();
-                  for (const id_copia of copias) {
-                    var index = 0;
-                    var rowNode;
-                    rowsData.each(function(row) {
-                        if (row.id === id_copia) {
-                            // encontré la fila copia
-                            rowNodeCopia = table.row(index).node();
-                        }
-                        if (row.id === archivo_id) {
-                            // encontré la fila original (TODO: podría buscarla una única vez a fuera del for)
-                            rowNodeOriginal = table.row(index).node();
-                        }
-                        index = index + 1;
-                        //TODO: cortar el each cuando haya encontrado la fila que busco
-                    });
+                  var rowNodeOriginal;
+                  var rows_copias = [];
+                  table.rows().every(function() {
+                      var data = this.data();
+                      if (copias.includes(data.id)) {
+                          rows_copias.push(this.node());
+                      } else if (data.id === archivo_id) {
+                        rowNodeOriginal = this.node();
+                      }
+                  });
+                  rows_copias.forEach(function(rowNodeCopia) {
                     if (typeof rowNodeCopia !== 'undefined') { //sirve para el caso en el cual las copias están en otra página
                       var rowCopia = $(rowNodeCopia);
                       rowCopia.fadeOut(1000, function() {
                           rowCopia.remove();
                       });
                     }
-                    var rowOriginal = $(rowNodeOriginal);
-                    rowOriginal.find('td:eq(6)').css('filter', 'blur(2px)');
-                    setTimeout(function() {
-                      table.draw();
-                    }, 1000);
-                  };
+                  });
+
+                  var rowOriginal = $(rowNodeOriginal);
+                  rowOriginal.find('td:eq(6)').css('filter', 'blur(2px)');
+                  setTimeout(function() {
+                    table.ajax.reload();
+                  }, 1000);
                   updateCounts();
                 }
               }
@@ -594,6 +587,7 @@
                   // obtengo el original de este archivo
                   var original = response;
                   console.log(original.nombre_original);
+                  console.log(owner);
                   // contruyo la tabla para la info del original
                   var tableBody = '';
                   tableBody += '<tr>';
@@ -602,7 +596,11 @@
                   tableBody += '<td>' + original.user.name + '</td>';
                   tableBody += '</tr>';
                   $('#tabla-original tbody').html(tableBody);
-                  $('#aclaracion-original').html('Al clickear en <span style="color:red">"Limpiar copia"</span> el usuario <b>' + owner + '</b> pasará a ser "observador" del siguiente archivo, eliminando el actual.');
+                  if (owner !== original.user.name) {
+                    $('#aclaracion-original').html('Al clickear en <span style="color:red">"Limpiar copia"</span> el usuario <b>' + owner + '</b> pasará a ser "observador" del siguiente archivo, eliminando el actual.');
+                  } else {
+                    $('#aclaracion-original').html('');
+                  }
 
                   // agrego los campos archivo-id y original-id al botón para recuperar en la animación
                   botonLimpiar.data('archivo-id', archivo);
@@ -652,29 +650,22 @@
               $('#alert-container').html(alertHtml);
               if (response.statusCode == 200) {
                 var table = $('#laravel_datatable').DataTable();
-                var rowsData = table.rows().data();
-                var index = 0;
-                var rowNode;
-                rowsData.each(function(row) {
-                    if (row.id === archivo_id) {
-                        // encontré la fila copia
-                        rowNodeCopia = table.row(index).node();
-                        console.log("Fila copia encontrada:", rowNodeCopia);
+                var rowNodeOriginal;
+                var rowNodeCopia;
+                table.rows().every(function() {
+                    var data = this.data();
+                    if (data.id === archivo_id) {
+                      rowNodeCopia = this.node();
+                    } else if (data.id === original_id) {
+                      rowNodeOriginal = this.node();
                     }
-                    if (row.id === original_id) {
-                        // encontré la fila original
-                        rowNodeOriginal = table.row(index).node();
-                        console.log("Fila original encontrada:", rowNodeOriginal);
-                    }
-                    index = index + 1;
-                    //TODO: cortar el each cuando haya encontrado la fila que busco
                 });
                 var rowCopia = $(rowNodeCopia);
                 var rowOriginal = $(rowNodeOriginal);
                 rowOriginal.find('td:eq(6)').css('filter', 'blur(2px)');
                 rowCopia.fadeOut(1000, function() {
                     rowCopia.remove();
-                    table.draw();
+                    table.ajax.reload();
                 });
                 updateCounts();
               }

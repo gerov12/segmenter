@@ -2,12 +2,11 @@
 
 @section('content')
 <div class="container">
+<div id="alert-container"></div>
 <h2>Listado de archivos repetidos </h2>
-  @can('Administrar Archivos', 'Ver Archivos')
-    @if(count($repetidos) > 0)
-    <h4><a href="{{route('limpiar_archivos')}}" onclick="return confirmarLimpiezaBulk()" class="btn btn-danger"> Limpiar ({{count($repetidos)}})</a></h4>
-    @endif
-  @endcan
+  @if(count($repetidos) > 0)
+  <h4><button id="bulk-button" onclick="return confirmarLimpiezaBulk()" class="btn btn-danger"> Limpiar ({{$owned}})</button></h4>
+  @endif
   <br>
 	<div class="row justify-content-center">
     <div class="card w-100">
@@ -20,7 +19,6 @@
         @endif
         <div class="table-responsive">
           <table class="table table-bordered" id="tabla-repetidos">
-            @if($repetidos !== null)
             <thead>
               <tr>
                 <th>Nombre original</th>
@@ -34,7 +32,7 @@
             </thead>
             <tbody>
               @foreach ($repetidos as $archivo)
-              <tr>
+              <tr id="{{$archivo[1]->id}}">
                 <td>{{$archivo[0]->nombre_original}}</td>
                 <td>{{$archivo[1]->nombre_original}}</td>
                 <td>{{$archivo[0]->created_at->format('d-M-Y')}}</td>
@@ -42,16 +40,13 @@
                 <td>{{$archivo[0]->user->name}}</td>
                 <td>{{$archivo[1]->user->name}}</td>
                 @if ($archivo[0]->ownedByUser(Auth::user()) || $archivo[1]->ownedByUser(Auth::user()) || Auth::user()->can('Administrar Archivos', 'Ver Archivos'))
-                <td style="text-align: center;"><a href="{{route('limpiar_archivos', ['archivo_id' => $archivo[1]->id])}}" onclick="return confirmarLimpieza()" class="btn btn-danger"> Limpiar </a></td>
+                <td style="text-align: center;"><button onclick="return confirmarLimpieza({{$archivo[1]->id}})" class="btn btn-danger"> Limpiar </button></td>
                 @else
                 <td style="text-align: center;"><i class="bi bi-ban"></i></td>
                 @endif
               </tr>
               @endforeach
             </tbody>
-            @else
-            <h1>No hay archivos repetidos</h1>
-            @endif
           </table>
         </div>
       </div>
@@ -61,8 +56,6 @@
 @endsection
 
 @section('footer_scripts')
-<script>src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"</script>
-<script>src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap4.min.js"</script>
 <script>
   $('#tabla-repetidos').DataTable({
     language: {
@@ -96,11 +89,87 @@
   });
 </script>
 <script type="text/javascript">
-  function confirmarLimpieza(){
-    return confirm('¿Estás seguro de que deseas eliminar el archivo repetido?. El usuario que cargó la copia pasará a ser "observador" del orignal. Esta acción es irreversible.');
+  function confirmarLimpieza(archivo_id){
+    if (confirm('¿Estás seguro de que deseas eliminar el archivo repetido?. El usuario que cargó la copia pasará a ser "observador" del orignal. Esta acción es irreversible.')) {
+      $.ajax({
+        url: '/archivos/limpiar/' + archivo_id,
+        type: 'POST',
+        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+        data: {
+          type: "individual"
+        },
+        success: function(response) {
+          var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+          var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                            response.message +
+                          '</div>';
+          $('#alert-container').html(alertHtml);
+          if (response.statusCode == 200) {
+            var row = $('#'+archivo_id);
+            var table = $('#tabla-repetidos').DataTable();
+            row.fadeOut(1000, function() {
+                table.row(row).remove();
+                updateCount("repetidos");
+                table.draw();
+            }); 
+          }
+        }
+      })
+    }
   };
+
   function confirmarLimpiezaBulk(){
-    return confirm("¿Estás seguro de que deseas limpiar todos los archivos repetidos? Esta acción es irreversible.");
+    if (confirm("¿Estás seguro de que deseas limpiar todos los archivos repetidos? Esta acción es irreversible.")) {
+      $.ajax({
+        url: '/archivos/limpiar/',
+        type: 'POST',
+        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+        data: {
+          type: "bulk"
+        },
+        success: function(response) {
+          var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+          var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                            response.message +
+                          '</div>';
+          $('#alert-container').html(alertHtml);
+          if (response.statusCode == 200) {
+            var table = $('#tabla-repetidos').DataTable();
+            $('#tabla-repetidos tbody tr').each(function() {
+              var row = $(this);
+              var rowId = row.attr('id');
+              if (response.done_files.includes(Number(rowId))) {
+                row.fadeOut(1000, function() {
+                    table.row(row).remove();
+                    updateCount("repetidos");
+                    table.draw();
+                });
+              }
+            });
+          }
+        }
+      })
+    }
   };
+
+  function updateCount(estado) {
+    var token = $('meta[name="csrf-token"]').attr('content');
+    $.ajax({
+      url: "{{ route('contar_owned') }}",
+      method: "POST",
+      headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+      data: {estado: estado},
+      success: function(data) {
+        if (data > 0) {
+            $('#bulk-button').text('Limpiar (' + data + ')');
+            $('#bulk-button').css('display', 'inline-block')
+        } else {
+          $('#bulk-button').css('display', 'none')
+        }
+      }
+    });
+  }
 </script>
 @endsection

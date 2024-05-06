@@ -200,6 +200,22 @@ Route::middleware(['auth'])->group(function () {
     Route::get('users/{user}/filter', 'UserController@editarFiltroUsuario')->name('admin.editarFiltroUsuario');
 });
 
+// ---------- EMAIL ----------
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+Route::get('/email/verify', function () {
+    return redirect('perfil');
+})->middleware('auth')->name('verification.notice');
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill();
+    return redirect('perfil')->with('message', 'Se ha verificado el email correctamente!');
+})->middleware(['auth','signed'])->name('verification.verify');
+use Illuminate\Http\Request; 
+Route::post('/email/verification-notification', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+ 
+    return back()->with('message', 'Se ha enviado un mail de verificación!');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
 // ---------- FILTROS ----------
 Route::middleware(['auth'])->group(function () {
     Route::get('filtros', 'FilterController@listarFiltros')->name('admin.listarFiltros');
@@ -325,7 +341,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('archivos/limpiar/{archivo_id}/copias','ArchivoController@eliminar_repetidos')->name('limpiar_copias'); //eliminar las copias de un archivo
     Route::post('archivos/recalcular_cs/{archivo_id?}','ArchivoController@recalcular_checksums')->name('recalcular_checksums'); //el parametro es opcional
     Route::post('archivos/sincronizar_cs/{archivo_id?}','ArchivoController@sincronizar_checksums')->name('sincronizar_checksums'); //el parametro es opcional
-
+    Route::post('archivos/contar_autorizados','ArchivoController@update_owned_count')->name('contar_owned');
     Route::get('archivos/contar','ArchivoController@updateCounts')->name('contar_archivos');
     Route::get('archivos/repetidos','ArchivoController@listar_repetidos')->name('archivos_repetidos');
     Route::get('archivos/checksums_obsoletos','ArchivoController@listar_checksums_obsoletos')->name('checksums_obsoletos');

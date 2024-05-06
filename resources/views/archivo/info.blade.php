@@ -65,10 +65,21 @@
                <th>Tipo</th>
                <td>{{$archivo->tipo}}</td>
             </tr>
+            @if ($checksumCalculado == false)
             <tr>
-               <th>Checksum</th>
+               <th>Checksum <i class="bi bi-exclamation-triangle" style="color:orange" title="No calculado con el nuevo método"></i></th>
                <td>{{$archivo->checksum}}</td>
             </tr>
+            @elseif ($checksumCorrecto == false)
+            <tr>
+               <th>Checksum</th>
+               <td>{{$archivo->checksum}} <span style="color:red">({{$archivo->updated_at->format('d-M-Y H:i:s')}})</span></td>
+            </tr>
+            <tr>
+               <th>Checksum (nuevo método)</th>
+               <td>{{$archivo->checksum_control->checksum}} <span style="color:red">({{$archivo->checksum_control->updated_at->format('d-M-Y H:i:s')}})</span></td>
+            </tr>
+            @endif
             <tr>
                <th>Tamaño</th>
                <td>{{$archivo->tamaño}}</td>

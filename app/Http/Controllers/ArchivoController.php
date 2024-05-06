@@ -345,7 +345,16 @@ class ArchivoController extends Controller
     {
 	    // Mensaje extraño
 	    $mensaje = $archivo->pasarData()?'ik0':'m4l';
-      return view('archivo.list');
+        $user = Auth::user();
+        $archivos = self::retrieveFiles($user);
+        $count_estados = self::countEstados($archivos);
+        return view('archivo.list')->with([
+            'data' => $archivos, 
+            'count_archivos_repetidos' => $count_estados["repetidos"],
+            'count_null_checksums' => $count_estados["null"],
+            'count_error_checksums' => $count_estados["error"],
+            'count_old_checksums' => $count_estados["old"]
+        ]);
     }
     
     //no envio los repetidos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
@@ -359,59 +368,52 @@ class ArchivoController extends Controller
 
         try {
             $user = Auth::user();
-            $success = true;
             $tipo = $request->get('type');
-            if ($archivo_id && $tipo == "bulk") {
-                $archivo = Archivo::findOrFail($archivo_id);
-                if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
-                    $eliminados = 0;
-                    $copias = $archivo->copias()->with('user')->where('id', '!=' , $archivo->id)->get();
-                    $id_copias = $copias->map(function($copia) {
-                        return $copia->id;
-                    });
-                    foreach ($copias as $archivo){
-                        $archivo->limpiarCopia();
-                        $eliminados++;
-                    }
-                    $respuesta = ['statusCode'=> 200, 'id_copias' => $id_copias, 'message' => "Se limpiaron ". $eliminados . " copias de " . $archivo->nombre_original . "."];
-                    return response()->json($respuesta);
-                    $success = false;
-                } else {
-                    $success = false;
-                }
-            } else if ($archivo_id && $tipo == "individual") {
+            if ($archivo_id) {
+                if($tipo == "individual") { //copia
                     $archivo = Archivo::findOrFail($archivo_id);
                     if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                         $archivo->limpiarCopia();
                         $respuesta = ['statusCode'=> 200,'message' => 'Se eliminó la copia ' . $archivo->nombre_original];
-                        return response()->json($respuesta);
-                        $success = false;
                     } else {
-                        $success = false;
+                        $respuesta = ['statusCode'=> 403,'message' => 'No tienes permiso para hacer eso.'];
                     } 
-            } else {
-                if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
-                    // Para todos los archivos
-                    $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
-                        return $archivo->esCopia;
-                    });
-                    $eliminados = 0;
-                    foreach ($archivos as $archivo){
-                        $archivo->limpiarCopia();
-                        $eliminados++;
+                } else if ($tipo == "bulk") { //bulk de copias de un original
+                    $archivo = Archivo::findOrFail($archivo_id);
+                    if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
+                        $eliminados = 0;
+                        $copias = $archivo->copias()->with('user')->where('id', '!=' , $archivo->id)->get();
+                        $id_copias = $copias->map(function($copia) {
+                            return $copia->id;
+                        });
+                        foreach ($copias as $archivo){
+                            $archivo->limpiarCopia();
+                            $eliminados++;
+                        }
+                        $respuesta = ['statusCode'=> 200, 'id_copias' => $id_copias, 'message' => "Se limpiaron ". $eliminados . " copias de " . $archivo->nombre_original . "."];
+                    } else {
+                        $respuesta = ['statusCode'=> 403,'message' => 'No tienes permiso para hacer eso.'];
                     }
-                    flash($eliminados . " archivos copia limpiados.")->info();
-                    return redirect('archivos');
-                } else {
-                    $success = false;
                 }
-            }
-
-            if ($success == true) { 
-                return redirect('archivos');
-            } else {
-                //flash('No tienes permiso para hacer eso.')->error();
-                //return back();
+                return response()->json($respuesta);
+            } else if (!$archivo_id && $tipo="bulk"){ //bulk total
+                $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
+                    return $archivo->esCopia;
+                });
+                if (!$user->can(['Administrar Archivos', 'Ver Archivos'])){
+                    $archivos = $archivos->filter(function ($archivo) use ($user) {
+                        return $archivo->ownedByUser($user); // si no tengo permisos me quedo solo con los míos
+                    });
+                }
+                $eliminados = 0;
+                $done_ids = [];
+                foreach ($archivos as $archivo){
+                    $archivo->limpiarCopia();
+                    $eliminados++;
+                    array_push($done_ids, $archivo->id);
+                }
+                $respuesta = ['statusCode'=> 200,'message' => $eliminados . " archivos copia limpiados.", 'done_files' => $done_ids];
+                return response()->json($respuesta);
             }
         } catch (PermissionDoesNotExist $e) {
             flash('message', 'No existe el permiso "Administrar Archivos" o "Ver Archivos"')->error();
@@ -427,7 +429,6 @@ class ArchivoController extends Controller
 
         try {
             $user = Auth::user();
-            $success = true;
             $tipo = $request->get('type');
             //si envié un archivo calculo ese
             if ($archivo_id && $tipo="individual") {
@@ -435,32 +436,39 @@ class ArchivoController extends Controller
                 if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                     $archivo->checksumRecalculate();
                     $respuesta = ['statusCode'=> 200,'message' => 'Checksum recalculado para el archivo ' . $archivo->nombre_original];
-                    return response()->json($respuesta);
-                    $success = false;
                 } else {
-                    $success = false;
-                }           
-            } else {
-                if ($user->can(['Administrar Archivos', 'Ver Archivos'])){
-                    $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
+                    $respuesta = ['statusCode'=> 403,'message' => 'No tienes permiso para hacer eso.'];
+                }
+                return response()->json($respuesta);
+            } else if (!$archivo_id && $tipo="bulk"){
+                $estado = $request->get('status');
+                $todos = self::retrieveFiles($user);
+                if ($estado == "no_calculados"){
+                    $archivos = $todos->filter(function ($archivo) {
+                        return $archivo->checksum_control === null;
+                    });
+                } else if ($estado == "erroneos"){
+                    $checksums_calculados = $todos->filter(function ($archivo) {
+                        return $archivo->checksum_control !== null;
+                    });
+                    $archivos = $checksums_calculados->filter(function ($archivo) {
                         return !$archivo->checksumOk and !$archivo->checksumObsoleto;
                     });
-                    $recalculados = 0;
-                    foreach ($archivos as $archivo){
-                            $archivo->checksumRecalculate();
-                            $recalculados++;
-                    }
-                    flash($recalculados . " checksums recalculados.")->info();
-                } else {
-                    $success = false;
                 }
-            }
-
-            if ($success == true) { 
-                return redirect('archivos');
-            } else {
-                flash('No tienes permiso para hacer eso.')->error();
-                return back();
+                if (!$user->can(['Administrar Archivos', 'Ver Archivos'])){
+                    $archivos = $archivos->filter(function ($archivo) use ($user) {
+                        return $archivo->ownedByUser($user); // si no tengo permisos me quedo solo con los míos
+                    });
+                }
+                $recalculados = 0;
+                $done_ids = [];
+                foreach ($archivos as $archivo){
+                        $archivo->checksumRecalculate();
+                        $recalculados++;
+                        array_push($done_ids, $archivo->id);
+                }
+                $respuesta = ['statusCode'=> 200,'message' => $recalculados . " checksums recalculados.", 'done_files' => $done_ids];
+                return response()->json($respuesta);
             }
         } catch (PermissionDoesNotExist $e) {
             flash('No existe el permiso "Administrar Archivos" o "Ver Archivos"')->error();
@@ -476,7 +484,6 @@ class ArchivoController extends Controller
 
         try {
             $user = Auth::user();
-            $success = true;
             $tipo = $request->get('type');
             //si envié un archivo sincronizo ese
             if ($archivo_id && $tipo="individual") {
@@ -484,31 +491,32 @@ class ArchivoController extends Controller
                 if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {
                     $archivo->checksumSync();
                     $respuesta = ['statusCode'=> 200,'message' => 'Checksum sincronizado para el archivo ' . $archivo->nombre_original];
-                    return response()->json($respuesta);
-                    $success = false;
                 } else {
-                    $success = false;
+                    $respuesta = ['statusCode'=> 403,'message' => 'No tienes permiso para hacer eso.'];
                 }
-            } else {
-                if (Auth::user()->can(['Administrar Archivos', 'Ver Archivos'])){
-                    $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
-                        return !$archivo->checksumOk and $archivo->checksumObsoleto;
+                return response()->json($respuesta);
+            } else if (!$archivo_id && $tipo="bulk"){
+                $todos = self::retrieveFiles($user);
+                $checksums_calculados = $todos->filter(function ($archivo) {
+                    return $archivo->checksum_control !== null;
+                });
+                $archivos = $checksums_calculados->filter(function ($archivo) {
+                    return !$archivo->checksumOk and $archivo->checksumObsoleto;
+                });
+                if (!$user->can(['Administrar Archivos', 'Ver Archivos'])){
+                    $archivos = $archivos->filter(function ($archivo) use ($user) {
+                        return $archivo->ownedByUser($user); // si no tengo permisos me quedo solo con los míos
                     });
-                    $sincronizados = 0;
-                    foreach ($archivos as $archivo){
-                        $archivo->checksumSync();
-                        $sincronizados++;
-                    }
-                    flash($sincronizados . " checksums sincronizados.")->info();
-                } else {
-                    $success = false;
                 }
-            }
-            if ($success == true) {
-                return redirect('archivos');
-            } else {
-                flash('No tienes permiso para hacer eso.')->error();
-                return back();
+                $sincronizados = 0;
+                $done_ids = [];
+                foreach ($archivos as $archivo){
+                    $archivo->checksumSync();
+                    $sincronizados++;
+                    array_push($done_ids, $archivo->id);
+                }
+                $respuesta = ['statusCode'=> 200,'message' => $sincronizados . " checksums sincronizados.", 'done_files' => $done_ids];
+                return response()->json($respuesta);
             }
         } catch (PermissionDoesNotExist $e) {
             flash('No existe el permiso "Administrar Archivos" o "Ver Archivos"')->error();
@@ -521,11 +529,15 @@ class ArchivoController extends Controller
             return $archivo->esCopia;
         });
         $repetidos = [];
+        $owned_count = self::count_owned_files($archivos);
         foreach ($archivos as $archivo){
             $original = $archivo->original;
             $repetidos[] = [$original,$archivo];
         }
-        return view('archivo.repetidos', compact('repetidos'));
+        return view('archivo.repetidos')->with([
+            "repetidos"=>$repetidos,
+            "owned"=>$owned_count
+        ]);
     }
 
     public function listar_checksums_no_calculados(){
@@ -534,7 +546,11 @@ class ArchivoController extends Controller
         $checksums_no_calculados = $archivos->filter(function ($archivo) {
             return $archivo->checksum_control === null;
         });
-        return view('archivo.checksums_no_calculados', compact('checksums_no_calculados'));
+        $owned_count = self::count_owned_files($checksums_no_calculados);
+        return view('archivo.checksums_no_calculados')->with([
+            "checksums_no_calculados"=>$checksums_no_calculados,
+            "owned"=>$owned_count
+        ]);
     }
 
     public function listar_checksums_obsoletos(){
@@ -545,13 +561,18 @@ class ArchivoController extends Controller
         });
         $checksums_obsoletos = $checksums_calculados->filter(function ($archivo) {
             return !$archivo->checksumOk and $archivo->checksumObsoleto;
-        })->map(function ($archivo) {
+        });
+        $owned_count = self::count_owned_files($checksums_obsoletos);
+        $checksums_obsoletos = $checksums_obsoletos->map(function ($archivo) {
             return [
                 'archivo' => $archivo,
                 'control' => $archivo->checksum_control
             ];
         });
-        return view('archivo.checksums_obsoletos', compact('checksums_obsoletos'));
+        return view('archivo.checksums_obsoletos')->with([
+            "checksums_obsoletos"=>$checksums_obsoletos,
+            "owned"=>$owned_count
+        ]);
     }
 
     public function listar_checksums_erroneos(){
@@ -562,12 +583,62 @@ class ArchivoController extends Controller
         });
         $checksums_erroneos = $checksums_calculados->filter(function ($archivo) {
             return !$archivo->checksumOk and !$archivo->checksumObsoleto;
-        })->map(function ($archivo) {
+        });
+        $owned_count = self::count_owned_files($checksums_erroneos);
+        $checksums_erroneos = $checksums_erroneos->map(function ($archivo) {
             return [
                 'archivo' => $archivo,
                 'control' => $archivo->checksum_control
             ];
         });
-        return view('archivo.checksums_erroneos', compact('checksums_erroneos'));
+        return view('archivo.checksums_erroneos')->with([
+            "checksums_erroneos"=>$checksums_erroneos,
+            "owned"=>$owned_count
+        ]);
+    }
+
+    private static function count_owned_files($archivos){
+        $user = Auth::user();
+        $owned = $archivos->filter(function ($archivo) use ($user){
+            return ($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'));
+        })->count();
+        return $owned;
+    }
+
+    public function update_owned_count(Request $request){
+        $user = Auth::user();
+        $estado = $request->get('estado');
+        switch ($estado) {
+            case "repetidos":
+                $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
+                    return $archivo->esCopia;
+                });
+                break;
+            case "no_calculados":
+                $archivos = self::retrieveFiles($user)->filter(function ($archivo) {
+                    return $archivo->checksum_control === null;
+                });
+                break;
+            case "obsoletos":
+                $all = self::retrieveFiles($user);
+                $checksums_calculados = $all->filter(function ($archivo) {
+                    return $archivo->checksum_control !== null;
+                });
+                $archivos = $checksums_calculados->filter(function ($archivo) {
+                    return !$archivo->checksumOk and $archivo->checksumObsoleto;
+                });
+                break;
+            case "erroneos":
+                $all = self::retrieveFiles($user);
+                $checksums_calculados = $all->filter(function ($archivo) {
+                    return $archivo->checksum_control !== null;
+                });
+                $archivos = $checksums_calculados->filter(function ($archivo) {
+                    return !$archivo->checksumOk and !$archivo->checksumObsoleto;
+                });
+                break;
+        }
+        $count = self::count_owned_files($archivos);
+        return response()->json($count);
     }
 }

@@ -2,12 +2,11 @@
 
 @section('content')
 <div class="container">
+<div id="alert-container"></div>
 <h2>Listado de archivos con checksums obsoletos </h2>
-  @can('Administrar Archivos', 'Ver Archivos')
-    @if(count($checksums_obsoletos) > 0)
-    <h4><a href="{{route('sincronizar_checksums')}}" onclick="return confirmarSincronizacionBulk()" class="btn btn-success"> Sincronizar ({{count($checksums_obsoletos)}})</a></h4>
-    @endif
-  @endcan
+  @if(count($checksums_obsoletos) > 0)
+  <h4><button id="bulk-button" onclick="return confirmarSincronizacionBulk()" class="btn btn-success"> Sincronizar ({{$owned}})</button></h4>
+  @endif
   <br>
 	<div class="row justify-content-center">
     <div class="card w-100">
@@ -20,7 +19,6 @@
         @endif
         <div class="table-responsive">
           <table class="table table-bordered" id="tabla-obsoletos">
-            @if($checksums_obsoletos !== null)
             <thead>
               <tr>
                 <th>Nombre</th>
@@ -33,7 +31,7 @@
             </thead>
             <tbody>
               @foreach ($checksums_obsoletos as $archivo)
-              <tr>
+              <tr id="{{$archivo['archivo']->id}}">
                 <td>{{$archivo['archivo']->nombre_original}}</td>
                 <td>{{$archivo['archivo']->created_at->format('d-M-Y')}}</td>
                 <td>{{$archivo['archivo']->user->name}}</td>
@@ -46,16 +44,13 @@
                   ({{$archivo['control']->updated_at->format('d-M-Y H:i:s')}})
                 </td>
                 @if ($archivo['archivo']->ownedByUser(Auth::user()) || Auth::user()->can('Administrar Archivos', 'Ver Archivos'))
-                <td style="text-align: center;"><a href="{{route('sincronizar_checksums', ['archivo_id' => $archivo['archivo']->id])}}" onclick="return confirmarSincronizacion()" class="btn btn-success"> Sincronizar </a></td>
+                <td style="text-align: center;"><button onclick="return confirmarSincronizacion({{$archivo['archivo']->id}})" class="btn btn-success"> Sincronizar </button></td>
                 @else
                 <td style="text-align: center;"><i class="bi bi-ban"></i></td>
                 @endif
               </tr>
               @endforeach
             </tbody>
-            @else
-            <h1>No hay checksums obsoletos</h1>
-            @endif
           </table>
         </div>
       </div>
@@ -65,8 +60,6 @@
 
 @endsection
 @section('footer_scripts')
-<script>src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"</script>
-<script>src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap4.min.js"</script>
 <script>
   $('#tabla-obsoletos').DataTable({
     language: {
@@ -100,11 +93,87 @@
   });
 </script>
 <script type="text/javascript">
-  function confirmarSincronizacion(){
-    return confirm("¿Estás seguro de que deseas sincronizar el checksum? Esta acción es irreversible.");
+  function confirmarSincronizacion(archivo_id){
+    if (confirm("¿Estás seguro de que deseas sincronizar el checksum? Esta acción es irreversible.")) {
+      $.ajax({
+        url: '/archivos/sincronizar_cs/' + archivo_id,
+        type: 'POST',
+        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+        data: {
+          type: "individual"
+        },
+        success: function(response) {
+          var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+          var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                            response.message +
+                          '</div>';
+          $('#alert-container').html(alertHtml);
+          if (response.statusCode == 200) {
+            var row = $('#'+archivo_id);
+            var table = $('#tabla-obsoletos').DataTable();
+            row.fadeOut(1000, function() {
+                table.row(row).remove();
+                updateCount("obsoletos");
+                table.draw();
+            }); 
+          }
+        }
+      })
+    }
   };
+
   function confirmarSincronizacionBulk(){
-    return confirm("¿Estás seguro de que deseas sincronizar los checksums? Esta acción es irreversible.");
+    if (confirm("¿Estás seguro de que deseas sincronizar los checksums? Esta acción es irreversible.")) {
+      $.ajax({
+        url: '/archivos/sincronizar_cs/',
+        type: 'POST',
+        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+        data: {
+          type: "bulk"
+        },
+        success: function(response) {
+          var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+          var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                            response.message +
+                          '</div>';
+          $('#alert-container').html(alertHtml);
+          if (response.statusCode == 200) {
+            var table = $('#tabla-obsoletos').DataTable();
+            $('#tabla-obsoletos tbody tr').each(function() {
+              var row = $(this);
+              var rowId = row.attr('id');
+              if (response.done_files.includes(Number(rowId))) {
+                row.fadeOut(1000, function() {
+                    table.row(row).remove();
+                    updateCount("obsoletos");
+                    table.draw();
+                });
+              }
+            });
+          }
+        }
+      })
+    }
   };
+
+  function updateCount(estado) {
+    var token = $('meta[name="csrf-token"]').attr('content');
+    $.ajax({
+      url: "{{ route('contar_owned') }}",
+      method: "POST",
+      headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+      data: {estado: estado},
+      success: function(data) {
+        if (data > 0) {
+            $('#bulk-button').text('Sincronizar (' + data + ')');
+            $('#bulk-button').css('display', 'inline-block')
+        } else {
+          $('#bulk-button').css('display', 'none')
+        }
+      }
+    });
+  }
 </script>
 @endsection
