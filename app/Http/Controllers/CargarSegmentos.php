@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use Illuminate\Http\Request;
 use App\Imports\SegmentosImport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -9,6 +8,7 @@ use App\Segmento;
 use Maatwebsite\Excel\Concerns\Importable;
 use App\Model\Archivo;
 use Auth;
+use Spatie\Permission\Models\Permission; 
 
 class CargarSegmentos extends Controller
 {
@@ -30,10 +30,21 @@ class CargarSegmentos extends Controller
         if (!$request->hasFile('tabla_segmentos')) {
             return redirect('/')->with('error', 'No se ha seleccionado ningún archivo para importar.');
         }
+    
 
         // Obtener el archivo subido
+    
         $archivo = $request->file('tabla_segmentos');
+    
+        $codprovincia= $this->obtenerProvFile($archivo);
+        // Verifica si el usuario tiene permisos para cargar segmentos acorde al filtro provincia
+        if (!self::filtroProvincia($codprovincia)){
+            flash('Ud no puede cargar segmentos de la prov: '. $codprovincia); 
+            return back();
+        }
+    
         $oArchivoCargado = Archivo::cargar($archivo, Auth::user());
+    
         //   dd($oArchivoCargado->nombre_original);
         $nombreArchivo = $oArchivoCargado->nombre;
         // Verificar el tipo MIME del archivo
@@ -50,7 +61,7 @@ class CargarSegmentos extends Controller
             flash('Error: Solo se pueden cargar archivos de tipo Excel')->error()->important();
             return back();
         }
-//dd($oArchivoCargado);
+        //dd($oArchivoCargado);
        if($oArchivoCargado->wasRecentlyCreated){
         flash('el archivo es nuevo... se procesa')->important()->success();
         // Insertar los datos en la base de datos
@@ -66,6 +77,26 @@ class CargarSegmentos extends Controller
        }
 
 
+    }
+
+    private function filtroProvincia($codprovincia ){
+        
+        $filtro = Permission::where('name',$codprovincia)->first(); 
+        
+        return ($filtro && Auth::user()->hasPermissionTo($codprovincia, 'filters'));
+
+    }
+
+    private function obtenerProvFile($nombreArchivo){
+           
+            $archivo = Excel::toArray(new SegmentosImport, $nombreArchivo);
+
+             $codprovincia = $archivo[0][1]['prov'];
+             $nompr = $archivo[0][1]['nomprov'];
+ 
+            flash('la  provincia del archivo es '. $codprovincia . ' - ' . $nompr);
+
+            return $codprovincia;
     }
 
     public function insertOrIgnore($nombreArchivo) {
