@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Model\Provincia;
+use Illuminate\Support\Facades\Log;
 
 class CompareController extends Controller
 {
@@ -64,6 +65,7 @@ class CompareController extends Controller
             }
 
             $provinciasCoincidentes = $provincias->filter(function ($provincia) use ($feature, $nombre) {
+                Log::debug(strval($provincia->nombre)." / ".strval($feature['properties'][$nombre]));
                 return strval($provincia->nombre) == strval($feature['properties'][$nombre]);
             });
             if (!$provinciasCoincidentes->isEmpty()) {
