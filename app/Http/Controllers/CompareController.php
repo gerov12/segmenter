@@ -16,14 +16,21 @@ class CompareController extends Controller
         return $datos;
     }
 
+    private function getAtributos($capa)
+    {
+        $url= 'https://geonode.indec.gob.ar/geoserver/wfs?request=DescribeFeatureType&outputFormat=application/json&typeNames='.$capa;
+        $result = file_get_contents($url);
+        $datos = json_decode($result, true);
+        return $datos;
+    }
+
     public function listarAtributos($capa)
     {
-        $datos = self::getCapa($capa);
+        $datos = self::getAtributos($capa);
         $atributos = [];
-        if(isset($datos['features'][0]['properties'])) {
-            $atributos = array_keys($datos['features'][0]['properties']);
+        if(isset($datos['featureTypes'][0]['properties'])) {
+            $atributos = $datos['featureTypes'][0]['properties'];
         }
-
         return view('compare_geonode.properties')->with(['capa' => $capa, 'atributos' => $atributos]);
     }
 
@@ -56,7 +63,7 @@ class CompareController extends Controller
             $existe_cod = $existe_nom = false;
 
             $provinciasCoincidentes = $provincias->filter(function ($provincia) use ($feature, $codigo) {
-                return strval($provincia->codigo) == strval($feature['properties'][$codigo]);
+                return trim(strval($provincia->codigo)) == trim(strval($feature['properties'][$codigo]));
             });
     
             if (!$provinciasCoincidentes->isEmpty()) {
@@ -66,7 +73,7 @@ class CompareController extends Controller
 
             $provinciasCoincidentes = $provincias->filter(function ($provincia) use ($feature, $nombre) {
                 Log::debug(strval($provincia->nombre)." / ".strval($feature['properties'][$nombre]));
-                return strval($provincia->nombre) == strval($feature['properties'][$nombre]);
+                return trim(strval($provincia->nombre)) == trim(strval($feature['properties'][$nombre]));
             });
             if (!$provinciasCoincidentes->isEmpty()) {
                 $existe_nom = true;
@@ -78,6 +85,7 @@ class CompareController extends Controller
             if ($existe_cod) {
                 if ($existe_nom) {
                     $estado = "OK";
+                    //dd($provinciaCoincidente->geometria,$feature['geometry']);
                     // MOSTRAR DIFERENCIA EN GEOMETRIAS
                 } else {
                     $estado = "Diferencia en el nombre";
