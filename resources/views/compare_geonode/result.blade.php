@@ -2,13 +2,13 @@
 
 @section('content_main')
 <div class="container">
-    <div class="row justify-content-center">
-        <div class="card" style="width: 70rem;">
+    <div class="row justify-content-center"> 
+        <div class="card" style="width: 120%">
             <div class="card-header">
                 Resultado de la comparación de la capa <b>{{ $capa }}</b> con la tabla de <b>{{ $tabla }}s</b>
             </div>
             <div class="card-body">
-                <table class="table table-bordered">
+                <table class="table table-bordered" id="tabla-resultado" style="width:100%">
                     <thead>
                         <tr>
                             <th colspan="2" style="text-align: center; vertical-align: middle;">Código de {{ $tabla }}</th>
@@ -36,9 +36,17 @@
                                 </td>
                                 <td style="text-align: center; vertical-align: middle;" >
                                     {{ $resultado['feature']['properties'][$nom] }}
+                                    @if ($resultado['estado'] == 'Diferencia en el nombre')
+                                        <br>
+                                        (UTF-8: {{ utf8_encode($resultado['feature']['properties'][$nom]) }})
+                                    @endif
                                 </td>
                                 <td style="text-align: center; vertical-align: middle;">
                                     {{ $resultado['provincia'] ? $resultado['provincia']['nombre'] : '-' }}
+                                    @if ($resultado['provincia'] and $resultado['estado'] == 'Diferencia en el nombre')
+                                        <br>
+                                        (UTF-8: {{ utf8_encode($resultado['provincia']['nombre']) }})
+                                    @endif
                                 </td>
                                 <td style="text-align: center; vertical-align: middle;">
                                     {{ $resultado['estado'] }}
@@ -51,7 +59,7 @@
                     </tbody>
                 </table>
                 <tfoot>
-                    Total de provincias con errores: {{ $resultado['provincias_erroneas'] }} <br>
+                    Total de {{ $tabla }}s con errores: {{ $resultado['elementos_erroneos'] }} <br>
                     Total de errores de validación: {{ $resultado['total_errores'] }}
                 </tfoot>
             </div>
@@ -60,4 +68,36 @@
 </div>
 @endsection
 @section('footer_scripts')
+<script>
+  $('#tabla-resultado').DataTable({
+    language: {
+      "sProcessing":     "Procesando...",
+      "sLengthMenu":     "Mostrar _MENU_ registros",
+      "sZeroRecords":    "No se encontraron resultados",
+      "sEmptyTable":     "Ningún dato disponible en esta tabla =(",
+      "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+      "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+      "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+      "sInfoPostFix":    "",
+      "sSearch":         "Buscar:",
+      "sUrl":            "",
+      "sInfoThousands":  ",",
+      "sLoadingRecords": "Cargando...",
+      "oPaginate": {
+          "sFirst":    "Primero",
+          "sLast":     "Último",
+          "sNext":     "Siguiente",
+          "sPrevious": "Anterior"
+      },
+      "oAria": {
+          "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+          "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+      },
+      "buttons": {
+          "copy": "Copiar",
+          "colvis": "Visibilidad"
+      }
+    }
+  });
+</script>
 @endsection

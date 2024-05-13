@@ -109,7 +109,7 @@ class CompareController extends Controller
                 'existe_cod' => $existe_cod,
                 'existe_nom' => $existe_nom,
                 'estado' => $estado,
-                'provincias_erroneas' => $provincias_erroneas,
+                'elementos_erroneos' => $provincias_erroneas,
                 'total_errores' => $total_errores
             ];
         }

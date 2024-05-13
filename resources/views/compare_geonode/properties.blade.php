@@ -15,7 +15,7 @@
                             <label for="codigo">Código:</label>
                             <select name="codigo" id="codigo" class="form-control">
                                 @foreach ($atributos as $atributo)
-                                    <option value="{{ $atributo['name'] }}">{{ $atributo['name'] }} (tipo: {{ $atributo['type'] }})</option>
+                                    <option value="{{ $atributo['name'] }}">{{ $atributo['name'] }} (tipo: {{explode(':', $atributo['type'])[1]}})</option>
                                 @endforeach
                             </select>
                         </div>
@@ -23,7 +23,7 @@
                             <label for="nombre">Nombre:</label>
                             <select name="nombre" id="nombre" class="form-control">
                                 @foreach ($atributos as $atributo)
-                                    <option value="{{ $atributo['name'] }}">{{ $atributo['name'] }} (tipo: {{ $atributo['type'] }})</option>
+                                    <option value="{{ $atributo['name'] }}">{{ $atributo['name'] }} (tipo: {{explode(':', $atributo['type'])[1]}})</option>
                                 @endforeach
                             </select>
                         </div>
