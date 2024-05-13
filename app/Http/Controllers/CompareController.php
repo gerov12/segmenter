@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Model\Provincia;
 use Illuminate\Support\Facades\Log;
+use Auth;
 
 class CompareController extends Controller
 {
@@ -24,6 +25,24 @@ class CompareController extends Controller
         return $datos;
     }
 
+    private function chequearEstadoGeometrias($provinciaCoincidente, $feature)
+    {
+        if ($provinciaCoincidente->geometria !== null) {
+            if($feature['geometry'] !== null) {
+                $estado_geom = "Calculo en desarrollo..."; //CALCULAR
+            } else {
+                $estado_geom = "No hay geometría cargada en el geoservicio";
+            }
+        } else {
+            if($feature['geometry'] !== null) {
+                $estado_geom = "No hay geometría cargada en la BD";
+            } else {
+                $estado_geom = "No hay geometrías cargadas";
+            }
+        }
+        return $estado_geom;
+    }
+
     public function listarAtributos($capa)
     {
         $datos = self::getAtributos($capa);
@@ -40,8 +59,19 @@ class CompareController extends Controller
         $nombre = $request->input('nombre');
 
         if ($codigo != $nombre) {
-            $resultados = self::compararProvincias($codigo, $nombre, $capa);
-            return view('compare_geonode.result')->with(['capa' => $capa, 'tabla' => "Provincia", 'resultados' => $resultados, 'cod' => $codigo, 'nom' => $nombre]);
+            $comparacion = self::compararProvincias($codigo, $nombre, $capa);
+            return view('compare_geonode.result')->with([
+                'capa' => $capa, 
+                'tabla' => "Provincia", //esto junto a la función que se llama para comparar dependerá de la capa
+                'resultados' => $comparacion['resultados'], 
+                'elementos_erroneos' => $comparacion['elementos_erroneos'], 
+                'total_errores' => $comparacion['total_errores'], 
+                'cod' => $codigo, 
+                'nom' => $nombre,
+                'operativo' => "-", //TO-DO
+                'datetime' => date("d-m-Y (H:i:s)"),
+                'usuario' => Auth::user()->name
+            ]);
             
         } else {
             flash("Los campos seleccionados deben ser diferentes")->error();
@@ -55,12 +85,13 @@ class CompareController extends Controller
         $provincias = Provincia::all();
 
         $resultados = [];
-        $provincias_erroneas = 0;
+        $elementos_erroneos = 0;
         $total_errores = 0;
 
         foreach ($datos['features'] as $feature) {
             $provinciaCoincidente = null;
             $existe_cod = $existe_nom = false;
+            $errores = 0;
 
             $provinciasCoincidentes = $provincias->filter(function ($provincia) use ($feature, $codigo) {
                 return trim(strval($provincia->codigo)) == trim(strval($feature['properties'][$codigo]));
@@ -82,26 +113,28 @@ class CompareController extends Controller
                 }
             }
 
+            $estado_geom = "-";
             if ($existe_cod) {
                 if ($existe_nom) {
                     $estado = "OK";
-                    //dd($provinciaCoincidente->geometria,$feature['geometry']);
-                    // MOSTRAR DIFERENCIA EN GEOMETRIAS
+                    $estado_geom = self::chequearEstadoGeometrias($provinciaCoincidente, $feature);
                 } else {
                     $estado = "Diferencia en el nombre";
-                    $provincias_erroneas++;
-                    $total_errores++;
+                    $elementos_erroneos++;
+                    $errores++;
                 }
             } else {
-                $provincias_erroneas++;
-                $total_errores++;
+                $elementos_erroneos++;
+                $errores++;
                 if ($existe_nom) {
                     $estado = "Diferencia en el código";
                 } else {
                     $estado = "No hay coincidencias";
-                    $total_errores++;
+                    $errores++;
                 }
             }
+
+            $total_errores += $errores;
 
             $resultados[] = [
                 'feature' => $feature,
@@ -109,11 +142,11 @@ class CompareController extends Controller
                 'existe_cod' => $existe_cod,
                 'existe_nom' => $existe_nom,
                 'estado' => $estado,
-                'elementos_erroneos' => $provincias_erroneas,
-                'total_errores' => $total_errores
+                'estado_geom' => $estado_geom,
+                'errores' => $errores
             ];
         }
         
-        return $resultados;
+        return ['resultados' => $resultados, 'elementos_erroneos' => $elementos_erroneos, 'total_errores' => $total_errores];
     }
 }
