@@ -214,7 +214,8 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // ---------- COMPARACIONES GEONODE ---------- //
-Route::get('compare/atributos/{capa}', 'CompareController@listarAtributos')->name('compare.atributos');
+Route::get('compare/capas/', 'CompareController@listarCapas')->name('compare.capas');
+Route::post('compare/atributos/', 'CompareController@listarAtributos')->name('compare.atributos');
 Route::post('compare/comparar/{capa}', 'CompareController@comparar')->name('compare.comparar');
 
 // ---------- PROVINCIAS --------

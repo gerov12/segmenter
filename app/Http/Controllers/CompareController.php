@@ -43,8 +43,21 @@ class CompareController extends Controller
         return $estado_geom;
     }
 
-    public function listarAtributos($capa)
+    public function listarCapas()
+    {   
+        $url= 'https://geonode.indec.gob.ar/geoserver/rest/layers.json';
+        $result = file_get_contents($url);
+        $datos = json_decode($result, true);
+        $capas = [];
+        if(isset($datos['layers']['layer'])) {
+            $capas = $datos['layers']['layer'];
+        }
+        return view('compare_geonode.layers')->with('capas', $capas);
+    }
+
+    public function listarAtributos(Request $request)
     {
+        $capa = $request->input('capa');
         $datos = self::getAtributos($capa);
         $atributos = [];
         if(isset($datos['featureTypes'][0]['properties'])) {
