@@ -60,10 +60,16 @@ class CompareController extends Controller
         $capa = $request->input('capa');
         $datos = self::getAtributos($capa);
         $atributos = [];
-        if(isset($datos['featureTypes'][0]['properties'])) {
-            $atributos = $datos['featureTypes'][0]['properties'];
+        if ($capa == "geonode:provincias") { //PROVISORIO 
+            if(isset($datos['featureTypes'][0]['properties'])) {
+                $atributos = $datos['featureTypes'][0]['properties'];
+            }
+            return view('compare_geonode.properties')->with(['capa' => $capa, 'atributos' => $atributos]);
+        } else {
+            flash("Implementado únicamente para capa 'geonode:provincias'")->error(); //PROVISORIO 
+            return back();
         }
-        return view('compare_geonode.properties')->with(['capa' => $capa, 'atributos' => $atributos]);
+        
     }
 
     public function comparar(Request $request, $capa)
@@ -72,7 +78,7 @@ class CompareController extends Controller
         $nombre = $request->input('nombre');
 
         if ($codigo != $nombre) {
-            $comparacion = self::compararProvincias($codigo, $nombre, $capa);
+            $comparacion = self::compararProvincias($codigo, $nombre, $capa); //
             return view('compare_geonode.result')->with([
                 'capa' => $capa, 
                 'tabla' => "Provincia", //esto junto a la función que se llama para comparar dependerá de la capa
@@ -84,8 +90,7 @@ class CompareController extends Controller
                 'operativo' => "-", //TO-DO
                 'datetime' => date("d-m-Y (H:i:s)"),
                 'usuario' => Auth::user()->name
-            ]);
-            
+            ]);   
         } else {
             flash("Los campos seleccionados deben ser diferentes")->error();
             return back();
