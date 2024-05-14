@@ -77,18 +77,12 @@ class CompareController extends Controller
     public function listarAtributos(Request $request)
     {
         $capa = $request->input('capa');
-        if ($capa == "geonode:provincias") { //PROVISORIO 
-            $datos = self::getAtributos($capa);
-            $atributos = [];
-            if(isset($datos['featureTypes'][0]['properties'])) {
-                $atributos = $datos['featureTypes'][0]['properties'];
-            }
-            return view('compare_geonode.properties')->with(['capa' => $capa, 'atributos' => $atributos]);
-        } else {
-            flash("Implementado únicamente para capa 'geonode:provincias'")->error(); //PROVISORIO 
-            return back();
+        $datos = self::getAtributos($capa);
+        $atributos = [];
+        if(isset($datos['featureTypes'][0]['properties'])) {
+            $atributos = $datos['featureTypes'][0]['properties'];
         }
-        
+        return view('compare_geonode.properties')->with(['capa' => $capa, 'atributos' => $atributos]);        
     }
 
     public function comparar(Request $request, $capa)
