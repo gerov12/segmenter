@@ -22,7 +22,7 @@
                                     <option value="{{ $atributo['name'] }}">{{ $atributo['name'] }} (tipo: {{explode(':', $atributo['type'])[1]}})</option>
                                 @endforeach
                             </select>
-                            <i>(se comparará con el campo codigo de Provincia)</i>
+                            <i>(se comparará con el campo "codigo" de Provincia)</i>
                         </div>
                         <div class="col-lg-6">
                             <label for="nombre">Nombre:</label>
@@ -31,7 +31,7 @@
                                     <option value="{{ $atributo['name'] }}">{{ $atributo['name'] }} (tipo: {{explode(':', $atributo['type'])[1]}})</option>
                                 @endforeach
                             </select>
-                            <i>(se comparará con el campo nombre de Provincia)</i>
+                            <i>(se comparará con el campo "nombre" de Provincia)</i>
                         </div>
                     </div>
                     <br>
