@@ -8,7 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use Notifiable;
     use HasRoles;
@@ -44,7 +44,7 @@ class User extends Authenticatable
     {
        return $this->belongsToMany(Archivo::class, 'file_viewer');
     }
-    
+
     public function mis_files()
     {
       return $this->hasMany(Archivo::class);
@@ -57,6 +57,6 @@ class User extends Authenticatable
       } else {
         return "/images/mandarina.svg";
       }
- 
+
     }
 }
