@@ -3,78 +3,71 @@
 namespace App\Imports;
 
 use App\Model\Segmento;
-use App\User;
-use App\Notifications\ImportHasFailedNotification;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\WithCustomCsvSettings;
-use Maatwebsite\Excel\Concerns\WithProgressBar;
 use Maatwebsite\Excel\Concerns\Importable;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use App\Notifications\ImportHasFailedNotification;
 use Maatwebsite\Excel\Concerns\WithEvents;
-//use Maatwebsite\Excel\Concerns\WithUpserts;
 use Maatwebsite\Excel\Concerns\RegistersEventListeners;
-use Maatwebsite\Excel\Imports\HeadingRowFormatter;
+use Maatwebsite\Excel\Concerns\WithProgressBar;
+use Illuminate\Support\Facades\Log;
 
-HeadingRowFormatter::extend(
-    'custom', function ($value, $key) {
-        return trim(strtolower(explode(',', $value)[0])); 
-    }
-);
-
-class SegmentosImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChunkReading, ShouldQueue, WithCustomCsvSettings, WithEvents //, WithProgressBar
+class SegmentosImport implements ToModel, WithHeadingRow, WithBatchInserts, WithChunkReading, WithCustomCsvSettings
 {
-    use Importable,RegistersEventListeners;
-    private $rows = 0;
-    private $importedBy;
+    use Importable;
 
-    public function __construct(User $importedBy = null)
-    {
-        $this->importedBy = $importedBy;
-    }
+    protected $errores = [];
+    protected $errorMostrado = false;
+    protected $contadorRegistros = 0;
 
-    /**
-     * @return string|array
-     */
-    /*
-    Laravel 8 UPSERTS Eloquent
-    public function uniqueBy()
-    {
-        return 'prov, nom_prov, dpto, nom_dpto, codloc, nom_loc, codent, nom_ent, frac, radio, tipo, seg, vivs';
-    }
-    */
-
-    /**
-    * @param array $row
-    *
-    * @return \Illuminate\Database\Eloquent\Model|null
-    */
-    public function model(array $row)
-    {
-        ++$this->rows;
-    //    return Segmento::firstOrCreate(
-        return new Segmento(
-            [
+public function model(array $row)
+{
+    //validar los encabezados de la fiila
+   // $this->validarEncabezados($row);
+    
+    try {
+        // Map missing or incorrect fields to expected names
+        $data = [
             'prov' => $row['prov'],
-            'nom_prov' => $row['nom_prov'] ?? $row['nomprov'],
-            'dpto' => $row['dpto'] ?? $row['depto'],
+            'nom_prov' => $row['nom_prov'] ?? $row['nomprov'] ,
+            'dpto' => $row['dpto'] ?? $row['depto'] ,
             'nom_dpto' => $row['nom_dpto'] ?? $row['nomdepto'] ,
-            'codloc' => $row['codloc'],
+            'codloc' => $row['codloc'] ?? null,
             'nom_loc' => $row['nom_loc'] ?? $row['nomloc'] ,
-            'codent' => $row['codent'] ?? 0,
-            'nom_ent' => $row['nom_ent'] ?? '',
-            'frac' => $row['frac'],
+            'codent' => $row['codent'] ?? '1',
+            'nom_ent' => $row['nom_ent'] ?? '1',
+            'frac' => $row['frac'] ,
             'radio' => $row['radio'],
             'tipo' => $row['tipo'] ?? 'I',
-            'seg' => $row['segmento'] ?? $row['seg'],
-            'vivs' => $row['cantviv'] ?? 0,
-            ]
-        );
+            'seg' => $row['seg'] ,
+            'vivs' => $row['vivs'] ?? $row['viviendas'] ?? '1',
+        ];
+         //debe informar cantidad de registros importados exitosamente
+         $this->contadorRegistros++;
+         return new Segmento($data);
+
+        } catch (\ErrorException $e) {
+        Log::error('Error durante la importación: ' . $e);
+  
+        // Obtener información sobre el campo y el valor recibido
+        $campo = $e->getMessage();
+        $valorRecibido = $row[$campo] ?? 'Incorrecto ';
+  
+        // Agregar un mensaje a la colección de errores
+        $this->errores[] = "Error en el campo '$campo': valor recibido '$valorRecibido' no es válido.";
+  
+        // Retornar un valor nulo para omitir esta fila
+        if (!$this->errorMostrado) { // Solo mostrar el error si no se ha mostrado antes
+            flash('Error en el campo '. $campo . ': valor recibido ' . $valorRecibido . ' no es válido')->error()->important();
+            $this->errorMostrado = true; // Marcar que ya se ha mostrado un error
+        }
+        return null;
     }
-
-
+    
+}
     public function batchSize(): int
     {
         return 1000;
@@ -88,45 +81,23 @@ class SegmentosImport implements ToModel, WithHeadingRow, WithBatchInserts, With
     public function getCsvSettings(): array
     {
         return [
-            'input_encoding' => 'UTF-8',
-            'delimiter' => '|'
+            'input_encoding' => 'UTF-8'
         ];
     }
 
-    public function registerEvents(): array
+    // Método para obtener los errores registrados
+    public function getErrores(): array
     {
-        return [
-            ImportFailed::class => function(ImportFailed $event) {
-                $this->importedBy->notify(new ImportHasFailedNotification);
-            },
-        ];
+        return $this->errores;
     }
-
-    public function getRowCount(): int
+    public function getContadorRegistros():int
     {
-        return $this->rows;
+        return $this->contadorRegistros;
     }
-
-    public static function afterImport(AfterImport $event)
+    public function mostrarMensajeExito()
     {
-        //
-        echo 'Rows: '.$this->rows;
-    }
-
-    /**
-     * Get the tags that should be assigned to the job.
-     *
-     * @return array
-     */
-    public function tags()
-    {
-        if ($this->importedBy) {
-            return ['csv', 'user:'.$this->importedBy];
-        } else {
-            return ['csv', 'sin user'];
+        if ($this->contadorRegistros > 0 && !$this->errorMostrado) {
+            flash ('Proceso eixtoso. Se importaron ' . $this->contadorRegistros . ' registros.' ) ->success();
         }
     }
-
-}
-
-
+    }

@@ -147,6 +147,7 @@ Route::resource('/listado', 'ListadoController',['only' => [
    'index', 'show', 'save'
 ]]);
 
+
 /**
  * Segmentos
  */
@@ -176,6 +177,11 @@ Route::post('csv_file/import', 'CsvFile@csv_import')->name('import');
 Route::get('search_provincia', 'AutoCompleteProvinciaController@index');
 Route::get('autocomplete_provincia', 'AutoCompleteProvinciaController@search');
 Route::get('provincia','ProvinciaController@index');
+/**
+ * Segmentos con viviendas
+ */
+Route::get('cargarSegmentos', 'CargarSegmentos@index');
+Route::post('cargarSegmentos', 'CargarSegmentos@procesar');
 
 // ---------- PERFIL ----------
 Route::middleware(['auth'])->group(function () {

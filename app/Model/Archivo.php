@@ -65,7 +65,7 @@ class Archivo extends Model
             $checksums[] = $checksum;
             foreach ($shape_files as $key => $shape_file) {
                 // Hay e00 con shapefiles con valor null
-                if (Storage::exists($shape_file)){ //si no existe el storage para el shapefile no lo tengo en cuenta para el checksum
+                if ($shape_file != null and Storage::exists($shape_file)){ //si no existe el storage para el shapefile no lo tengo en cuenta para el checksum
                   $checksums[] =  md5_file($shape_file);//->getRealPath());
                 }
             }
