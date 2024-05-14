@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Model\Provincia;
 use Illuminate\Support\Facades\Log;
 use Auth;
+use Illuminate\Support\Facades\Http;
+use SimpleXMLElement;
 
 class CompareController extends Controller
 {
@@ -43,24 +45,41 @@ class CompareController extends Controller
         return $estado_geom;
     }
 
+    private function getFeatureTypeList()
+    {
+        $response = Http::get('https://geonode.indec.gob.ar/geoserver/ows', [
+            'service' => 'wfs',
+            'version' => '2.0.0',
+            'request' => 'GetCapabilities',
+            'section' => 'FeatureTypeList'
+        ]);
+
+        $xml = $response->body();
+
+        // Parse XML
+        $xmlObject = new SimpleXMLElement($xml);
+
+        // Convert SimpleXMLElement object to array
+        $array = json_decode(json_encode($xmlObject), true);
+
+        // Get FeatureTypeList section
+        $featureTypeList = $array['FeatureTypeList']['FeatureType'];
+
+        return $featureTypeList;
+    }
+
     public function listarCapas()
-    {   
-        $url= 'https://geonode.indec.gob.ar/geoserver/rest/layers.json';
-        $result = file_get_contents($url);
-        $datos = json_decode($result, true);
-        $capas = [];
-        if(isset($datos['layers']['layer'])) {
-            $capas = $datos['layers']['layer'];
-        }
+    {  
+        $capas = self::getFeatureTypeList(); 
         return view('compare_geonode.layers')->with('capas', $capas);
     }
 
     public function listarAtributos(Request $request)
     {
         $capa = $request->input('capa');
-        $datos = self::getAtributos($capa);
-        $atributos = [];
         if ($capa == "geonode:provincias") { //PROVISORIO 
+            $datos = self::getAtributos($capa);
+            $atributos = [];
             if(isset($datos['featureTypes'][0]['properties'])) {
                 $atributos = $datos['featureTypes'][0]['properties'];
             }
