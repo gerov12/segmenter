@@ -85,7 +85,7 @@ class Archivo extends Model
             $file = Storage::get($this->nombre);
             $checksum = md5($file);
         }
-        
+
         // guardo el checksum en su checksum_control
         $control = $this->checksum_control;
         if (!$control) {
@@ -190,7 +190,7 @@ class Archivo extends Model
             flash("Nuevo archivo ".$original_extension);
             $guess_extension = strtolower($request_file->guessClientExtension());
             $original_name = $request_file->getClientOriginalName();
-            $random_name= 't_'.$request_file->hashName();
+            $random_name= 't_'.$request_file->hashName().'_'.uniqid();
             $random_name = substr($random_name,0,strpos($random_name,'.'));
             $file_storage = $request_file->storeAs('segmentador', $random_name.'.'.$request_file->getClientOriginalExtension());
             $size_total = $request_file->getSize();
@@ -781,7 +781,7 @@ class Archivo extends Model
         } else {
             # si no existe entonces el archivo copia reemplaza al original en el storage (son el mismo por lo que no hay problema)
             Log::error("No existe el archivo original en el storage. Se reutiliza la copia");
-            Storage::move($copia->nombre, $original->nombre); 
+            Storage::move($copia->nombre, $original->nombre);
         }
     }
 
@@ -836,5 +836,5 @@ class Archivo extends Model
 
     public function ownedByUser(User $user){
         return $this->user_id == $user->id;
-    }  
+    }
 }
