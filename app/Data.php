@@ -9,5 +9,5 @@ class Data extends Model
     //
     protected $table = 'data';
     protected $guarded = [];
-    protected $timestamps = false; //disable time stamps for this
+    public $timestamps = false; //disable time stamps for this
 }

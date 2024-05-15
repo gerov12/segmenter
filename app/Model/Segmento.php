@@ -24,7 +24,7 @@ class Segmento extends Model
     ];
 
 
-    static public function cargar_csv($file) 
+    static public function cargar_csv($file)
     {
         $fileD = fopen($file, "r");
         $column=fgetcsv($fileD, 0, "|");
@@ -35,7 +35,7 @@ class Segmento extends Model
             if (is_array($rowData)) {
                 foreach ($rowData as $key => $value_feature) {
                     $inserted_data[]=$value_feature;
-                }          
+                }
                 $item = new Segmento();
                 $i = 0;
                 foreach ($column as $col) {
@@ -52,6 +52,14 @@ class Segmento extends Model
     public function show(Segmentos $segmentos)
     {
         return $segmentos;
+    }
+
+    /**
+     * Obtener la provicnia a donde pertencen el Departamento.
+     */
+    public function provincia()
+    {
+        return $this->hasOne('App\Model\Provincia','codigo','prov');
     }
 
 }

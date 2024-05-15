@@ -116,7 +116,13 @@
                         <input type="file" class="form-control-file" id="tabla_segmentos" name="tabla_segmentos">
                     </div>
             		</div>
-		<div class="form-group">
+    
+                   
+                    
+                    <a href="{{ url('/cargarSegmentos') }}">Ir a Cargar Segmentos con viviendaas</a>
+
+                    
+                    <div class="form-group">
 		  <div class="text-center">
                      <button type="submit" class="btn btn-primary">Enviar</button>
                     </div>

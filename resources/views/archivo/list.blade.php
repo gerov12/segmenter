@@ -80,6 +80,10 @@
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">
+        <div id="aclaracion-copias">
+          <!-- acá se carga la aclaración de qué hace el botón limpiar -->
+        </div>
+        <br>
         <table class="table table-bordered" id="tabla-repetidos">
           <thead>
             <tr>
@@ -177,7 +181,7 @@
     <br>
 
     <div class="col-lg-12">
-    <table class="table table-striped table-bordered dataTable table-hover order-column" id="laravel_datatable">
+    <table class="table table-striped table-bordered dataTable table-hover order-column table-sm table-condensed compact" id="laravel_datatable">
         <thead>
           <tr>
               <th>Id</th>
@@ -290,10 +294,10 @@
    // funcion abrir modal de checksum
    $(document).on('click', '#btn-checksum', function(event) {
         var button = $(this); // botón que activó el modal
-        var file_id = button.data('file'); 
-        var nombre_original = button.data('name'); 
-        var status = button.data('status'); 
-        var recalculable = button.data('recalculable'); 
+        var file_id = button.data('file');
+        var nombre_original = button.data('name');
+        var status = button.data('status');
+        var recalculable = button.data('recalculable');
         var info = button.data('info');
         var modal = $("#checksumModal");
         modal.find('.modal-title').text('Info sobre checksum (' + nombre_original + ')');
@@ -458,6 +462,7 @@
         var name = button.data('name');
         var modal = $('#copiasModal');
         var archivo = button.data('archivo');
+        var owner = button.data('owner');
         var info = button.data('info');
         var limpiables = button.data('limpiables');
         var modalfooter = modal.find('.modal-footer');
@@ -477,13 +482,22 @@
 
                   // contruyo la tabla de copias
                   var tableBody = '';
+                  var new_observers = [];
                   copias.forEach(function(copia){
                       tableBody += '<tr>';
                       tableBody += '<td>' + copia.nombre_original + '</td>';
                       tableBody += '<td>' + copia.fecha + '</td>';
                       tableBody += '<td>' + copia.user.name + '</td>';
                       tableBody += '</tr>';
+                      if (owner !== copia.user.name) {
+                        new_observers.push(copia.user.name);
+                      }
                   });
+                  if (new_observers.length > 0) {
+                    $('#aclaracion-copias').html('Al clickear en <span style="color:red">"Limpiar copias"</span> los siguientes usuarios: <br> <b style="margin-top,margin-bottom: 5px;">' + new_observers.join(', ') + '</b> <br> Pasarán a ser "observadores" del archivo actual y se eliminarán las siguientes copias.');
+                  } else {
+                    $('#aclaracion-copias').html('');
+                  }
                   $('#tabla-repetidos tbody').html(tableBody);
 
                   // agrego el campo archivo-id al botón para recuperar en la animación
