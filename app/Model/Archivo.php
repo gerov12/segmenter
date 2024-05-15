@@ -190,7 +190,7 @@ class Archivo extends Model
             flash("Nuevo archivo ".$original_extension);
             $guess_extension = strtolower($request_file->guessClientExtension());
             $original_name = $request_file->getClientOriginalName();
-            $random_name= 't_'.$request_file->hashName().'_'.uniqid();
+            $random_name = 't_'.uniqid().'_'.$request_file->hashName();
             $random_name = substr($random_name,0,strpos($random_name,'.'));
             $file_storage = $request_file->storeAs('segmentador', $random_name.'.'.$request_file->getClientOriginalExtension());
             $size_total = $request_file->getSize();
