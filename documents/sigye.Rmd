@@ -4,8 +4,8 @@ author: "Coordinación del Sistema Geoestadístico"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 lang: "es-ar"
 subject: Dinámica Urbana y Uso de Suelo
-abstract: "| \"Proyecto
-  \n| SIG.\"\n| INDEC.\n| (borrador).\n"
+abstract: "| \"Proyecto: Sistema de Integración Geográfica y Estadística.
+  \n| Sistema de gestión de la base geográfica del INDEC en la CSG\"\n| INDEC.\n| (borrador).\n"
 keywords: SIG, dinámica urbana, Planificación, INDEC
 output:
   pdf_document:
@@ -55,9 +55,23 @@ tryCatch({
     })
 ```
 
-# Sistema de Integración Geográfica y Estadística (INDEC)
+# Sistema de Integración Geográfica y Estadística (INDEC) {-}
 
-Un proyecto de la Coordinación del Sistema [Geoestadístico](geoestadistica) en la DNMIE para el INDEC Argentina.
+Un proyecto de la Coordinación del Sistema [Geoestadístico](geoestadistica) (CSG) de la Dirección Nacional de Metodología e Infraestructura 
+Estadística (DNMIE) del Instituto Nacional de Estadística y Censos (INDEC Argentina) para la CSG y las Direcciones Provinciales 
+de Estadísticas (DPE).
+
+# Introducción
+
+El presente documento es una propuesta estratégica de la Coordinación del Sistema Geoestadístico (CSG). 
+El objetivo es establecer la metodología de trabajo y la gestión de la base geográfica del INDEC en la CSG 
+y en las áreas geoestadísticas de las Direcciones Provinciales de Estadística durante el decenio 2020-2030.
+
+
+Dentro del plan estructurado en varios ejes, aquí abordamos el punto 2:
+**Implementación de la Base de Datos Relacional y Topológica en la CSG y las DPE.**
+
+(* Extraído del "MasterPlan")
 
 ## Objetivos
 
@@ -133,7 +147,7 @@ Un proyecto de la Coordinación del Sistema [Geoestadístico](geoestadistica) en
 
 [ ] Borrar Localidad
 
-## Desarrollo
+# Desarrollo
 
 ## Componentes (técnicos y accesorios - capacitación-)
 
