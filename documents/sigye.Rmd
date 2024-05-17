@@ -101,15 +101,15 @@ Dentro del plan estructurado en varios ejes, aquí abordamos el punto 2:
 
 2.  Completar la carga de otras unidades geográficas: . Entidades . Gobiernos Locales . Radios Rurales .
 
-3.  Integración de datos básicos censo 2022
+3.  Lograr la integración de datos básicos censo 2022
 
-4.  Integración de datos de otros registros administrativos.
+4.  Lograr la integración de datos de otros registros administrativos.
 
-5.  Consumir geoservicio de geolocalización de INDEC (JC - ArcGis) a evaluar alternativas API GeoRef / Naminatim
+5.  Consumir geoservicio de geolocalización de INDEC (JC - ArcGis) o evaluar alternativas API GeoRef / Nominatim
 
-6.  Relevamiento de visores a fin de incorporar/sincronizar intercambio de datos con el sistema.
+6.  Realizar un relevamiento de visores a fin de incorporar/sincronizar intercambio de datos con el sistema.
 
-7.  Baja de Elementos (\*)
+7.  Desarrollar un módulo para poder dar de baja de Elementos (\*)
 
 8.  Capacitar recursos humanos para... desgloce de capacitaciones..
 
@@ -119,19 +119,19 @@ Dentro del plan estructurado en varios ejes, aquí abordamos el punto 2:
 
 11. Desarrollar un Sistema de gestión de informes (informes generados por operario)
 
-12. Desarrollar un Sistema para la Generación de layers en topología y edición.
+12. Desarrollar un Sistema para la generación de layers en topología y edición.
 
-13. Generar de "mapa base INDEC" asociado según operativo/tag
+13. Generar un "mapa base INDEC" asociado según operativo/tag. (estilos)
 
 14. Incorporar reportes de areas conflictivas: por limites, doble asignación, imputación, etc.
 
-15. CODIFICACIÓN: Incorporar procedimientos para la validación y/o generación de códigos para los distintos objetos geográficos.
+15. Incorporar procedimientos para la validación y/o generación de códigos para los distintos objetos geográficos. (CODIFICACIÓN)
 
 16. Generar módulo de Verificación (tag: verificado?) (verificador x OG?)
 
-17. Actualizar Carga ADRA / Actualización de Domicilios
+17. Actualizar la carga de Archivo de Domicilios de la República Argentina (ADRA) / Actualización de Domicilios
 
-18. Modulo para Integración de alturas de ADRA a Base geográfica. (pensando en otras fuentes)
+18. Modulo para Integración de alturas de ADRA a la base geográfica. (pensando en otras fuentes)
 
 19. Generar Manual de estilos y estilos para capa base INDEC.
 
@@ -164,9 +164,9 @@ Segmentación de radios urbanos.
 El sistema web prepara los datos y dispara los procesos del submódulo de segmentación, ésto incluye:
 
 -   Generación de grafo (Adyacencia de lados) para el cálculo de la continuidad de los segmentos.
--   Diferentes procesos según la distribución de las viviendas, para área según su densidad.
+-   Ejecución de diferentes procesos según la distribución de las viviendas, para áreas según su densidad.
 -   Generación de descripción de los segmentos.
--   Planillas R3 con resumen de la segmentación para cada radio.
+-   Generación de planillas R3 con resumen de la segmentación para cada radio.
 
 ### Plugin QGIS
 
