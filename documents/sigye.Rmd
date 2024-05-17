@@ -1,10 +1,16 @@
 ---
 title: "SIGyE"
 author: "Coordinación del Sistema Geoestadístico"
-date: "2024-05-016"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+lang: "es-ar"
+subject: Dinámica Urbana y Uso de Suelo
+abstract: "| \"Proyecto
+  \n| SIG.\"\n| INDEC.\n| (borrador).\n"
+keywords: SIG, dinámica urbana, Planificación, INDEC
 output:
   pdf_document:
     toc: TRUE
+    number_sections: TRUE
   html_document:
     df_print: paged
   word_document:
@@ -51,7 +57,7 @@ tryCatch({
 
 # Sistema de Integración Geográfica y Estadística (INDEC)
 
-Un proyecto de la Coordinación del Sisteama [Geoestadístico](geoestadistica) en la DNMIE para el INDEC Argentina.
+Un proyecto de la Coordinación del Sistema [Geoestadístico](geoestadistica) en la DNMIE para el INDEC Argentina.
 
 ## Objetivos
 
