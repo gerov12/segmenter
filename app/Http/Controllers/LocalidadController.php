@@ -160,7 +160,8 @@ class LocalidadController extends Controller
                 return view('localidad.deptos_view',[
                         'localidad'=>$localidad,
                         'deptos'=>$localidad->departamentos()->get(),
-                        'carto'=>null,'listado'=>null
+                        'carto'=>null,'listado'=>null,
+                        'aglomerado'=>$localidad->aglomerado,
                         ]);
 
             }
