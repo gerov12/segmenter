@@ -63,9 +63,12 @@ de Estadísticas (DPE).
 
 # Introducción
 
-El presente documento es una propuesta estratégica de la Coordinación del Sistema Geoestadístico (CSG). 
-El objetivo es establecer la metodología de trabajo y la gestión de la base geográfica del INDEC en la CSG 
-y en las áreas geoestadísticas de las Direcciones Provinciales de Estadística durante el decenio 2020-2030.
+El presente documento es una 
+propuesta estratégica de la Coordinación del Sistema Geoestadístico (CSG). 
+El objetivo es establecer la metodología de trabajo para 
+la gestión de la base geográfica del INDEC en la CSG 
+y en las áreas geoestadísticas de las Direcciones Provinciales de Estadística 
+durante el decenio 2020-2030.
 
 
 Dentro del plan estructurado en varios ejes, aquí abordamos el punto 2:
@@ -75,29 +78,51 @@ Dentro del plan estructurado en varios ejes, aquí abordamos el punto 2:
 
 ## Objetivos
 
-1.  Administración de la unidades geoestadísticas básicas y sus relaciones con el modelo geográfico social/legal para el manejo de la información estadística.
+1.  Administración de la unidades geoestadísticas básicas y 
+sus relaciones con el modelo geográfico social/legal 
+para el manejo de la información estadística.
 
-2.  Control intrínseco que da la consistencia para las unidades geoestadísticas. (Topología)
+2.  Control intrínseco de la 
+la consistencia de las unidades geoestadísticas. 
+Esto sería el control topologico a distintos niveles.
 
-3.  Mantenimiento de la trazabilidad de las unidades geoestadísticas a lo largo del tiempo.
+3.  Mantenimiento de la trazabilidad 
+de las unidades geoestadísticas 
+a lo largo del tiempo.
+A nivel de codificación y geografía.
 
-4.  Administración de las relaciones del modelo geográfico y sus modificaciones a lo largo del tiempo y su participación en los distintos operativos.
+4.  Administración de las relaciones del modelo geográfico,
+sus modificaciones a lo largo del tiempo y 
+su participación en los distintos operativos.
 
-5.  Preparación de los datos para diferentes publicaciones y aplicativos.
+5.  Preparación de los datos 
+para diferentes publicaciones y aplicativos.
 
-6.  Generación y mantenimiento de la base de datos multifinalitaria para el cruce de datos estadísticos provenientes de diferentes fuentes adecuándose a los distintos ámbitos y los diferentes grados de cobertura.
+6.  Generación y mantenimiento de la base de datos 
+"multifinalitaria" 
+(se usa como adjetivo sólo para Catastro, ver https://es.wikipedia.org/wiki/Catastro_multifinalitario
+donde también se usa multiprósito como sinónimo)
+para el cruce de datos estadísticos 
+provenientes de diferentes fuentes 
+adecuándose a los distintos ámbitos y 
+los diferentes grados de cobertura.
 
-7.  Carga de archivos Shape (.shp, .shx, .dbf, .prj) con datos de cartografía urbana.
+7.  Carga de archivos Shape (.shp, .shx, .dbf, .prj) 
+con datos de cartografía urbana.
 
-8.  Carga de archivos E00 (.e00) con datos de cartografía urbana.
+8.  Carga de archivos E00 (.e00) 
+con datos de cartografía urbana.
 
-9.  Carga de archivos DBF de listado de viviendas ADRA.
+9.  Carga de archivos DBF 
+de listado de viviendas ADRA.
 
-10. Carga de archivos PxxRad en formato DBF. Datos de Radios, tipo de radio y su relación con localidad/entidad
+10. Carga de archivos PxxRad en formato DBF. 
+Datos de Radios, tipo de radio y su relación con localidad/entidad
 
 ## Metas
 
-1.  Construir un Catálogo de imágenes versionado, censo2020, censo 2018 (Anabella)
+1.  Construir un Catálogo de imágenes versionado, 
+censo2020, censo 2018 (Anabella)
 
 2.  Completar la carga de otras unidades geográficas: . Entidades . Gobiernos Locales . Radios Rurales .
 
