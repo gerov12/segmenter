@@ -181,7 +181,7 @@
     <br>
 
     <div class="col-lg-12">
-    <table class="table table-striped table-bordered dataTable table-hover order-column" id="laravel_datatable">
+    <table class="table table-striped table-bordered dataTable table-hover order-column table-sm table-condensed compact" id="laravel_datatable">
         <thead>
           <tr>
               <th>Id</th>
@@ -294,10 +294,10 @@
    // funcion abrir modal de checksum
    $(document).on('click', '#btn-checksum', function(event) {
         var button = $(this); // botón que activó el modal
-        var file_id = button.data('file'); 
-        var nombre_original = button.data('name'); 
-        var status = button.data('status'); 
-        var recalculable = button.data('recalculable'); 
+        var file_id = button.data('file');
+        var nombre_original = button.data('name');
+        var status = button.data('status');
+        var recalculable = button.data('recalculable');
         var info = button.data('info');
         var modal = $("#checksumModal");
         modal.find('.modal-title').text('Info sobre checksum (' + nombre_original + ')');

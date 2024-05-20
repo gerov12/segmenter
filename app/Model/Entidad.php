@@ -33,7 +33,7 @@ class Entidad extends Model
     }
 
     /**
-     * Relación con Localidad, un Radio puede pertenecer a varias localidades.
+     * Relación con Localidad, una entidad pertenece a una localidad.
      *
      */
     public function localidad() {
@@ -41,7 +41,7 @@ class Entidad extends Model
     }
 
     /**
-     * Relación con Entidad, un Radio puede estar en varias entidades de varias localidades.
+     * Relación con Radios, una Entidad puede estar en varios Radios.
      *
      */
     public function radios() {
@@ -50,16 +50,12 @@ class Entidad extends Model
 
     /**
      * Relación con Aglomerado,
-     * un Radio puede pertenecer a varios aglomerados!
+     * un Entidad puede pertenecer a un aglomerados!
      * (? Esperaba que solo este en 1. :( )
      *
      */
-    public function aglomerados() {
-        $aglos=[];
-        foreach ($this->localidades as $localidad) {
-            $aglos[] = $localidad->aglomerado;
-        }
-        return $aglos;
+    public function aglomerado() {
+        return $this->localidad->aglomerado;
     }
 
     /**
@@ -85,9 +81,9 @@ class Entidad extends Model
      * Relación con geometrias, una entidad puede tener una geometria.
      *
      */
-    public function setGeometriaAttribute($poligono = null, $punto = null) {
+    public function setGeometriaAttribute($poligono = null, $linea = null, $punto = null) {
       Log::debug('SET geometría');
-      return $this->geometria_id = MyDB::insertarGeometrias($poligono, $punto);
+      return $this->geometria_id = MyDB::insertarGeometrias($poligono, $linea, $punto);
     }
 
     /**
