@@ -17,7 +17,7 @@ SET client_min_messages = warning;
 CREATE OR REPLACE VIEW public.v_entidades AS (
   SELECT max(e.id) id, e.codigo, e.nombre,
   l.nombre as nomloc, d.nombre as nomdepto, p.nombre as nomprov,
-  g.poligono as geometria, min(e.fecha_desde) fecha_desde, max(e.fecha_hasta) fecha_hasta
+  g.multipoligono as geometria, min(e.fecha_desde) fecha_desde, max(e.fecha_hasta) fecha_hasta
   FROM entidades e
   JOIN localidad l ON l.id=e.localidad_id
   JOIN geometrias g ON g.id=e.geometria_id
