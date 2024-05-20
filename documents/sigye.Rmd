@@ -73,8 +73,7 @@ durante el decenio 2020-2030.
 
 Dentro del plan estructurado en varios ejes, aquí abordamos el punto 2:
 **Implementación de la Base de Datos Relacional y Topológica en la CSG y las DPE.**
-
-(* Extraído del "MasterPlan")
+^[Extraído del "MasterPlan"]
 
 ## Objetivos
 
@@ -99,9 +98,8 @@ su participación en los distintos operativos.
 para diferentes publicaciones y aplicativos.
 
 6.  Generación y mantenimiento de la base de datos 
-"multifinalitaria" 
-(se usa como adjetivo sólo para Catastro, ver https://es.wikipedia.org/wiki/Catastro_multifinalitario
-donde también se usa multiprósito como sinónimo)
+"multifinalitaria" ^[Se usa "multifinaritario" como adjetivo para Catastro, ver https://es.wikipedia.org/wiki/Catastro_multifinalitario
+donde también se usa multiprósito como sinónimo.]
 para el cruce de datos estadísticos 
 provenientes de diferentes fuentes 
 adecuándose a los distintos ámbitos y 
@@ -118,6 +116,8 @@ de listado de viviendas ADRA.
 
 10. Carga de archivos PxxRad en formato DBF. 
 Datos de Radios, tipo de radio y su relación con localidad/entidad
+
+
 
 ## Metas
 
@@ -203,7 +203,7 @@ Consulta y acceso a la Base de Datos geográfica y geoestadística.
 
 ### Esquema de Base de Datos
 
-**Unidades Básicas del Marco Geoestadístico**
+**Unidades Geoestadísticas Básicas**
 
 -   Provincias
 
@@ -219,17 +219,24 @@ Consulta y acceso a la Base de Datos geográfica y geoestadística.
 
 -   Viviendas
 
--   segmentos
+-   Segmentos
 
 **Relaciones de unidades del modelo Geográfico**
 
 -   Localidades
+
 -   Aglomerados
+
 -   Entidades
+
 -   Gobiernos Locales
+
 -   Parajes
+
 -   Bases Antárticas
+
 -   Regiones
+
 -   Vías de circulación
 
 \newpage
@@ -424,3 +431,4 @@ knitr::kable(df, caption = "Tabla paraje", digits = 2, longtable = TRUE) %>%
 ```{r fin, warning=FALSE}
 dbDisconnect(con)
 ```
+
