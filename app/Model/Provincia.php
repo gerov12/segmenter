@@ -9,6 +9,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\View\ViewException;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\MyDB;
 
 class Provincia extends Model
 {
@@ -131,5 +132,10 @@ class Provincia extends Model
       return $query->where(['operativo' => function ($q) {
           $q == $operativo;
       }]);
-  }
+    }
+
+    public function setGeometriaAttribute($poligono = null, $linea = null, $punto = null, $geojson=true) {
+      $this->geometria_id = MyDB::insertarGeometrias($poligono, $linea, $punto, $geojson);
+      return $this->geometria_id;
+    }
 }

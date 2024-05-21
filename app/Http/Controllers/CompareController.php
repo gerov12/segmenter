@@ -28,21 +28,22 @@ class CompareController extends Controller
     }
 
     private function chequearEstadoGeometrias($provinciaCoincidente, $feature)
-    {
+    {   
+        $geom_feature = $feature['geometry'];
         if ($provinciaCoincidente->geometria !== null) {
-            if($feature['geometry'] !== null) {
+            if($geom_feature !== null) {
                 $estado_geom = "Calculo en desarrollo..."; //CALCULAR
             } else {
                 $estado_geom = "No hay geometría cargada en el geoservicio";
             }
         } else {
-            if($feature['geometry'] !== null) {
+            if($geom_feature !== null) {
                 $estado_geom = "No hay geometría cargada en la BD";
             } else {
                 $estado_geom = "No hay geometrías cargadas";
             }
         }
-        return $estado_geom;
+        return ['estado_geom' => $estado_geom, 'geom_feature' => json_encode($geom_feature)];
     }
 
     private function getFeatureTypeList()
@@ -134,7 +135,6 @@ class CompareController extends Controller
             }
 
             $provinciasCoincidentes = $provincias->filter(function ($provincia) use ($feature, $nombre) {
-                Log::debug(strval($provincia->nombre)." / ".strval($feature['properties'][$nombre]));
                 return trim(strval($provincia->nombre)) == trim(strval($feature['properties'][$nombre]));
             });
             if (!$provinciasCoincidentes->isEmpty()) {
@@ -145,10 +145,13 @@ class CompareController extends Controller
             }
 
             $estado_geom = "-";
+            $geom_feature = null;
             if ($existe_cod) {
                 if ($existe_nom) {
                     $estado = "OK";
-                    $estado_geom = self::chequearEstadoGeometrias($provinciaCoincidente, $feature);
+                    $chequeo = self::chequearEstadoGeometrias($provinciaCoincidente, $feature);
+                    $estado_geom = $chequeo['estado_geom'];
+                    $geom_feature = $chequeo['geom_feature'];
                 } else {
                     $estado = "Diferencia en el nombre";
                     $elementos_erroneos++;
@@ -174,10 +177,25 @@ class CompareController extends Controller
                 'existe_nom' => $existe_nom,
                 'estado' => $estado,
                 'estado_geom' => $estado_geom,
+                'geom_feature' => $geom_feature,
                 'errores' => $errores
             ];
         }
         
         return ['resultados' => $resultados, 'elementos_erroneos' => $elementos_erroneos, 'total_errores' => $total_errores];
+    }
+
+    public function importarGeometria(Request $request) 
+    {   
+        $cod_provincia = $request->input('cod_provincia');
+        $provincia = Provincia::where('codigo', $cod_provincia)->first();
+        $geomFeature = $request->input('geom_feature');
+        $id_new_geom = $provincia->setGeometriaAttribute($geomFeature);
+        if ($id_new_geom !== null) {
+            return response()->json(['statusCode'=> 200, 'id_geometria' => $id_new_geom]);
+        } else {
+            return response()->json(['statusCode'=> 500, 'id_geometria' => $id_new_geom]);
+        }
+        
     }
 }

@@ -239,6 +239,7 @@ Route::middleware(['auth'])->group(function () {
 Route::get('compare/capas/', 'CompareController@listarCapas')->name('compare.capas');
 Route::post('compare/atributos/', 'CompareController@listarAtributos')->name('compare.atributos');
 Route::post('compare/comparar/{capa}', 'CompareController@comparar')->name('compare.comparar');
+Route::post('compare/geom_import', 'CompareController@importarGeometria')->name('compare.importarGeom');
 
 // ---------- PROVINCIAS --------
 Route::get('provs-list', 'ProvinciaController@provsList');

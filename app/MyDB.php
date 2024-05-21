@@ -2603,7 +2603,8 @@ order by 1,2
         }
         try{
             DB::beginTransaction();
-            $result = DB::select("SELECT indec.insertar_geometrias(".$poligono.$opcional.") id")[0]->id;
+            $result = DB::select("SELECT indec.insertar_geometrias(".$poligono.$opcional.") id")[0]->id; //ERROR: Geometry type (MultiPolygon) does not match column type (Polygon)
+            Log::debug($result);
             DB::commit();
         }catch(QueryException $e){
             DB::Rollback();
