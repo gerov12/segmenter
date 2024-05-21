@@ -168,7 +168,7 @@ para los distintos objetos geográficos. (CODIFICACIÓN)
 
 20. Desarrollar Módulo para la gestión de archivos. (Ale y Sil)
 
-### Actividades
+## Actividades
 
 (\*)
 
