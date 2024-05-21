@@ -54,6 +54,7 @@ tryCatch({
             print("Esh imposhible!")
     })
 ```
+***
 
 # Sistema de Integración Geográfica y Estadística (INDEC) {-}
 
@@ -82,7 +83,7 @@ sus relaciones con el modelo geográfico social/legal
 para el manejo de la información estadística.
 
 2.  Control intrínseco de la 
-la consistencia de las unidades geoestadísticas. 
+consistencia de las unidades geoestadísticas. 
 Esto sería el control topologico a distintos niveles.
 
 3.  Mantenimiento de la trazabilidad 
@@ -98,7 +99,7 @@ su participación en los distintos operativos.
 para diferentes publicaciones y aplicativos.
 
 6.  Generación y mantenimiento de la base de datos 
-"multifinalitaria" ^[Se usa "multifinaritario" como adjetivo para Catastro, ver https://es.wikipedia.org/wiki/Catastro_multifinalitario
+"multipropósito" ^[Se utiliza multipropósito cómo el sinónimo al concepto definido para el Catastro "multifinaritario", ver https://es.wikipedia.org/wiki/Catastro_multifinalitario
 donde también se usa multiprósito como sinónimo.]
 para el cruce de datos estadísticos 
 provenientes de diferentes fuentes 
