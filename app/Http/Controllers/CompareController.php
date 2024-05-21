@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Model\Provincia;
+use App\Model\Informe;
 use Illuminate\Support\Facades\Log;
 use Auth;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use SimpleXMLElement;
 
@@ -102,8 +104,8 @@ class CompareController extends Controller
                 'cod' => $codigo, 
                 'nom' => $nombre,
                 'operativo' => "-", //TO-DO
-                'datetime' => date("d-m-Y (H:i:s)"),
-                'usuario' => Auth::user()->name
+                'datetime' => Carbon::now(),
+                'usuario' => Auth::user()
             ]);   
         } else {
             flash("Los campos seleccionados deben ser diferentes")->error();
@@ -183,6 +185,35 @@ class CompareController extends Controller
         }
         
         return ['resultados' => $resultados, 'elementos_erroneos' => $elementos_erroneos, 'total_errores' => $total_errores];
+    }
+
+    public function storeInforme(Request $request)
+    {
+        $informe = Informe::create([
+            'capa' => $request->input('capa'),
+            'tabla' => $request->input('tabla'),
+            'elementos_erroneos' => $request->input('elementos_erroneos'),
+            'total_errores' => $request->input('total_errores'),
+            'cod' => $request->input('cod'),
+            'nom' => $request->input('nom'),
+            'operativo_id' => null,
+            'datetime' => $request->input('datetime'),
+            'user_id' => $request->input('user_id'),
+        ]);
+        // PROBLEMA: no están llegando TODOS los resultados (problema de tamaño? enviar las geometrias es innecesario)
+        foreach ($request->input('resultados') as $resultado) {
+            if (isset($resultado['provincia'])) { //para algunas provincias puede no haber coincidencias
+                $provincia_id = intval($resultado['provincia']['id']);
+        
+                $informe->provincias()->attach($provincia_id, [
+                    'existe_cod' => $resultado['existe_cod'],
+                    'existe_nom' => $resultado['existe_nom'],
+                    'estado' => $resultado['estado'],
+                    'estado_geom' => $resultado['estado_geom'],
+                    'errores' => $resultado['errores']
+                ]);
+            }
+        }
     }
 
     public function importarGeometria(Request $request) 

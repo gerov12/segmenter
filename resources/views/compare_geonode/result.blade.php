@@ -1,6 +1,21 @@
 @extends('layouts.app')
 
 @section('content_main')
+<style>
+    .top-container {
+        display: flex;
+    }
+
+    #info {
+        flex: 3; /* Toma el 75% del ancho */
+    }
+
+    #store {
+        justify-content: right; /* Alinea el texto a la derecha dentro del div */
+        align-items: top; /* Centra verticalmente el texto */
+    }
+
+</style>
 <div class="container">
     <div class="row justify-content-center"> 
         <div class="card" style="width: 120%">
@@ -8,11 +23,31 @@
                 Resultado de la comparación de la capa <b>{{ $capa }}</b> con la tabla de <b>{{ $tabla }}s</b>
             </div>
             <div class="card-body">
-                <div id="info">
-                    Informe realizado el <b>{{ $datetime }}</b> por <b>{{ $usuario }}</b> <br>
-                    Operativo: {{ $operativo }} <br>
-                    Total de {{ strtolower($tabla) }}s con errores: {{ $elementos_erroneos }} <br>
-                    Total de errores de validación: {{ $total_errores }} <br>
+                <div class="top-container">
+                    <div id="info">
+                        Informe realizado el <b>{{ $datetime->format('d-m-Y H:i:s') }}</b> por <b>{{ $usuario->name }}</b> <br>
+                        Operativo: {{ $operativo }} <br>
+                        Total de {{ strtolower($tabla) }}s con errores: {{ $elementos_erroneos }} <br>
+                        Total de errores de validación: {{ $total_errores }} <br>
+                    </div>
+                    <div id="store"><button type="button" id="btn-guardar" class="btn btn-primary mr-2"
+                        data-capa="{{ $capa }}" 
+                        data-tabla="{{ $tabla }}" 
+                        data-elementos_erroneos="{{ $elementos_erroneos }}" 
+                        data-total_errores="{{ $total_errores }}" 
+                        data-cod="{{ $cod }}" 
+                        data-nom="{{ $nom }}" 
+                        data-operativo-id="-" 
+                        data-datetime="{{ $datetime }}" 
+                        data-user-id="{{ $usuario->id }}" 
+                        data-resultados="{{ json_encode($resultados) }}">
+                        <span id="spinner" style="display: none;">
+                            <div class="spinner-border spinner-border-sm" role="status">
+                                <span class="sr-only">Cargando...</span>
+                            </div>
+                        </span>
+                        <span id="btn-text">Guardar informe</span>
+                        <i class="bi bi-floppy ml-2"></i></button></div>
                 </div>
                 <br>
                 <table class="table table-bordered" id="tabla-resultado" style="width:100%">
@@ -151,6 +186,47 @@
                 error: function(xhr, status, error) {
                     console.error(error);
                     alert('Error al importar la geometría.');
+                }
+            });
+        });
+    });
+
+    $(document).ready(function() {
+        $('#btn-guardar').on('click', function() {
+            var button = $(this);
+            var spinner = $('#spinner');
+            var btnText = $('#btn-text');
+            spinner.show();
+            btnText.hide();
+            var data = {
+                _token: '{{ csrf_token() }}',
+                capa: button.data('capa'),
+                tabla: button.data('tabla'),
+                elementos_erroneos: button.data('elementos_erroneos'),
+                total_errores: button.data('total_errores'),
+                cod: button.data('cod'),
+                nom: button.data('nom'),
+                //operativo_id: button.data('operativo'),
+                datetime: button.data('datetime'),
+                user_id: button.data('user-id'),
+                resultados: button.data('resultados')
+            };
+
+            $.ajax({
+                url: '{{ route("compare.storeInforme") }}',
+                method: 'POST',
+                data: data,
+                success: function(response) {
+                    button.prop('disabled', true);
+                    spinner.hide();
+                    btnText.text('Guardado');
+                    btnText.show();
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                    alert('Error al guardar el informe.');
+                    spinner.hide();
+                    btnText.show();
                 }
             });
         });

@@ -240,6 +240,7 @@ Route::get('compare/capas/', 'CompareController@listarCapas')->name('compare.cap
 Route::post('compare/atributos/', 'CompareController@listarAtributos')->name('compare.atributos');
 Route::post('compare/comparar/{capa}', 'CompareController@comparar')->name('compare.comparar');
 Route::post('compare/geom_import', 'CompareController@importarGeometria')->name('compare.importarGeom');
+Route::post('compare/store_informe', 'CompareController@storeInforme')->name('compare.storeInforme');
 
 // ---------- PROVINCIAS --------
 Route::get('provs-list', 'ProvinciaController@provsList');
