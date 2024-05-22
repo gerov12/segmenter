@@ -141,7 +141,8 @@ class Provincia extends Model
 
     public function informes() {
       return $this->belongsToMany(Informe::class, 'informe_provincia')
-        ->withPivot('existe_cod', 'existe_nom', 'estado', 'estado_geom', 'errores')
-        ->withTimestamps();
-    }
+          ->using(InformeProvincia::class)
+          ->withPivot('existe_cod', 'existe_nom', 'estado', 'estado_geom', 'errores', 'cod', 'nom')
+          ->withTimestamps();
+  }  
 }

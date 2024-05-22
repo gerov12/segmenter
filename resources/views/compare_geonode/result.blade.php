@@ -101,7 +101,7 @@
                                 @elseif ($resultado['estado_geom'] == 'No hay geometría cargada en la BD')
                                     Base de Datos: <i style="color:red" class="bi bi-x"></i><br>
                                     Geoservicio: <i style="color:green" class="bi bi-check"></i><br>
-                                    <button type="button" class="btn btn-success btn-sm importar-btn" data-cod-prov="{{$resultado['provincia']['codigo']}}" data-geom-feature="{{$resultado['geom_feature']}}">Importar</button>
+                                    <button type="button" class="btn btn-success btn-sm importar-btn" data-cod-prov="{{$resultado['provincia']['codigo']}}" data-geom-feature="{{json_encode($geometrias[$resultado['feature']['id']])}}">Importar</button>
                                 @elseif ($resultado['estado_geom'] == 'No hay geometrías cargadas')
                                     Base de Datos: <i style="color:red" class="bi bi-x"></i><br>
                                     Geoservicio: <i style="color:red" class="bi bi-x"></i>

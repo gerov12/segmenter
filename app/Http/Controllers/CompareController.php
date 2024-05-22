@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Model\Provincia;
 use App\Model\Informe;
+use App\Model\InformeProvincia;
 use Illuminate\Support\Facades\Log;
 use Auth;
 use Carbon\Carbon;
@@ -31,21 +32,20 @@ class CompareController extends Controller
 
     private function chequearEstadoGeometrias($provinciaCoincidente, $feature)
     {   
-        $geom_feature = $feature['geometry'];
         if ($provinciaCoincidente->geometria !== null) {
-            if($geom_feature !== null) {
+            if($feature['geometry'] !== null) {
                 $estado_geom = "Calculo en desarrollo..."; //CALCULAR
             } else {
                 $estado_geom = "No hay geometría cargada en el geoservicio";
             }
         } else {
-            if($geom_feature !== null) {
+            if($feature['geometry'] !== null) {
                 $estado_geom = "No hay geometría cargada en la BD";
             } else {
                 $estado_geom = "No hay geometrías cargadas";
             }
         }
-        return ['estado_geom' => $estado_geom, 'geom_feature' => json_encode($geom_feature)];
+        return $estado_geom;
     }
 
     private function getFeatureTypeList()
@@ -95,10 +95,28 @@ class CompareController extends Controller
 
         if ($codigo != $nombre) {
             $comparacion = self::compararProvincias($codigo, $nombre, $capa); //
+            $resultados_sin_geom = [];
+            $geometrias = [];
+
+            foreach ($comparacion['resultados'] as $resultado) {
+                $feature = $resultado['feature'];
+                $id = $feature['id'];
+                
+                // modifico el campo feature del resultado para que solo tenga id y properties
+                $resultado['feature'] = [
+                    'id' => $id,
+                    'properties' => $feature['properties']
+                ];
+                $resultados_sin_geom[] = $resultado;
+                
+                // guardo la geometría del feature del resultado por separado
+                $geometrias[$id] = $feature['geometry'];
+            }
             return view('compare_geonode.result')->with([
                 'capa' => $capa, 
                 'tabla' => "Provincia", //esto junto a la función que se llama para comparar dependerá de la capa
-                'resultados' => $comparacion['resultados'], 
+                'resultados' => $resultados_sin_geom, 
+                'geometrias' => $geometrias,
                 'elementos_erroneos' => $comparacion['elementos_erroneos'], 
                 'total_errores' => $comparacion['total_errores'], 
                 'cod' => $codigo, 
@@ -147,13 +165,10 @@ class CompareController extends Controller
             }
 
             $estado_geom = "-";
-            $geom_feature = null;
             if ($existe_cod) {
                 if ($existe_nom) {
                     $estado = "OK";
-                    $chequeo = self::chequearEstadoGeometrias($provinciaCoincidente, $feature);
-                    $estado_geom = $chequeo['estado_geom'];
-                    $geom_feature = $chequeo['geom_feature'];
+                    $estado_geom = self::chequearEstadoGeometrias($provinciaCoincidente, $feature);
                 } else {
                     $estado = "Diferencia en el nombre";
                     $elementos_erroneos++;
@@ -179,7 +194,6 @@ class CompareController extends Controller
                 'existe_nom' => $existe_nom,
                 'estado' => $estado,
                 'estado_geom' => $estado_geom,
-                'geom_feature' => $geom_feature,
                 'errores' => $errores
             ];
         }
@@ -200,19 +214,22 @@ class CompareController extends Controller
             'datetime' => $request->input('datetime'),
             'user_id' => $request->input('user_id'),
         ]);
-        // PROBLEMA: no están llegando TODOS los resultados (problema de tamaño? enviar las geometrias es innecesario)
-        foreach ($request->input('resultados') as $resultado) {
-            if (isset($resultado['provincia'])) { //para algunas provincias puede no haber coincidencias
-                $provincia_id = intval($resultado['provincia']['id']);
         
-                $informe->provincias()->attach($provincia_id, [
-                    'existe_cod' => $resultado['existe_cod'],
-                    'existe_nom' => $resultado['existe_nom'],
-                    'estado' => $resultado['estado'],
-                    'estado_geom' => $resultado['estado_geom'],
-                    'errores' => $resultado['errores']
-                ]);
-            }
+        //guardo los resultados del informe (por el momento solo para provincias)
+        foreach ($request->input('resultados') as $resultado) {
+            $provincia_id = isset($resultado['provincia']) ? intval($resultado['provincia']['id']) : null; //null si no existe en la bd
+            $informe_provincia = new InformeProvincia([
+                'informe_id' => $informe->id,
+                'provincia_id' => $provincia_id,
+                'existe_cod' => $resultado['existe_cod'],
+                'existe_nom' => $resultado['existe_nom'],
+                'estado' => $resultado['estado'],
+                'estado_geom' => $resultado['estado_geom'],
+                'errores' => $resultado['errores'],
+                'cod' => $resultado['feature']['properties'][$request->input('cod')],
+                'nom' => $resultado['feature']['properties'][$request->input('nom')]
+            ]);
+            $informe_provincia->save();
         }
     }
 

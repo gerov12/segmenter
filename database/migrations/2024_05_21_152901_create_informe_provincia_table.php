@@ -15,14 +15,19 @@ return new class extends Migration
     {
         Schema::create('informe_provincia', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('informe_id')->constrained('informes');
-            $table->foreignId('provincia_id')->constrained('provincia');
+            $table->unsignedBigInteger('informe_id');
+            $table->unsignedBigInteger('provincia_id')->nullable();
             $table->boolean('existe_cod');
             $table->boolean('existe_nom');
             $table->string('estado');
             $table->string('estado_geom');
             $table->integer('errores');
+            $table->string('cod');
+            $table->string('nom');
             $table->timestamps();
+
+            $table->foreign('informe_id')->references('id')->on('informes')->onDelete('cascade');
+            $table->foreign('provincia_id')->references('id')->on('provincia')->onDelete('set null');
         });
     }
 
