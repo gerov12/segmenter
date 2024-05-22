@@ -55,6 +55,7 @@
                         @elseif ($tipo_informe == "informe")
                         <a type="button" href="{{ route('compare.informes') }}" class="btn btn-success mr-2">Volver a informes</a>
                         @endif
+                        <a type="button" href="{{ route('compare.capas') }}" class="btn btn-info mr-2" style="color:white">Nueva comparación</a>
                     </div>
                 </div>
                 <br>

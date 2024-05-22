@@ -36,6 +36,7 @@
                     </div>
                     <br>
                     <button type="submit" class="btn btn-primary">Comparar</button>
+                    <a type="button" href="{{route('compare.capas')}}" class="btn btn-secondary ml-2">Volver</a>
                 </form>
             </div>
         </div>

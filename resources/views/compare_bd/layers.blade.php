@@ -29,6 +29,7 @@
                             <br>
                         </div>
                         <button type="submit" class="btn btn-primary">Seleccionar</button>
+                        <a type="button" href="{{route('compare.menu')}}" class="btn btn-secondary ml-2">Volver</a>
                     </div>
                 </form>
             </div>

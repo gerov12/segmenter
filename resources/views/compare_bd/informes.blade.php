@@ -2,6 +2,11 @@
 
 @section('content_main')
 <div class="container">
+    <div style="display: flex; align-items: center; justify-content: center;">
+        <div style="width: 90rem; display: flex; align-items: center;"> 
+        <h4><a href="{{route('compare.menu')}}" class="badge badge-pill badge-primary">← Volver</a></h4>
+        </div>
+    </div>
     <div class="row justify-content-center"> 
         <div class="card" style="width: 120%">
             <div class="card-header">
