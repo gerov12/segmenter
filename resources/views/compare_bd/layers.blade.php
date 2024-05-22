@@ -2,7 +2,7 @@
 
 @section('content_main')
 <div class="container justify-content-center" style="width: 40%">
-    <div class="alert alert-warning alert-dismissible justify-content-center" role="alert">
+    <div class="alert alert-warning justify-content-center" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <b>ATENCIÓN:</b> Función en desarrollo. La comparación de la capa se realizará contra la tabla Provincia.
     </div>

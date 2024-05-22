@@ -71,10 +71,44 @@ class CompareController extends Controller
         return $featureTypeList;
     }
 
+    public function verMenu()
+    {
+        return view('compare_bd.menu');
+    }
+
+    public function listarInformes()
+    {  
+        $informes = Informe::all(); 
+        foreach ($informes as $informe) {
+            $informe->datetime = Carbon::parse($informe->datetime);
+        }
+        return view('compare_bd.informes')->with('informes', $informes);
+    }
+
+    public function verInforme($informe)
+    {
+        $informe = Informe::findOrFail($informe);
+        $resultados = InformeProvincia::where('informe_id', $informe->id)->get();
+        return view('compare_bd.informe')->with([
+            'capa' => $informe->capa, 
+            'tabla' => $informe->tabla,
+            'resultados' => $resultados, 
+            'geometrias' => null,
+            'elementos_erroneos' => $informe->elementos_erroneos, 
+            'total_errores' => $informe->total_errores, 
+            'cod' => $informe->cod, 
+            'nom' => $informe->nom,
+            'operativo' => $informe->operativo,
+            'datetime' => Carbon::parse($informe->datetime),
+            'usuario' => $informe->user,
+            'tipo_informe' => "informe"
+        ]); 
+    }
+
     public function listarCapas()
     {  
         $capas = self::getFeatureTypeList(); 
-        return view('compare_geonode.layers')->with('capas', $capas);
+        return view('compare_bd.layers')->with('capas', $capas);
     }
 
     public function listarAtributos(Request $request)
@@ -85,7 +119,7 @@ class CompareController extends Controller
         if(isset($datos['featureTypes'][0]['properties'])) {
             $atributos = $datos['featureTypes'][0]['properties'];
         }
-        return view('compare_geonode.properties')->with(['capa' => $capa, 'atributos' => $atributos]);        
+        return view('compare_bd.properties')->with(['capa' => $capa, 'atributos' => $atributos]);        
     }
 
     public function comparar(Request $request, $capa)
@@ -112,7 +146,7 @@ class CompareController extends Controller
                 // guardo la geometría del feature del resultado por separado
                 $geometrias[$id] = $feature['geometry'];
             }
-            return view('compare_geonode.result')->with([
+            return view('compare_bd.informe')->with([
                 'capa' => $capa, 
                 'tabla' => "Provincia", //esto junto a la función que se llama para comparar dependerá de la capa
                 'resultados' => $resultados_sin_geom, 
@@ -123,7 +157,8 @@ class CompareController extends Controller
                 'nom' => $nombre,
                 'operativo' => "-", //TO-DO
                 'datetime' => Carbon::now(),
-                'usuario' => Auth::user()
+                'usuario' => Auth::user(),
+                'tipo_informe' => "resultado"
             ]);   
         } else {
             flash("Los campos seleccionados deben ser diferentes")->error();
