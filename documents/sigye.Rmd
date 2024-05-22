@@ -54,6 +54,7 @@ tryCatch({
             print("Esh imposhible!")
     })
 ```
+***
 
 # Sistema de Integración Geográfica y Estadística (INDEC) {-}
 
@@ -82,7 +83,7 @@ sus relaciones con el modelo geográfico social/legal
 para el manejo de la información estadística.
 
 2.  Control intrínseco de la 
-la consistencia de las unidades geoestadísticas. 
+consistencia de las unidades geoestadísticas. 
 Esto sería el control topologico a distintos niveles.
 
 3.  Mantenimiento de la trazabilidad 
@@ -98,7 +99,7 @@ su participación en los distintos operativos.
 para diferentes publicaciones y aplicativos.
 
 6.  Generación y mantenimiento de la base de datos 
-"multifinalitaria" ^[Se usa "multifinaritario" como adjetivo para Catastro, ver https://es.wikipedia.org/wiki/Catastro_multifinalitario
+"multipropósito" ^[Se utiliza multipropósito cómo el sinónimo al concepto definido para el Catastro "multifinaritario", ver https://es.wikipedia.org/wiki/Catastro_multifinalitario
 donde también se usa multiprósito como sinónimo.]
 para el cruce de datos estadísticos 
 provenientes de diferentes fuentes 
@@ -126,19 +127,23 @@ censo2020, censo 2018 (Anabella)
 
 2.  Completar la carga de otras unidades geográficas: . Entidades . Gobiernos Locales . Radios Rurales .
 
-3.  Lograr la integración de datos básicos censo 2022
+3.  Lograr la integración de datos básicos del censo 2022
 
 4.  Lograr la integración de datos de otros registros administrativos.
 
-5.  Consumir geoservicio de geolocalización de INDEC (JC - ArcGis) o evaluar alternativas API GeoRef / Nominatim
+5.  Consumir geoservicio de geolocalización de INDEC (JC - ArcGis) 
+o evaluar alternativas API GeoRef / Nominatim
 
-6.  Realizar un relevamiento de visores a fin de incorporar/sincronizar intercambio de datos con el sistema.
+6.  Realizar un relevamiento de visores a fin de 
+incorporar/sincronizar intercambio de datos con el sistema.
 
 7.  Desarrollar un módulo para poder dar de baja de Elementos (\*)
 
-8.  Capacitar recursos humanos para... desgloce de capacitaciones..
+8.  Capacitar recursos humanos para... 
+desgloce de capacitaciones..
 
-9.  Incorporar las normativas vigentes en cuanto a nombre de calles y numeración.
+9.  Incorporar las normativas vigentes 
+en cuanto a nombre de calles y numeración.
 
 10. Generar Reportes de vías de circulación (ver: <http://172.22.26.215/reportes>, <http://172.22.26.215/reportes_2022>)
 
@@ -150,7 +155,8 @@ censo2020, censo 2018 (Anabella)
 
 14. Incorporar reportes de areas conflictivas: por limites, doble asignación, imputación, etc.
 
-15. Incorporar procedimientos para la validación y/o generación de códigos para los distintos objetos geográficos. (CODIFICACIÓN)
+15. Incorporar procedimientos para la validación y/o generación de códigos 
+para los distintos objetos geográficos. (CODIFICACIÓN)
 
 16. Generar módulo de Verificación (tag: verificado?) (verificador x OG?)
 
@@ -162,7 +168,7 @@ censo2020, censo 2018 (Anabella)
 
 20. Desarrollar Módulo para la gestión de archivos. (Ale y Sil)
 
-### Actividades
+## Actividades
 
 (\*)
 
