@@ -235,6 +235,16 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('roles/{role}', 'RoleController@eliminarRol')->name('admin.eliminarRol');
 });
 
+// ---------- COMPARACIONES BD-GEOSERVICIOS ---------- //
+Route::get('compare/menu/', 'CompareController@verMenu')->name('compare.menu');
+Route::get('compare/informes/', 'CompareController@listarInformes')->name('compare.informes');
+Route::get('compare/informes/{informe}', 'CompareController@verInforme')->name('compare.verInforme');
+Route::get('compare/capas/', 'CompareController@listarCapas')->name('compare.capas');
+Route::post('compare/atributos/', 'CompareController@listarAtributos')->name('compare.atributos');
+Route::post('compare/comparar/{capa}', 'CompareController@comparar')->name('compare.comparar');
+Route::post('compare/geom_import', 'CompareController@importarGeometria')->name('compare.importarGeom');
+Route::post('compare/store_informe', 'CompareController@storeInforme')->name('compare.storeInforme');
+
 // ---------- PROVINCIAS --------
 Route::get('provs-list', 'ProvinciaController@provsList');
 Route::get('provs','ProvinciaController@index');

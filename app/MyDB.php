@@ -335,13 +335,13 @@ FROM
 
     public static function getCodProv($tabla,$esquema)
     {
-        try {
+      try {
             return (DB::select('SELECT codprov as link FROM
             '.$esquema.'.'.$tabla.' group by 1 order by count(*) Limit 1;')[0]->link);
-        }catch (\Illuminate\Database\QueryException $exception) {
-      Log::error('Error: '.$exception);
-      return '0';
-  }
+      } catch (\Illuminate\Database\QueryException $exception) {
+          Log::error('Error: '.$exception);
+          return '0';
+      }
     }
 
     public static function getDataDepto($tabla,$esquema)
@@ -2579,13 +2579,23 @@ order by 1,2
 
     // Insertar geometria
 
-    public static function insertarGeometrias($poligono,$punto = null)
+    public static function insertarGeometrias($poligono, $linea=null, $punto = null, $geojson=false)
     {
         if ($poligono) {
+          if ($geojson) {
+            $poligono = "ST_GeomFromGeoJSON('".$poligono."')::geometry";
+          } else {
             $poligono = "'".$poligono."'::geometry";
+          }
         } else {
             $poligono = "null::geometry";
         }
+        if ($linea) {
+          Log::warning('Error no se pudo insertar la linea, desarrollo aún no implementado'.$e);
+          $linea = "'".$linea."'::geometry";
+      } else {
+          $linea = "null::geometry";
+      }
         if ($punto) {
             $opcional = ",'".$punto."'::geometry";
         } else {
@@ -2593,7 +2603,8 @@ order by 1,2
         }
         try{
             DB::beginTransaction();
-            $result = DB::select("SELECT indec.insertar_geometrias(".$poligono.$opcional.") id")[0]->id;
+            $result = DB::select("SELECT indec.insertar_geometrias(".$poligono.$opcional.") id")[0]->id; //ERROR: Geometry type (MultiPolygon) does not match column type (Polygon)
+            Log::debug($result);
             DB::commit();
         }catch(QueryException $e){
             DB::Rollback();
