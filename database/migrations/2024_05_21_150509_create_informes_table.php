@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('informes', function (Blueprint $table) {
             $table->id();
-            // agregar relación con geoservicio
+            // se agrega relación con geoservicio en la migration de geoservicios
             $table->string('capa');
             $table->string('tabla');
             $table->integer('elementos_erroneos');

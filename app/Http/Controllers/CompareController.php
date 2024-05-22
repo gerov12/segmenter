@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Model\Provincia;
+use App\Model\Geoservicio;
 use App\Model\Informe;
 use App\Model\InformeProvincia;
 use Illuminate\Support\Facades\Log;
@@ -48,7 +49,7 @@ class CompareController extends Controller
         return $estado_geom;
     }
 
-    private function getFeatureTypeList()
+    private function getCapas()
     {
         $response = Http::get('https://geonode.indec.gob.ar/geoserver/ows', [
             'service' => 'wfs',
@@ -105,9 +106,21 @@ class CompareController extends Controller
         ]); 
     }
 
+    public function listarGeoservicios()
+    {  
+        $geoservicios = Geoservicio::all(); 
+        return view('compare_bd.geoservicios')->with('geoservicios', $geoservicios);
+    }
+
+    public function inicializarGeoservicio(Request $request)
+    {
+        $geoservicio = $request->input('geoservicio');
+        //if testear conexión: inicializo, else: flash informando y vuelvo atrás
+    }
+
     public function listarCapas()
     {  
-        $capas = self::getFeatureTypeList(); 
+        $capas = self::getCapas(); 
         return view('compare_bd.layers')->with('capas', $capas);
     }
 

@@ -7,12 +7,12 @@
     }
 
     #info {
-        flex: 3; /* Toma el 75% del ancho */
+        flex: 3; /* toma el 75% del ancho */
     }
 
     #store {
-        justify-content: right; /* Alinea el texto a la derecha dentro del div */
-        align-items: top; /* Centra verticalmente el texto */
+        justify-content: right;
+        align-items: top;
     }
 
 </style>

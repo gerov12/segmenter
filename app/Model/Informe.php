@@ -23,6 +23,7 @@ class Informe extends Model
         'operativo_id',
         'datetime',
         'user_id',
+        'geoservicio_id'
     ];
 
     public function operativo()
@@ -33,6 +34,11 @@ class Informe extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function geoservicio()
+    {
+        return $this->belongsTo(Geoservicio::class, 'geoservicio_id');
     }
 
     public function provincias() {
