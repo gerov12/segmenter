@@ -2579,31 +2579,31 @@ order by 1,2
 
     // Insertar geometria
 
-    public static function insertarGeometrias($poligono, $linea=null, $punto = null, $geojson=false)
+    public static function insertarGeometrias($multipoligono, $multilinea=null, $multipunto = null, $geojson=false)
     {
-        if ($poligono) {
+        if ($multipoligono) {
           if ($geojson) {
-            $poligono = "ST_GeomFromGeoJSON('".$poligono."')::geometry";
+            $multipoligono = "st_setsrid(ST_GeomFromGeoJSON('".$multipoligono."'),4326)::geometry";
           } else {
-            $poligono = "'".$poligono."'::geometry";
+            $multipoligono = "'".$multipoligono."'::geometry";
           }
         } else {
-            $poligono = "null::geometry";
+            $multipoligono = "null::geometry";
         }
-        if ($linea) {
+        if ($multilinea) {
           Log::warning('Error no se pudo insertar la linea, desarrollo aún no implementado'.$e);
-          $linea = "'".$linea."'::geometry";
+          $multilinea = ",'".$multilinea."'::geometry";
       } else {
-          $linea = "null::geometry";
+          $multilinea = ",null::geometry";
       }
-        if ($punto) {
-            $opcional = ",'".$punto."'::geometry";
+        if ($multipunto) {
+            $multipunto = ",'".$multipunto."'::geometry";
         } else {
-            $opcional = ", null::geometry";
+            $multipunto = ", null::geometry";
         }
         try{
             DB::beginTransaction();
-            $result = DB::select("SELECT indec.insertar_geometrias(".$poligono.$opcional.") id")[0]->id; //ERROR: Geometry type (MultiPolygon) does not match column type (Polygon)
+            $result = DB::select("SELECT indec.insertar_geometrias(".$multipoligono.$multilinea.$multipunto.") id")[0]->id;
             Log::debug($result);
             DB::commit();
         }catch(QueryException $e){
