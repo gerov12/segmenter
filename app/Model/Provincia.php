@@ -17,7 +17,7 @@ class Provincia extends Model
     protected $table='provincia';
 
     protected $fillable = [
-        'id','codigo','nombre'
+        'id','codigo','nombre','geometria_id'
     ];
 
     protected $url_json = 'https://geoservicios.indec.gob.ar/geoserver/sig/ows';
@@ -134,8 +134,14 @@ class Provincia extends Model
       }]);
     }
 
-    public function setGeometriaAttribute($poligono = null, $linea = null, $punto = null, $geojson=true) {
+    public function geometria()
+    {
+        return $this->belongsTo(Geometria::class, 'geometria_id');
+    }
+
+    public function setGeometriaAttribute($poligono = null, $linea = null, $punto = null, $geojson=true) { //geojson true hardcodeado
       $this->geometria_id = MyDB::insertarGeometrias($poligono, $linea, $punto, $geojson);
+      $this->save();
       return $this->geometria_id;
     }
 

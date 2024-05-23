@@ -2604,12 +2604,12 @@ order by 1,2
         try{
             DB::beginTransaction();
             $result = DB::select("SELECT indec.insertar_geometrias(".$multipoligono.$multilinea.$multipunto.") id")[0]->id;
-            Log::debug($result);
+            Log::debug('Se insertó nueva geometría. ID: '.$result);
             DB::commit();
         }catch(QueryException $e){
             DB::Rollback();
             $result=null;
-            Log::error('Error no se pudo insertar las geometrias '.$e);
+            Log::error('Error no se pudo insertar la geometria '.$e);
             return null;
        }
        return $result;

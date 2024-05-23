@@ -17,6 +17,14 @@
 
 </style>
 <div class="container">
+    <div id="alert-container">
+        @if(Session::has('message'))
+            <div class="alert alert-danger alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            {{Session::get('message')}}
+            </div>
+        @endif
+    </div>
     <div class="row justify-content-center"> 
         <div class="card" style="width: 120%">
             <div class="card-header">
@@ -120,7 +128,7 @@
                                     @else
                                         Base de Datos: <i style="color:green" class="bi bi-check"></i><br>
                                         Geoservicio: <i style="color:green" class="bi bi-check"></i><br>
-                                        Diferencia: {{ $resultado['estado_geom'] }} KM2
+                                        Diferencia: <i>{{ $resultado['estado_geom'] }}</i>
                                     @endif
                                     </td>
                                     <td style="text-align: center; vertical-align: middle;">
@@ -167,7 +175,7 @@
                                     @else
                                         Base de Datos: <i style="color:green" class="bi bi-check"></i><br>
                                         Geoservicio: <i style="color:green" class="bi bi-check"></i><br>
-                                        Diferencia: {{ $resultado->estado_geom }} KM2
+                                        Diferencia: <i>{{ $resultado->estado_geom }}</i>
                                     @endif
                                     </td>
                                     <td style="text-align: center; vertical-align: middle;">
@@ -222,9 +230,6 @@
             var geomFeature = JSON.stringify($(this).data('geom-feature'));
             var $button = $(this);
 
-            console.log(cod_provincia);
-            console.log(geomFeature);
-
             $.ajax({
                 url: '{{ route("compare.importarGeom") }}',
                 method: 'POST',
@@ -234,11 +239,14 @@
                     geom_feature: geomFeature
                 },
                 success: function(response) {
+                    var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+                    var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                                        response.message +
+                                    '</div>';
+                    $('#alert-container').html(alertHtml);
                     if (response.statusCode == 200){
-                        alert('Geometría importada correctamente. ID de nueva geometría: '+response.id_new_geom);
                         $button.hide();
-                    } else {
-                        alert('Error al importar la geometría.');
                     }
                 },
                 error: function(xhr, status, error) {

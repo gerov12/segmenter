@@ -15,7 +15,6 @@ return new class extends Migration
     {
         Schema::create('informes', function (Blueprint $table) {
             $table->id();
-            // se agrega relación con geoservicio en la migration de geoservicios
             $table->string('capa');
             $table->string('tabla');
             $table->integer('elementos_erroneos');
@@ -25,7 +24,7 @@ return new class extends Migration
             $table->unsignedBigInteger('operativo_id')->nullable();
             $table->timestamp('datetime');
             $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('geoservicio_id')->nullable()->after('user_id'); // Agregar la columna 'geoservicio_id'
+            $table->unsignedBigInteger('geoservicio_id')->nullable();
             $table->timestamps();
 
             $table->foreign('operativo_id')->references('id')->on('operativo');

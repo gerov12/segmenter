@@ -288,10 +288,9 @@ class CompareController extends Controller
         $geomFeature = $request->input('geom_feature');
         $id_new_geom = $provincia->setGeometriaAttribute($geomFeature);
         if ($id_new_geom !== null) {
-            return response()->json(['statusCode'=> 200, 'id_geometria' => $id_new_geom]);
+            return response()->json(['statusCode'=> 200, 'message' => "Geometría importada correctamente. ID de nueva geometría: ".$id_new_geom]); //mostrar id de geometría?
         } else {
-            return response()->json(['statusCode'=> 500, 'id_geometria' => $id_new_geom]);
+            return response()->json(['statusCode'=> 500, 'message' => "Error al importar la geometría."]);
         }
-        
     }
 }
