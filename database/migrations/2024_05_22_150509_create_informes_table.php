@@ -25,10 +25,12 @@ return new class extends Migration
             $table->unsignedBigInteger('operativo_id')->nullable();
             $table->timestamp('datetime');
             $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('geoservicio_id')->nullable()->after('user_id'); // Agregar la columna 'geoservicio_id'
             $table->timestamps();
 
             $table->foreign('operativo_id')->references('id')->on('operativo');
             $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('geoservicio_id')->references('id')->on('geoservicios')->onDelete('set null');
         });
     }
 

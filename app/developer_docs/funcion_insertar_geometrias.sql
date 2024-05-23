@@ -5,7 +5,7 @@
 
  DECLARE newid integer;
  begin
-  INSERT INTO geometrias (multipoligono, multilinea, multipunto) VALUES ($1,$2) RETURNING id INTO newid;
+  INSERT INTO geometrias (multipoligono, multilinea, multipunto) VALUES ($1,$2,$3) RETURNING id INTO newid;
   return newid;
 
  end;
