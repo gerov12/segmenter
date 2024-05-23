@@ -17,6 +17,35 @@
 
 </style>
 <div class="container">
+
+    <!-- Modal de confirmación -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">Aclaración</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    La importación de geometrías es <b>posterior</b> a la generación del informe. <br> 
+                    Por lo tanto, al <span style="color:blue">'Guardar informe'</span>, todas los elementos que no tenían geometría figurarán de esa forma en el mismo.
+                </div>
+                <div class="modal-footer">
+                    <div class="form-check" style="flex-grow: 1; display: flex;">
+                        <input type="checkbox" class="form-check-input" id="dontShowAgainCheckbox">
+                        <label class="form-check-label" for="dontShowAgainCheckbox">No mostrar este mensaje de nuevo</label>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-primary" id="confirmButton">Aceptar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="alert-container">
         @if(Session::has('message'))
             <div class="alert alert-danger alert-dismissible" role="alert">
@@ -224,36 +253,53 @@
         }
     });
 
+    var showConfirmation = true;
     $(document).ready(function() {
         $('.importar-btn').on('click', function() {
             var cod_provincia = $(this).data('cod-prov');
             var geomFeature = JSON.stringify($(this).data('geom-feature'));
             var $button = $(this);
 
-            $.ajax({
-                url: '{{ route("compare.importarGeom") }}',
-                method: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    cod_provincia: cod_provincia,
-                    geom_feature: geomFeature
-                },
-                success: function(response) {
-                    var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
-                    var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
-                                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-                                        response.message +
-                                    '</div>';
-                    $('#alert-container').html(alertHtml);
-                    if (response.statusCode == 200){
-                        $button.hide();
+            function importaGeometriaAjax() {
+                $.ajax({
+                    url: '{{ route("compare.importarGeom") }}',
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        cod_provincia: cod_provincia,
+                        geom_feature: geomFeature
+                    },
+                    success: function(response) {
+                        var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+                        var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                                            response.message +
+                                        '</div>';
+                        $('#alert-container').html(alertHtml);
+                        if (response.statusCode == 200){
+                            $button.hide();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(error);
+                        alert('Error al importar la geometría.');
                     }
-                },
-                error: function(xhr, status, error) {
-                    console.error(error);
-                    alert('Error al importar la geometría.');
-                }
-            });
+                });
+            }
+
+            if (showConfirmation) {
+                $('#confirmationModal').modal('show');
+
+                $('#confirmButton').off('click').on('click', function() {
+                    if ($('#dontShowAgainCheckbox').is(':checked')) {
+                        showConfirmation = false;
+                    }
+                    $('#confirmationModal').modal('hide');
+                    importaGeometriaAjax();
+                });
+            } else {
+                importaGeometriaAjax();
+            }
         });
     });
 
