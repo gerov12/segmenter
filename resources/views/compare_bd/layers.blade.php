@@ -2,12 +2,20 @@
 
 @section('content_main')
 <div class="container justify-content-center" style="width: 40%">
-    <div class="alert alert-warning justify-content-center" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <b>ATENCIÓN:</b> Función en desarrollo. La comparación de la capa se realizará contra la tabla Provincia.
+    <div id="alert-container">
+        <div class="alert alert-warning justify-content-center" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <b>ATENCIÓN:</b> Función en desarrollo. La comparación de la capa se realizará contra la tabla Provincia.
+        </div>
+        @if(Session::has('message'))
+            <div class="alert alert-success alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            {{Session::get('message')}}
+            </div>
+        @endif
     </div>
     <div class="row justify-content-center">   
-        <h3>Validación de Base de Datos con capas de Geonode</h3>
+        <h3>Validación de Base de Datos con capas de {{$geoservicio->nombre}}</h3>
     </div>
     <br>
     <div class="row justify-content-center">
@@ -16,7 +24,7 @@
                 Seleccionar capa para la comparación
             </div>
             <div class="card-body">
-                <form action="{{ route('compare.atributos') }}" method="POST">
+                <form action="{{ route('compare.atributos', ['geoservicio' => $geoservicio]) }}" method="POST">
                     @csrf
                     <div class="row justify-content-center">
                         <div class="col-lg-15">  
@@ -29,7 +37,7 @@
                             <br>
                         </div>
                         <button type="submit" class="btn btn-primary">Seleccionar</button>
-                        <a type="button" href="{{route('compare.menu')}}" class="btn btn-secondary ml-2">Volver</a>
+                        <a type="button" href="{{route('compare.geoservicios')}}" class="btn btn-secondary ml-2">Volver</a>
                     </div>
                 </form>
             </div>

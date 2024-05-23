@@ -79,6 +79,7 @@
                             data-operativo-id="-" 
                             data-datetime="{{ $datetime }}" 
                             data-user-id="{{ $usuario->id }}" 
+                            data-geoservicio="{{ $geoservicio }}"
                             data-resultados="{{ json_encode($resultados) }}">
                             <span id="spinner" style="display: none;">
                                 <div class="spinner-border spinner-border-sm" role="status">
@@ -92,7 +93,7 @@
                         @elseif ($tipo_informe == "informe")
                         <a type="button" href="{{ route('compare.informes') }}" class="btn btn-success mr-2">Volver a informes</a>
                         @endif
-                        <a type="button" href="{{ route('compare.capas') }}" class="btn btn-info mr-2" style="color:white">Nueva comparación</a>
+                        <a type="button" href="{{ route('compare.geoservicios') }}" class="btn btn-info mr-2" style="color:white">Nueva comparación</a>
                     </div>
                 </div>
                 <br>
@@ -107,10 +108,22 @@
                         </tr>
 
                         <tr>
-                            <th scope="col" style="text-align: center; vertical-align: middle;">En Geonode ("{{ $cod }}")</th>
+                            <th scope="col" style="text-align: center; vertical-align: middle;">En 
+                            @if ($geoservicio)
+                                {{ $geoservicio->nombre }} 
+                            @else
+                                - 
+                            @endif
+                            ("{{ $cod }}")</th>
                             <th scope="col" style="text-align: center; vertical-align: middle;">En Base de Datos</th>
                             
-                            <th scope="col" style="text-align: center; vertical-align: middle;">En Geonode ("{{ $nom }}")</th>
+                            <th scope="col" style="text-align: center; vertical-align: middle;">En 
+                            @if ($geoservicio)
+                                {{ $geoservicio->nombre }} 
+                            @else
+                                - 
+                            @endif
+                            ("{{ $nom }}")</th>
                             <th scope="col" style="text-align: center; vertical-align: middle;">En Base de Datos</th>
                         </tr>
                     </thead>
@@ -310,6 +323,8 @@
             var btnText = $('#btn-text');
             spinner.show();
             btnText.hide();
+
+            console.log(button.data('geoservicio'));
             var data = {
                 _token: '{{ csrf_token() }}',
                 capa: button.data('capa'),
@@ -321,6 +336,7 @@
                 //operativo_id: button.data('operativo'),
                 datetime: button.data('datetime'),
                 user_id: button.data('user-id'),
+                geoservicio: button.data('geoservicio'),
                 resultados: button.data('resultados')
             };
 

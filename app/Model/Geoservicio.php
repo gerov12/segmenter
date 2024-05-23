@@ -4,6 +4,8 @@ namespace App\Model;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Http;
+use SimpleXMLElement;
 
 class Geoservicio extends Model
 {
@@ -14,6 +16,21 @@ class Geoservicio extends Model
     public function informes()
     {
         return $this->hasMany(Informe::class, 'geoservicio_id');
+    }
+
+    public function testConnection()
+    {
+        try {
+            $response = Http::get($this->url . '/ows', [
+                'service' => 'wfs',
+                'version' => '1.0.0',
+                'request' => 'GetCapabilities'
+            ]);
+
+            return $response->successful();
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     public function getCapas()

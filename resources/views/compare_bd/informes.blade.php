@@ -30,7 +30,13 @@
                     <tbody>
                         @foreach ($informes as $informe)
                             <tr>
-                                <td>Geonode</td>
+                                <td>
+                                @if ($informe->geoservicio_id)
+                                    {{ $informe->geoservicio->nombre }}
+                                @else
+                                    -
+                                @endif
+                                </td>
                                 <td>{{$informe->capa}}</td>
                                 <td>{{$informe->tabla}}</td>
                                 <td>{{$informe->operativo}}</td>

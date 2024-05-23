@@ -14,21 +14,18 @@ use Illuminate\Support\Facades\Http;
 use SimpleXMLElement;
 
 class CompareController extends Controller
-{
-    private function getCapa($capa)
+{   
+    protected $geoservicio;
+
+    public function __construct(Request $request)
     {
-        $url= 'https://geonode.indec.gob.ar/geoserver/ows?service=wfs&version=2.0.0&request=GetFeature&resultType=results&outputFormat=application/json&typeName='.$capa;
-        $result = file_get_contents($url);
-        $datos = json_decode($result, true);
-        return $datos;
+        $this->geoservicio = $this->loadGeoservicio($request);
     }
 
-    private function getAtributos($capa)
+    protected function loadGeoservicio(Request $request)
     {
-        $url= 'https://geonode.indec.gob.ar/geoserver/wfs?request=DescribeFeatureType&outputFormat=application/json&typeNames='.$capa;
-        $result = file_get_contents($url);
-        $datos = json_decode($result, true);
-        return $datos;
+        $geoservicioId = $request->route('geoservicio_id');
+        return Geoservicio::find($geoservicioId);
     }
 
     private function chequearEstadoGeometrias($provinciaCoincidente, $feature)
@@ -47,29 +44,6 @@ class CompareController extends Controller
             }
         }
         return $estado_geom;
-    }
-
-    private function getCapas()
-    {
-        $response = Http::get('https://geonode.indec.gob.ar/geoserver/ows', [
-            'service' => 'wfs',
-            'version' => '2.0.0',
-            'request' => 'GetCapabilities',
-            'section' => 'FeatureTypeList'
-        ]);
-
-        $xml = $response->body();
-
-        // Parse XML
-        $xmlObject = new SimpleXMLElement($xml);
-
-        // Convert SimpleXMLElement object to array
-        $array = json_decode(json_encode($xmlObject), true);
-
-        // Get FeatureTypeList section
-        $featureTypeList = $array['FeatureTypeList']['FeatureType'];
-
-        return $featureTypeList;
     }
 
     public function verMenu()
@@ -102,6 +76,7 @@ class CompareController extends Controller
             'operativo' => $informe->operativo,
             'datetime' => Carbon::parse($informe->datetime),
             'usuario' => $informe->user,
+            'geoservicio' => $informe->geoservicio,
             'tipo_informe' => "informe"
         ]); 
     }
@@ -113,144 +88,186 @@ class CompareController extends Controller
     }
 
     public function inicializarGeoservicio(Request $request)
-    {
-        $geoservicio = $request->input('geoservicio');
-        //if testear conexión: inicializo, else: flash informando y vuelvo atrás
-    }
+    {   
+        $geoservicio_id = $request->input('geoservicio_id');
+        if ($geoservicio_id === null){ //si es una conexión rapida y por ende no envío el id de un geoservicio existente
+            $request->validate([
+                'nombre' => 'required|string|max:255',
+                'descripcion' => 'nullable|string|max:255',
+                'url' => 'required|url',
+                'tipo' => 'required|string',
+            ]);
+    
+            $geoservicio = Geoservicio::make([ //distinto de Geoservicio::create, en este caso NO se almacena en la BD, es una conexión rápida
+                'nombre' => $request->nombre,
+                'descripcion' => $request->descripcion,
+                'url' => $request->url,
+                'tipo' => $request->tipo,
+            ]);
 
-    public function listarCapas()
-    {  
-        $capas = self::getCapas(); 
-        return view('compare_bd.layers')->with('capas', $capas);
-    }
-
-    public function listarAtributos(Request $request)
-    {
-        $capa = $request->input('capa');
-        $datos = self::getAtributos($capa);
-        $atributos = [];
-        if(isset($datos['featureTypes'][0]['properties'])) {
-            $atributos = $datos['featureTypes'][0]['properties'];
+            //PROBLEMA: $geoservicio al ser una instancia que no se guarda en la bd no tiene id (ni las demas columnas como timestamps por ej), 
+            //por lo que no puedo pasar la variable como parametro a las rutas.
+        } else {
+            $geoservicio = Geoservicio::find($request->input('geoservicio_id'));
         }
-        return view('compare_bd.properties')->with(['capa' => $capa, 'atributos' => $atributos]);        
+
+        if ($geoservicio->testConnection()) {
+            return redirect()->route('compare.capas', ['geoservicio' => $geoservicio])->with('message', 'Conexión existosa con el Geoservicio!');
+        } else {
+            return redirect()->route('compare.geoservicios')->with('error', 'Error al conectar con el Geoservicio');
+        }
     }
 
-    public function comparar(Request $request, $capa)
+    public function listarCapas(Geoservicio $geoservicio)
+    {  
+        if ($geoservicio) {
+            $capas = $geoservicio->getCapas(); 
+            return view('compare_bd.layers', ['geoservicio' => $geoservicio])->with('capas', $capas);
+        } else {
+            return redirect()->route('compare.geoservicios')->with('error', 'No hay Geoservicio seleccionado');
+        }
+    }
+
+    public function listarAtributos(Request $request, Geoservicio $geoservicio)
+    {   
+        if ($geoservicio) {
+            $capa = $request->input('capa');
+            $datos = $geoservicio->getAtributos($capa);
+            $atributos = [];
+            if(isset($datos['featureTypes'][0]['properties'])) {
+                $atributos = $datos['featureTypes'][0]['properties'];
+            }
+            return view('compare_bd.properties', ['geoservicio' => $geoservicio])->with(['capa' => $capa, 'atributos' => $atributos]);   
+        } else {
+            return redirect()->route('compare.geoservicios')->with('error', 'No hay Geoservicio seleccionado');
+        }  
+    }
+
+    public function comparar(Request $request, Geoservicio $geoservicio, $capa)
     {
         $codigo = $request->input('codigo');
         $nombre = $request->input('nombre');
 
         if ($codigo != $nombre) {
-            $comparacion = self::compararProvincias($codigo, $nombre, $capa); //
-            $resultados_sin_geom = [];
-            $geometrias = [];
+            if ($geoservicio) {
+                $comparacion = $this::compararProvincias($geoservicio,$codigo, $nombre, $capa); //
+                $resultados_sin_geom = [];
+                $geometrias = [];
 
-            foreach ($comparacion['resultados'] as $resultado) {
-                $feature = $resultado['feature'];
-                $id = $feature['id'];
-                
-                // modifico el campo feature del resultado para que solo tenga id y properties
-                $resultado['feature'] = [
-                    'id' => $id,
-                    'properties' => $feature['properties']
-                ];
-                $resultados_sin_geom[] = $resultado;
-                
-                // guardo la geometría del feature del resultado por separado
-                $geometrias[$id] = $feature['geometry'];
+                foreach ($comparacion['resultados'] as $resultado) {
+                    $feature = $resultado['feature'];
+                    $id = $feature['id'];
+                    
+                    // modifico el campo feature del resultado para que solo tenga id y properties
+                    $resultado['feature'] = [
+                        'id' => $id,
+                        'properties' => $feature['properties']
+                    ];
+                    $resultados_sin_geom[] = $resultado;
+                    
+                    // guardo la geometría del feature del resultado por separado
+                    $geometrias[$id] = $feature['geometry'];
+                }
+                return view('compare_bd.informe')->with([
+                    'capa' => $capa, 
+                    'tabla' => "Provincia", //esto junto a la función que se llama para comparar dependerá de la capa
+                    'resultados' => $resultados_sin_geom, 
+                    'geometrias' => $geometrias,
+                    'elementos_erroneos' => $comparacion['elementos_erroneos'], 
+                    'total_errores' => $comparacion['total_errores'], 
+                    'cod' => $codigo, 
+                    'nom' => $nombre,
+                    'operativo' => "-", //TO-DO
+                    'datetime' => Carbon::now(),
+                    'usuario' => Auth::user(),
+                    'geoservicio' => $geoservicio,
+                    'tipo_informe' => "resultado"
+                ]);   
+            } else {
+                return redirect()->route('compare.geoservicios')->with('error', 'No hay Geoservicio seleccionado');
             }
-            return view('compare_bd.informe')->with([
-                'capa' => $capa, 
-                'tabla' => "Provincia", //esto junto a la función que se llama para comparar dependerá de la capa
-                'resultados' => $resultados_sin_geom, 
-                'geometrias' => $geometrias,
-                'elementos_erroneos' => $comparacion['elementos_erroneos'], 
-                'total_errores' => $comparacion['total_errores'], 
-                'cod' => $codigo, 
-                'nom' => $nombre,
-                'operativo' => "-", //TO-DO
-                'datetime' => Carbon::now(),
-                'usuario' => Auth::user(),
-                'tipo_informe' => "resultado"
-            ]);   
         } else {
             flash("Los campos seleccionados deben ser diferentes")->error();
             return back();
         }
     }
 
-    private function compararProvincias($codigo, $nombre, $capa)
-    {
-        $datos = self::getCapa($capa);
-        $provincias = Provincia::all();
+    private function compararProvincias(Geoservicio $geoservicio, $codigo, $nombre, $capa)
+    {   
+        if ($geoservicio) {
+            $datos = $geoservicio->getCapa($capa);
+            $provincias = Provincia::all();
 
-        $resultados = [];
-        $elementos_erroneos = 0;
-        $total_errores = 0;
+            $resultados = [];
+            $elementos_erroneos = 0;
+            $total_errores = 0;
 
-        foreach ($datos['features'] as $feature) {
-            $provinciaCoincidente = null;
-            $existe_cod = $existe_nom = false;
-            $errores = 0;
+            foreach ($datos['features'] as $feature) {
+                $provinciaCoincidente = null;
+                $existe_cod = $existe_nom = false;
+                $errores = 0;
 
-            $provinciasCoincidentes = $provincias->filter(function ($provincia) use ($feature, $codigo) {
-                return trim(strval($provincia->codigo)) == trim(strval($feature['properties'][$codigo]));
-            });
-    
-            if (!$provinciasCoincidentes->isEmpty()) {
-                $existe_cod = true;
-                $provinciaCoincidente = $provinciasCoincidentes->first();
-            }
-
-            $provinciasCoincidentes = $provincias->filter(function ($provincia) use ($feature, $nombre) {
-                return trim(strval($provincia->nombre)) == trim(strval($feature['properties'][$nombre]));
-            });
-            if (!$provinciasCoincidentes->isEmpty()) {
-                $existe_nom = true;
-                if ($existe_cod == false) {
+                $provinciasCoincidentes = $provincias->filter(function ($provincia) use ($feature, $codigo) {
+                    return trim(strval($provincia->codigo)) == trim(strval($feature['properties'][$codigo]));
+                });
+        
+                if (!$provinciasCoincidentes->isEmpty()) {
+                    $existe_cod = true;
                     $provinciaCoincidente = $provinciasCoincidentes->first();
                 }
-            }
 
-            $estado_geom = "-";
-            if ($existe_cod) {
-                if ($existe_nom) {
-                    $estado = "OK";
-                    $estado_geom = self::chequearEstadoGeometrias($provinciaCoincidente, $feature);
+                $provinciasCoincidentes = $provincias->filter(function ($provincia) use ($feature, $nombre) {
+                    return trim(strval($provincia->nombre)) == trim(strval($feature['properties'][$nombre]));
+                });
+                if (!$provinciasCoincidentes->isEmpty()) {
+                    $existe_nom = true;
+                    if ($existe_cod == false) {
+                        $provinciaCoincidente = $provinciasCoincidentes->first();
+                    }
+                }
+
+                $estado_geom = "-";
+                if ($existe_cod) {
+                    if ($existe_nom) {
+                        $estado = "OK";
+                        $estado_geom = $this::chequearEstadoGeometrias($provinciaCoincidente, $feature);
+                    } else {
+                        $estado = "Diferencia en el nombre";
+                        $elementos_erroneos++;
+                        $errores++;
+                    }
                 } else {
-                    $estado = "Diferencia en el nombre";
                     $elementos_erroneos++;
                     $errores++;
+                    if ($existe_nom) {
+                        $estado = "Diferencia en el código";
+                    } else {
+                        $estado = "No hay coincidencias";
+                        $errores++;
+                    }
                 }
-            } else {
-                $elementos_erroneos++;
-                $errores++;
-                if ($existe_nom) {
-                    $estado = "Diferencia en el código";
-                } else {
-                    $estado = "No hay coincidencias";
-                    $errores++;
-                }
+
+                $total_errores += $errores;
+
+                $resultados[] = [
+                    'feature' => $feature,
+                    'provincia' => $provinciaCoincidente,
+                    'existe_cod' => $existe_cod,
+                    'existe_nom' => $existe_nom,
+                    'estado' => $estado,
+                    'estado_geom' => $estado_geom,
+                    'errores' => $errores
+                ];
             }
-
-            $total_errores += $errores;
-
-            $resultados[] = [
-                'feature' => $feature,
-                'provincia' => $provinciaCoincidente,
-                'existe_cod' => $existe_cod,
-                'existe_nom' => $existe_nom,
-                'estado' => $estado,
-                'estado_geom' => $estado_geom,
-                'errores' => $errores
-            ];
+            
+            return ['resultados' => $resultados, 'elementos_erroneos' => $elementos_erroneos, 'total_errores' => $total_errores];
+        } else {
+            return redirect()->route('compare.geoservicios')->with('error', 'No hay Geoservicio seleccionado');
         }
-        
-        return ['resultados' => $resultados, 'elementos_erroneos' => $elementos_erroneos, 'total_errores' => $total_errores];
     }
 
     public function storeInforme(Request $request)
-    {
+    {   
         $informe = Informe::create([
             'capa' => $request->input('capa'),
             'tabla' => $request->input('tabla'),
@@ -261,6 +278,7 @@ class CompareController extends Controller
             'operativo_id' => null,
             'datetime' => $request->input('datetime'),
             'user_id' => $request->input('user_id'),
+            'geoservicio_id' => $request->input('geoservicio')['id']
         ]);
         
         //guardo los resultados del informe (por el momento solo para provincias)

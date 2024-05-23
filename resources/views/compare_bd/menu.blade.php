@@ -7,7 +7,7 @@
     </div>
     <br>
     <div class="row justify-content-center">
-        <a type="button" href="{{ route('compare.capas') }}" class="btn btn-outline-primary btn-lg btn-block" type="button">Nueva comparación</a>
+        <a type="button" href="{{ route('compare.geoservicios') }}" class="btn btn-outline-primary btn-lg btn-block" type="button">Nueva comparación</a>
         <a type="button" href="{{ route('compare.informes') }}"class="btn btn-outline-secondary btn-lg btn-block" type="button">Ver informes anteriores</a>
     </div>
 </div>

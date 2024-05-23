@@ -2,17 +2,23 @@
 
 @section('content_main')
 <div class="container justify-content-center" style="width: 50%">
-    <div class="alert alert-warning justify-content-center" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <b>ATENCIÓN:</b> Función en desarrollo. La comparación de la capa se realizará contra la tabla Provincia.
+    <div id="alert-container">
+        <div class="alert alert-warning justify-content-center" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <b>ATENCIÓN:</b> Función en desarrollo. La comparación de la capa se realizará contra la tabla Provincia.
+        </div>
     </div>
+    <div class="row justify-content-center">   
+        <h3>Validación de Base de Datos con capas de {{$geoservicio->nombre}}</h3>
+    </div>
+    <br>
     <div class="row justify-content-center">
         <div class="card" style="width: 50rem;">
             <div class="card-header">
-                Seleccionar campos a comparar para la capa <b>{{ $capa }}</b>
+                Seleccionar campos a comparar para la capa <b>{{explode(':', $capa)[1] }}</b>
             </div>
             <div class="card-body">
-                <form action="{{ route('compare.comparar', ['capa' => $capa]) }}" method="POST">
+                <form action="{{ route('compare.comparar', ['geoservicio' => $geoservicio, 'capa' => $capa]) }}" method="POST">
                     @csrf
                     <div class="row">
                         <div class="col-lg-6">
@@ -36,7 +42,7 @@
                     </div>
                     <br>
                     <button type="submit" class="btn btn-primary">Comparar</button>
-                    <a type="button" href="{{route('compare.capas')}}" class="btn btn-secondary ml-2">Volver</a>
+                    <a type="button" href="{{route('compare.capas', ['geoservicio' => $geoservicio])}}" class="btn btn-secondary ml-2">Volver</a>
                 </form>
             </div>
         </div>
