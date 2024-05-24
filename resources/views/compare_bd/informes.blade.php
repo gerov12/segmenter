@@ -32,9 +32,11 @@
                             <tr>
                                 <td>
                                 @if ($informe->geoservicio_id)
-                                    {{ $informe->geoservicio->nombre }}
+                                    {{ $informe->geoservicio->nombre }}<br>
+                                    <i>{{ $informe->geoservicio->url }}</i>
                                 @else
-                                    -
+                                    {{ $informe->geoservicio_nombre }} <span title="Conexión rápida" class="badge badge-pill badge-success"><i class="bi bi-lightning-charge"></i></span><br>
+                                    <i>{{ $informe->geoservicio_url }}</i>
                                 @endif
                                 </td>
                                 <td>{{explode(':', $informe->capa)[1] }}</td>

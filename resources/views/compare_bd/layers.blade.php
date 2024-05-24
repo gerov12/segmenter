@@ -24,7 +24,7 @@
                 Seleccionar capa para la comparación
             </div>
             <div class="card-body">
-                <form action="{{ route('compare.atributos', ['geoservicio' => $geoservicio]) }}" method="POST">
+                <form action="{{ route('compare.atributos', ['geoservicio' => json_encode($geoservicio)]) }}" method="POST">
                     @csrf
                     <div class="row justify-content-center">
                         <div class="col-lg-15">  

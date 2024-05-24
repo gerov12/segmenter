@@ -25,6 +25,8 @@ return new class extends Migration
             $table->timestamp('datetime');
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('geoservicio_id')->nullable();
+            $table->string('geoservicio_url')->nullable();
+            $table->string('geoservicio_nombre')->nullable();
             $table->timestamps();
 
             $table->foreign('operativo_id')->references('id')->on('operativo');

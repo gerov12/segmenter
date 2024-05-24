@@ -97,7 +97,7 @@
                 </form>
             </div>
             <div class="modal-footer d-flex justify-content-center">
-                <button type="button" title="En desarrollo..." disabled class="btn btn-success" onclick="submitForm('geoservicios/initialize')">Conexión rápida</button>
+                <button type="button" class="btn btn-success" onclick="submitForm('geoservicios/initialize')">Conexión rápida <i class="bi bi-lightning-charge"></i></button>
                 <div class="btn-group">
                     <button type="button" class="btn btn-primary" onclick="submitForm('geoservicios/store-and-connect')">Guardar y seleccionar</button>
                     <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

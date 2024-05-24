@@ -11,7 +11,12 @@ class Geoservicio extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nombre', 'descripcion', 'url', 'tipo'];
+    protected $fillable = [
+        'id', //null para los geoservicios temporales (conexión rápida)
+        'nombre', 
+        'descripcion', 
+        'url', 
+        'tipo'];
 
     public function informes()
     {

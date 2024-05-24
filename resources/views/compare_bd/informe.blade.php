@@ -348,7 +348,6 @@
             spinner.show();
             btnText.hide();
 
-            console.log(button.data('geoservicio'));
             var data = {
                 _token: '{{ csrf_token() }}',
                 capa: button.data('capa'),

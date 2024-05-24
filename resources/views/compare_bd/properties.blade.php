@@ -18,7 +18,7 @@
                 Seleccionar campos a comparar para la capa <b>{{explode(':', $capa)[1] }}</b>
             </div>
             <div class="card-body">
-                <form action="{{ route('compare.comparar', ['geoservicio' => $geoservicio, 'capa' => $capa]) }}" method="POST">
+                <form action="{{ route('compare.validar', ['geoservicio' => json_encode($geoservicio), 'capa' => $capa]) }}" method="POST">
                     @csrf
                     <div class="row">
                         <div class="col-lg-6">

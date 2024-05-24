@@ -103,7 +103,7 @@ class CompareController extends Controller
                 'tipo' => 'required|string',
             ]);
     
-            $geoservicio = Geoservicio::make([ //distinto de Geoservicio::create, en este caso NO se almacena en la BD, es una conexión rápida
+            $geoservicio = new Geoservicio([ //distinto de Geoservicio::create, en este caso NO se almacena en la BD, es una conexión rápida
                 'nombre' => $request->nombre,
                 'descripcion' => $request->descripcion,
                 'url' => $request->url,
@@ -117,15 +117,18 @@ class CompareController extends Controller
         }
 
         if ($geoservicio->testConnection()) {
-            return redirect()->route('compare.capas', ['geoservicio' => $geoservicio])->with('message', 'Conexión existosa con el Geoservicio!');
+            return redirect()->route('compare.capas', ['geoservicio' => json_encode($geoservicio)])->with('message', 'Conexión existosa con el Geoservicio!');
         } else {
             return redirect()->route('compare.geoservicios')->with('error', 'Error al conectar con el Geoservicio');
         }
     }
 
-    public function listarCapas(Geoservicio $geoservicio)
+    public function listarCapas(Request $request)
     {  
-        if ($geoservicio) {
+        $geoservicioJson = $request->query('geoservicio');
+        $geoservicioData = json_decode($geoservicioJson, true);
+        if ($geoservicioData) {
+            $geoservicio = new Geoservicio($geoservicioData);
             $capas = $geoservicio->getCapas(); 
             return view('compare_bd.layers', ['geoservicio' => $geoservicio])->with('capas', $capas);
         } else {
@@ -133,9 +136,12 @@ class CompareController extends Controller
         }
     }
 
-    public function listarAtributos(Request $request, Geoservicio $geoservicio)
+    public function listarAtributos(Request $request)
     {   
-        if ($geoservicio) {
+        $geoservicioJson = $request->query('geoservicio');
+        $geoservicioData = json_decode($geoservicioJson, true);
+        if ($geoservicioData) {
+            $geoservicio = new Geoservicio($geoservicioData);
             $capa = $request->input('capa');
             $datos = $geoservicio->getAtributos($capa);
             $atributos = [];
@@ -148,13 +154,16 @@ class CompareController extends Controller
         }  
     }
 
-    public function comparar(Request $request, Geoservicio $geoservicio, $capa)
+    public function validar(Request $request, $capa)
     {
         $codigo = $request->input('codigo');
         $nombre = $request->input('nombre');
 
         if ($codigo != $nombre) {
-            if ($geoservicio) {
+            $geoservicioJson = $request->query('geoservicio');
+            $geoservicioData = json_decode($geoservicioJson, true);
+            if ($geoservicioData) {
+                $geoservicio = new Geoservicio($geoservicioData);
                 $comparacion = $this::compararProvincias($geoservicio,$codigo, $nombre, $capa); //
                 $resultados_sin_geom = [];
                 $geometrias = [];
@@ -273,6 +282,10 @@ class CompareController extends Controller
 
     public function storeInforme(Request $request)
     {   
+        $geoservicio = $request->input('geoservicio');
+        $geoservicio_id = $geoservicio['id'] ?? null;
+        $geoservicio_url = $geoservicio_id ? null : $geoservicio['url']; //solo para las conexiones rapidas guardo la url ya que no hay id
+        $geoservicio_nombre = $geoservicio_id ? null : $geoservicio['nombre']; //solo para las conexiones rapidas guardo el nombre ya que no hay id
         $informe = Informe::create([
             'capa' => $request->input('capa'),
             'tabla' => $request->input('tabla'),
@@ -283,7 +296,9 @@ class CompareController extends Controller
             'operativo_id' => null,
             'datetime' => $request->input('datetime'),
             'user_id' => $request->input('user_id'),
-            'geoservicio_id' => $request->input('geoservicio')['id']
+            'geoservicio_id' => $geoservicio_id,
+            'geoservicio_url' => $geoservicio_url,
+            'geoservicio_nombre' => $geoservicio_nombre 
         ]);
         
         //guardo los resultados del informe (por el momento solo para provincias)

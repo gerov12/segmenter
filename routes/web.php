@@ -243,9 +243,9 @@ Route::get('compare/geoservicios/', 'CompareController@listarGeoservicios')->nam
 Route::post('compare/geoservicios/store', 'GeoservicioController@store')->name('compare.storeGeoservicio');
 Route::post('compare/geoservicios/initialize', 'CompareController@inicializarGeoservicio')->name('compare.initGeoservicio');
 Route::post('compare/geoservicios/store-and-connect', 'GeoservicioController@storeAndConnect')->name('compare.storeGeoservicioAndConnect');
-Route::get('compare/geoservicios/{geoservicio}/capas/', 'CompareController@listarCapas')->name('compare.capas');
-Route::post('compare/geoservicios/{geoservicio}/atributos/', 'CompareController@listarAtributos')->name('compare.atributos');
-Route::post('compare/geoservicios/comparar/{geoservicio}/{capa}', 'CompareController@comparar')->name('compare.comparar');
+Route::get('compare/capas/', 'CompareController@listarCapas')->name('compare.capas');
+Route::post('compare/atributos/', 'CompareController@listarAtributos')->name('compare.atributos');
+Route::post('compare/validar/{capa}', 'CompareController@validar')->name('compare.validar');
 Route::post('compare/geom_import', 'CompareController@importarGeometria')->name('compare.importarGeom');
 Route::post('compare/store_informe', 'CompareController@storeInforme')->name('compare.storeInforme');
 
