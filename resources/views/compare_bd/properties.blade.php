@@ -42,7 +42,7 @@
                     </div>
                     <br>
                     <button type="submit" class="btn btn-primary">Comparar</button>
-                    <a type="button" href="{{route('compare.capas', ['geoservicio' => $geoservicio])}}" class="btn btn-secondary ml-2">Volver</a>
+                    <a type="button" href="{{route('compare.capas', ['geoservicio' => json_encode($geoservicio)])}}" class="btn btn-secondary ml-2">Volver</a>
                 </form>
             </div>
         </div>
