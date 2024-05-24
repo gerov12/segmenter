@@ -14,6 +14,12 @@
         justify-content: right;
         align-items: top;
     }
+    .highlight {
+        background-color: #d4edda !important; /* verde claro */
+    }
+    tr {
+      transition: background-color 1s;
+    }
 
 </style>
 <div class="container">
@@ -154,7 +160,7 @@
                                     <td style="text-align: center; vertical-align: middle;">
                                         {{ $resultado['estado'] }}
                                     </td>
-                                    <td style="text-align: center; vertical-align: middle;">
+                                    <td style="text-align: center; vertical-align: middle;" id="estado_geom_{{$resultado['provincia']['codigo']}}">
                                     @if ($resultado['estado_geom'] == 'No hay geometría cargada en el geoservicio')
                                         Base de Datos: <i style="color:green" class="bi bi-check"></i><br>
                                         Geoservicio: <i style="color:red" class="bi bi-x"></i>
@@ -272,6 +278,7 @@
             var cod_provincia = $(this).data('cod-prov');
             var geomFeature = JSON.stringify($(this).data('geom-feature'));
             var $button = $(this);
+            var $row = $button.closest('tr');
 
             function importaGeometriaAjax() {
                 $.ajax({
@@ -291,6 +298,17 @@
                         $('#alert-container').html(alertHtml);
                         if (response.statusCode == 200){
                             $button.hide();
+                            var tdId = '#estado_geom_' + cod_provincia;
+                            $(tdId).html(
+                                'Base de Datos: <i style="color:green" class="bi bi-check"></i><br>' +
+                                'Geoservicio: <i style="color:green" class="bi bi-check"></i><br>' +
+                                'Diferencia: <i>' + response.estado_geom + '</i>'
+                            );
+                            // resalto la fila
+                            $row.addClass('highlight');
+                            setTimeout(function() {
+                                $row.removeClass('highlight');
+                            }, 2000);
                         }
                     },
                     error: function(xhr, status, error) {

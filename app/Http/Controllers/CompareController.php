@@ -28,14 +28,19 @@ class CompareController extends Controller
         return Geoservicio::find($geoservicioId);
     }
 
-    private function chequearEstadoGeometrias($provinciaCoincidente, $feature)
+    private function chequearEstadoGeometrias($provinciaCoincidente, $feature=null, $feature_geometry=null)
     {   
         if ($provinciaCoincidente->geometria !== null) {
-            if($feature['geometry'] !== null) {
+            if ($feature !== null) {
+                if ($feature['geometry'] !== null) {
+                    $estado_geom = "Calculo en desarrollo..."; //CALCULAR
+                } else {
+                    $estado_geom = "No hay geometría cargada en el geoservicio";
+                }
+            } else if ($feature_geometry !== null){ //si entré por importarGeometria (el if debería dar siempre true)
                 $estado_geom = "Calculo en desarrollo..."; //CALCULAR
-            } else {
-                $estado_geom = "No hay geometría cargada en el geoservicio";
             }
+            
         } else {
             if($feature['geometry'] !== null) {
                 $estado_geom = "No hay geometría cargada en la BD";
@@ -306,7 +311,8 @@ class CompareController extends Controller
         $geomFeature = $request->input('geom_feature');
         $id_new_geom = $provincia->setGeometriaAttribute($geomFeature);
         if ($id_new_geom !== null) {
-            return response()->json(['statusCode'=> 200, 'message' => "Geometría importada correctamente. ID de nueva geometría: ".$id_new_geom]); //mostrar id de geometría?
+            $nuevo_estado = $this::chequearEstadoGeometrias($provincia, null, $geomFeature);
+            return response()->json(['statusCode'=> 200, 'estado_geom' => $nuevo_estado, 'message' => "Geometría importada correctamente. ID de nueva geometría: ".$id_new_geom]); //mostrar id de geometría?
         } else {
             return response()->json(['statusCode'=> 500, 'message' => "Error al importar la geometría."]);
         }
