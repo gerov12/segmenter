@@ -1,25 +1,26 @@
 @extends('layouts.app')
 
 @section('content_main')
-<div class="container">
+<div style="width:60%; margin: 0 auto;">
     <div style="display: flex; align-items: center; justify-content: center;">
         <div style="width: 90rem; display: flex; align-items: center;"> 
         <h4><a href="{{route('compare.menu')}}" class="badge badge-pill badge-primary">← Volver</a></h4>
         </div>
     </div>
     <div class="row justify-content-center"> 
-        <div class="card" style="width: 120%">
+        <div class="card">
             <div class="card-header">
                 Listado de informes de validación de la Base de Datos contra Geoservicios
             </div>
             <div class="card-body">
-                <table class="table table-bordered" id="tabla-informes" style="width:100%">
+                <table class="table table-responsive table-bordered" id="tabla-informes">
                     <thead>
                         <tr>
                             <th>Geoservicio</th>
                             <th>Capa</th>
                             <th>Tabla</th>
                             <th>Operativo</th>
+                            <th>Elementos encontrados</th>
                             <th>Elementos con error</th>
                             <th>Errores totales</th>
                             <th>Usuario</th>
@@ -42,6 +43,7 @@
                                 <td>{{explode(':', $informe->capa)[1] }}</td>
                                 <td>{{$informe->tabla}}</td>
                                 <td>{{$informe->operativo}}</td>
+                                <td>{{$informe->provincias()->count()}}</td>
                                 <td>{{$informe->elementos_erroneos}}</td>
                                 <td>{{$informe->total_errores}}</td>
                                 <td>{{$informe->user->name}}</td>

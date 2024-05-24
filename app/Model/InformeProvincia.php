@@ -2,15 +2,13 @@
 
 namespace App\Model;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\Model;
 
 use App\Model\Provincia;
 
-class InformeProvincia extends Model
+class InformeProvincia extends Pivot
 {
-    use HasFactory;
-
     protected $table = 'informe_provincia';
 
     public function provincia()
