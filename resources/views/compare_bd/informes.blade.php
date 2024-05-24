@@ -37,7 +37,7 @@
                                     -
                                 @endif
                                 </td>
-                                <td>{{$informe->capa}}</td>
+                                <td>{{explode(':', $informe->capa)[1] }}</td>
                                 <td>{{$informe->tabla}}</td>
                                 <td>{{$informe->operativo}}</td>
                                 <td>{{$informe->elementos_erroneos}}</td>

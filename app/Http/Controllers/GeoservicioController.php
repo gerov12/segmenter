@@ -6,33 +6,12 @@ use Illuminate\Http\Request;
 use App\Model\Geoservicio;
 
 class GeoservicioController extends Controller
-{
-    public function store(Request $request)
-    {
+{   
+    private function create(Request $request){
         $request->validate([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string|max:255',
-            'url' => 'required|url',
-            'tipo' => 'required|string',
-        ]);
-
-        Geoservicio::create([
-            'nombre' => $request->nombre,
-            'descripcion' => $request->descripcion,
-            'url' => $request->url,
-            'tipo' => $request->tipo,
-        ]);
-
-        flash("Geoservicio guardado!")->success();
-        return redirect()->route('compare.geoservicios');
-    }
-
-    public function storeAndConnect(Request $request)
-    {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string|max:255',
-            'url' => 'required|url',
+            'url' => ['required', 'url', 'regex:/\/$/'],
             'tipo' => 'required|string',
         ]);
 
@@ -42,6 +21,21 @@ class GeoservicioController extends Controller
             'url' => $request->url,
             'tipo' => $request->tipo,
         ]);
+
+        return $geoservicio;
+    }
+
+    public function store(Request $request)
+    {
+        $this::create($request);
+
+        flash("Geoservicio guardado!")->success();
+        return redirect()->route('compare.geoservicios');
+    }
+
+    public function storeAndConnect(Request $request)
+    {
+        $geoservicio = $this::create($request);
 
         $request = new Request();
         $request->merge(['geoservicio_id' => $geoservicio->id]);

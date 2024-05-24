@@ -63,7 +63,13 @@
     <div class="row justify-content-center"> 
         <div class="card" style="width: 120%">
             <div class="card-header">
-                Resultado de la comparación de la capa <b>{{ $capa }}</b> con la tabla de <b>{{ $tabla }}s</b>
+                Resultado de la comparación de la capa <b>{{explode(':', $capa)[1] }}</b> de 
+                @if ($geoservicio)
+                    <b>{{ $geoservicio->nombre }}</b>  
+                @else
+                    <b>-</b> 
+                @endif 
+                con la tabla de <b>{{ $tabla }}s</b>
             </div>
             <div class="card-body">
                 <div class="top-container">

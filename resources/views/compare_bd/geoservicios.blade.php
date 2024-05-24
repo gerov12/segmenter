@@ -67,20 +67,32 @@
                     <div class="form-group">
                         <label for="nombre">Nombre:</label>
                         <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        @if ($errors->has('nombre'))
+                            <div class="text-danger">{{ $errors->first('nombre') }}</div>
+                        @endif
                     </div>
                     <div class="form-group">
                         <label for="descripcion">Descripción (opcional):</label>
                         <input type="text" class="form-control" id="descripcion" name="descripcion">
+                        @if ($errors->has('descripcion'))
+                            <div class="text-danger">{{ $errors->first('descripcion') }}</div>
+                        @endif
                     </div>
                     <div class="form-group">
                         <label for="url">URL: <i>Debe finalizar con "/"</i></label>
                         <input type="url" class="form-control" id="url" name="url" required>
+                        @if ($errors->has('url'))
+                            <div class="text-danger">{{ $errors->first('url') }}</div>
+                        @endif
                     </div>
                     <div class="form-group">
                         <label for="tipo">Tipo:</label>
                         <select class="form-control" id="tipo" name="tipo" required>
                             <option value="wfs">WFS</option>
                         </select>
+                        @if ($errors->has('tipo'))
+                            <div class="text-danger">{{ $errors->first('tipo') }}</div>
+                        @endif
                     </div>
                 </form>
             </div>
@@ -103,6 +115,11 @@
 @endsection
 @section('footer_scripts')
 <script>
+    @if ($errors->any())
+        $(document).ready(function() {
+            $('#nuevoGeoservicioModal').modal('show');
+        });
+    @endif
     function submitForm(action) {
         const form = document.getElementById('nuevoGeoservicioForm');
         form.action = action;

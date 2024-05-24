@@ -99,7 +99,7 @@ class CompareController extends Controller
             $request->validate([
                 'nombre' => 'required|string|max:255',
                 'descripcion' => 'nullable|string|max:255',
-                'url' => 'required|url',
+                'url' => ['required', 'url', 'regex:/\/$/'],
                 'tipo' => 'required|string',
             ]);
     
