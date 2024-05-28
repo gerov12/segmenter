@@ -10,7 +10,7 @@ class Geometria extends Model
     //
     protected $table='geometrias';
     protected $primaryKey = 'id';
-    protected $fillable = ['poligono', 'punto', 'topogeometria'];
+    protected $fillable = ['multipoligono', 'multilinea', 'multipunto', 'topogeometria'];
 
 
     /**
