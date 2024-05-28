@@ -23,6 +23,16 @@ class Geometria extends Model
         return $this->hasMany('App\Model\Entidad');
     }
 
+    /**
+     * Relación con Provincia.
+     *
+     */
+
+     public function provincia()
+     {
+         return $this->hasMany('App\Model\Provincia');
+     }
+
       // return SVG Geometria poligono
     public function getSVG( $width = 600, $height = 400) {
       //    Utiliza tablas listado_geo, r3 junto a segmentacion y manzanas.
