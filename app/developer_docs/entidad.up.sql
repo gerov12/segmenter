@@ -68,3 +68,40 @@ ALTER TABLE ONLY public.entidad ALTER COLUMN id SET DEFAULT nextval('public.enti
 -- PostgreSQL database dump complete
 --
 
+
+CREATE INDEX entidad_codigo_index
+    ON public.entidad USING btree
+    (codigo COLLATE pg_catalog."default" ASC NULLS LAST)
+    TABLESPACE pg_default;
+-- Index: entidad_id_index
+
+-- DROP INDEX public.entidad_id_index;
+
+CREATE INDEX entidad_id_index
+    ON public.entidad USING btree
+    (id ASC NULLS LAST)
+    TABLESPACE pg_default;
+-- Index: entidad_localidad_id_index
+
+-- DROP INDEX public.entidad_localidad_id_index;
+
+CREATE INDEX entidad_localidad_id_index
+    ON public.entidad USING btree
+    (localidad_id ASC NULLS LAST)
+    TABLESPACE pg_default;
+-- Index: entidad_nombre_index
+
+-- DROP INDEX public.entidad_nombre_index;
+
+CREATE INDEX entidad_nombre_index
+    ON public.entidad USING btree
+    (nombre COLLATE pg_catalog."default" ASC NULLS LAST)
+    TABLESPACE pg_default;
+-- Index: entidad_gobierno_local_index
+
+-- DROP INDEX public.entidad_nombre_index;
+
+CREATE INDEX entidad_gobierno_local_index
+    ON public.entidad USING btree
+    (gobierno_local_id COLLATE pg_catalog."default" ASC NULLS LAST)
+    TABLESPACE pg_default;
