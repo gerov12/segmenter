@@ -50,17 +50,18 @@
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav mr-auto btn">
                     @auth
-                        <li class="nav-item"><a class="nav-link" href="{{ url('/home') }}"> Inicio </a> </li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url('/provs') }}"> Provincias </a> </li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url('/aglos') }}"> Aglomerados </a> </li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url('/localidades') }}"> Localidades </a> </li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url('/entidades') }}"> Entidades </a> </li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url('/segmentador') }}"> Cargar </a> </li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url('/archivos') }}"> Archivos </a> </li>
-                        <li class="nav-item"><a class="nav-link" href="{{
+                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/home') }}"> Inicio </a> </li>
+                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/provs') }}"> Provincias </a> </li>
+                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/aglos') }}"> Aglomerados </a> </li>
+                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/localidades') }}"> Localidades </a> </li>
+                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/entidades') }}"> Entidades </a> </li>
+                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/segmentador') }}"> Cargar </a> </li>
+                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/archivos') }}"> Archivos </a> </li>
+                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ route('compare.menu') }}"> Validar BD </a> </li>
+                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{
                         url('https://github.com/bichav/salidagrafica-atlas/archive/master.zip')
                         }}"> Descargar plugin </a> </li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url('/guia') }}"> Guia </a> </li>
+                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/guia') }}"> Guia </a> </li>
                     @endauth
                     </ul>
 

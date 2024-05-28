@@ -27,16 +27,17 @@ public function model(array $row)
 {
     //validar los encabezados de la fiila
    // $this->validarEncabezados($row);
-    
+   $row = array_change_key_case($row, CASE_LOWER);
+
     try {
         // Map missing or incorrect fields to expected names
         $data = [
             'prov' => $row['prov'],
-            'nom_prov' => $row['nom_prov'] ?? $row['nomprov'] ,
+            'nom_prov' => $row['nom_prov'] ?? $row['nomprov'] ?? null,
             'dpto' => $row['dpto'] ?? $row['depto'] ,
-            'nom_dpto' => $row['nom_dpto'] ?? $row['nomdepto'] ,
+            'nom_dpto' => $row['nom_dpto'] ?? $row['nomdepto'] ?? null,
             'codloc' => $row['codloc'] ?? null,
-            'nom_loc' => $row['nom_loc'] ?? $row['nomloc'] ,
+            'nom_loc' => $row['nom_loc'] ?? $row['nomloc'] ?? null,
             'codent' => $row['codent'] ?? '1',
             'nom_ent' => $row['nom_ent'] ?? '1',
             'frac' => $row['frac'] ,
@@ -51,14 +52,14 @@ public function model(array $row)
 
         } catch (\ErrorException $e) {
         Log::error('Error durante la importación: ' . $e);
-  
+
         // Obtener información sobre el campo y el valor recibido
         $campo = $e->getMessage();
         $valorRecibido = $row[$campo] ?? 'Incorrecto ';
-  
+
         // Agregar un mensaje a la colección de errores
         $this->errores[] = "Error en el campo '$campo': valor recibido '$valorRecibido' no es válido.";
-  
+
         // Retornar un valor nulo para omitir esta fila
         if (!$this->errorMostrado) { // Solo mostrar el error si no se ha mostrado antes
             flash('Error en el campo '. $campo . ': valor recibido ' . $valorRecibido . ' no es válido')->error()->important();
@@ -66,7 +67,7 @@ public function model(array $row)
         }
         return null;
     }
-    
+
 }
     public function batchSize(): int
     {

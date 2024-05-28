@@ -22,7 +22,7 @@ class ArchivoController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
-    {   
+    {
         $user = Auth::user();
         $archivos = self::retrieveFiles($user);
         $count_archivos = $archivos->count();
@@ -79,7 +79,7 @@ class ArchivoController extends Controller
                         //Log::info($data->nombre_original.' checksum ok!');
                     }
                     if (!$data->checkStorage()){
-                        $storageOk = false;       
+                        $storageOk = false;
                         $info .= '<span class="badge badge-pill badge-dark"><span class="bi bi-archive" style="font-size: 0.8rem; color: rgb(255, 255, 255);"> Problema de storage</span></span><br>';
                     }
                     if ($unico and $checksumCalculado and $checksumCorrecto and $storageOk){
@@ -118,7 +118,7 @@ class ArchivoController extends Controller
         }
 
         return view('archivo.list')->with([
-            'data' => $archivos, 
+            'data' => $archivos,
             'count_archivos_repetidos' => $count_estados["repetidos"],
             'count_null_checksums' => $count_estados["null"],
             'count_error_checksums' => $count_estados["error"],
@@ -163,7 +163,7 @@ class ArchivoController extends Controller
             return $archivo->checksum_control == null;
         })->count();
 
-        $controlled_checksums = $archivos->reject(function ($archivo) { 
+        $controlled_checksums = $archivos->reject(function ($archivo) {
             return $archivo->checksum_control == null; // que tengan checksum_control
         });
 
@@ -219,18 +219,22 @@ class ArchivoController extends Controller
      */
     public function show(Request $request, Archivo $archivo)
     {
-    	//
-///      return response($request->format);
+
       $result = Archivo::withCount(['viewers','copias'])->with(['user','checksum_control','original', 'original.user'])->findOrFail($archivo->id);
-      if ($request->format == 'html') {
-        $size = $result->size;
-        if ( $size > 0 ) {
+
+      $size = $result->size;
+      if ( $size > 0 ) {
         $size = (int) $size;
         $base = log($size) / log(1024);
         $suffixes = array(' bytes', ' KB', ' MB', ' GB', ' TB');
         $result->tamaño = round(pow(1024, $base - floor($base)), 1) . $suffixes[floor($base)];
+      }
+      if( $request->isMethod('post')) {
+        if ($request->format == 'html') {
+          return view('archivo.info')->with(['archivo'=>$result]);
         }
-        return view('archivo.info')->with(['archivo'=>$result]);
+      } elseif ( $request->isMethod('get')) {
+        return view('archivo.view')->with(['archivo'=>$result]);
       }
      	return $result;
 
@@ -327,7 +331,7 @@ class ArchivoController extends Controller
         $archivos = self::retrieveFiles($user);
         $count_estados = self::countEstados($archivos);
         return view('archivo.list')->with([
-            'data' => $archivos, 
+            'data' => $archivos,
             'count_archivos_repetidos' => $count_estados["repetidos"],
             'count_null_checksums' => $count_estados["null"],
             'count_error_checksums' => $count_estados["error"],
@@ -349,14 +353,14 @@ class ArchivoController extends Controller
         $archivos = self::retrieveFiles($user);
         $count_estados = self::countEstados($archivos);
         return view('archivo.list')->with([
-            'data' => $archivos, 
+            'data' => $archivos,
             'count_archivos_repetidos' => $count_estados["repetidos"],
             'count_null_checksums' => $count_estados["null"],
             'count_error_checksums' => $count_estados["error"],
             'count_old_checksums' => $count_estados["old"]
         ]);
     }
-    
+
     //no envio los repetidos directamente desde la vista para permitir acceder a la función directamente por URL sin pasar por el listado
     public function eliminar_repetidos(Request $request, $archivo_id = null) {
 
@@ -377,7 +381,7 @@ class ArchivoController extends Controller
                         $respuesta = ['statusCode'=> 200,'message' => 'Se eliminó la copia ' . $archivo->nombre_original];
                     } else {
                         $respuesta = ['statusCode'=> 403,'message' => 'No tienes permiso para hacer eso.'];
-                    } 
+                    }
                 } else if ($tipo == "bulk") { //bulk de copias de un original
                     $archivo = Archivo::findOrFail($archivo_id);
                     if (($archivo->ownedByUser($user) || $user->can('Administrar Archivos', 'Ver Archivos'))) {

@@ -272,7 +272,7 @@ class SegmenterController extends Controller
      $tabla_segmentos_file->procesar();
      if (!$tabla_segmentos_file->procesado) {
          flash($data['file']['error']='Archivo '.$tabla_segmentos_file->nombre_original.' sin Procesar Tabla de Segmentos por error')->important();
-         Log::error($data['file']['error'],$tabla_segmentos_file);
+         Log::error($data['file']['error'],[$tabla_segmentos_file]);
      }else{
          $esquema=$tabla_segmentos_file->moverData();
          Log::info('Tabla de Segmentos: '.$tabla_segmentos_file->tojson(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
