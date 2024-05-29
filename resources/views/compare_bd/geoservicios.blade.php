@@ -30,8 +30,9 @@
                                         <option value="{{ $geoservicio->id }}">
                                             {{ $geoservicio->nombre }} 
                                             @if ($geoservicio->descripcion)
-                                                <i>({{ $geoservicio->descripcion }})</i>
+                                                <i>({{ $geoservicio->descripcion }}) </i>
                                             @endif
+                                            <i>[{{ $geoservicio->url }}]</i>
                                         </option>
                                     @endforeach
                                 @endif
@@ -79,7 +80,7 @@
                         @endif
                     </div>
                     <div class="form-group">
-                        <label for="url">URL: <i>Debe finalizar con "/"</i></label>
+                        <label for="url">URL:</label>
                         <input type="url" class="form-control" id="url" name="url" required>
                         @if ($errors->has('url'))
                             <div class="text-danger">{{ $errors->first('url') }}</div>

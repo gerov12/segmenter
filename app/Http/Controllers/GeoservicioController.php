@@ -7,18 +7,44 @@ use App\Model\Geoservicio;
 
 class GeoservicioController extends Controller
 {   
+    public function assembleURL($url){
+        $parsedUrl = parse_url($url);
+        $scheme = $parsedUrl['scheme'];
+        $host = $parsedUrl['host'];
+        $path = isset($parsedUrl['path']) ? $parsedUrl['path'] : '';
+        $query = isset($parsedUrl['query']) ? $parsedUrl['query'] : '';
+
+        $baseUrl = $scheme . '://' . $host . $path;
+
+        // si el path no termina en /ows o /wfs, se agrega /ows al final
+        if (!preg_match('/\/(wfs)$/', $baseUrl)) {
+            $baseUrl = rtrim($baseUrl, '/') . '/ows';
+        }
+
+        // proceso los parámetros de consulta existentes
+        parse_str($query, $queryParams);
+
+        // coloco los valores default para los parametros que no hayan sido especificados
+        $queryParams['service'] = $queryParams['service'] ?? 'wfs';
+        $queryParams['version'] = $queryParams['version'] ?? '2.0.0';
+
+        // construyo la URL final con los parametros
+        $finalUrl = $baseUrl . '?' . http_build_query($queryParams);
+        return $finalUrl;
+    }
+
     private function create(Request $request){
         $request->validate([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string|max:255',
-            'url' => ['required', 'url', 'regex:/\/$/'],
+            'url' => ['required', 'url'],
             'tipo' => 'required|string',
         ]);
 
         $geoservicio = Geoservicio::create([
             'nombre' => $request->nombre,
             'descripcion' => $request->descripcion,
-            'url' => $request->url,
+            'url' => $this->assembleURL($request->url),
             'tipo' => $request->tipo,
         ]);
 

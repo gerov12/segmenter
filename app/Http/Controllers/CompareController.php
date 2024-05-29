@@ -17,17 +17,6 @@ class CompareController extends Controller
 {   
     protected $geoservicio;
 
-    public function __construct(Request $request)
-    {
-        $this->geoservicio = $this->loadGeoservicio($request);
-    }
-
-    protected function loadGeoservicio(Request $request)
-    {
-        $geoservicioId = $request->route('geoservicio_id');
-        return Geoservicio::find($geoservicioId);
-    }
-
     private function chequearEstadoGeometrias($provinciaCoincidente, $feature=null, $feature_geometry=null)
     {   
         if ($provinciaCoincidente->geometria !== null) {
@@ -99,19 +88,17 @@ class CompareController extends Controller
             $request->validate([
                 'nombre' => 'required|string|max:255',
                 'descripcion' => 'nullable|string|max:255',
-                'url' => ['required', 'url', 'regex:/\/$/'],
+                'url' => ['required', 'url'],
                 'tipo' => 'required|string',
             ]);
     
             $geoservicio = new Geoservicio([ //distinto de Geoservicio::create, en este caso NO se almacena en la BD, es una conexión rápida
                 'nombre' => $request->nombre,
                 'descripcion' => $request->descripcion,
-                'url' => $request->url,
+                'url' => app(GeoservicioController::class)->assembleURL($request->url),
                 'tipo' => $request->tipo,
             ]);
-
-            //PROBLEMA: $geoservicio al ser una instancia que no se guarda en la bd no tiene id (ni las demas columnas como timestamps por ej), 
-            //por lo que no puedo pasar la variable como parametro a las rutas.
+            
         } else {
             $geoservicio = Geoservicio::find($request->input('geoservicio_id'));
         }
@@ -119,7 +106,9 @@ class CompareController extends Controller
         if ($geoservicio->testConnection()) {
             return redirect()->route('compare.capas', ['geoservicio' => json_encode($geoservicio)])->with('message', 'Conexión existosa con el Geoservicio!');
         } else {
-            return redirect()->route('compare.geoservicios')->with('error', 'Error al conectar con el Geoservicio');
+            flash('Error al conectar con el Geoservicio')->error();
+            $geoservicios = Geoservicio::all(); 
+            return view('compare_bd.geoservicios')->with('geoservicios', $geoservicios);
         }
     }
 

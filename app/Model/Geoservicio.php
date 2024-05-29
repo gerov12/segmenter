@@ -5,6 +5,7 @@ namespace App\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use SimpleXMLElement;
 
 class Geoservicio extends Model
@@ -26,25 +27,47 @@ class Geoservicio extends Model
     public function testConnection()
     {
         try {
-            $response = Http::get($this->url . '/ows', [
-                'service' => 'wfs',
-                'version' => '1.0.0',
+            $response = Http::get($this->url, [
                 'request' => 'GetCapabilities'
             ]);
 
-            return $response->successful();
+            if (!$response->successful()) {
+                throw new \Exception('Error en la solicitud HTTP: ' . $response->status());
+            }
+    
+            // verifico que el contenido sea XML
+            $contentType = $response->header('Content-Type');
+            if (strpos($contentType, 'application/xml') === false && strpos($contentType, 'text/xml') === false) {
+                throw new \Exception('La respuesta no es XML');
+            }
+            // intento cargar el contenido como xml
+            libxml_use_internal_errors(true); //permite el manejo de errores internos de xml (necesario para $exceptionText)
+            $xml = simplexml_load_string($response->body());
+            if ($xml === false) {
+                throw new \Exception('Error al parsear la respuesta XML');
+            }
+
+            // si la petición es incorrecta tendrá la sección ExceptionReport, sino tendra la sección WFS_Capabilities
+            if ($xml->getName() == 'ExceptionReport') {
+                $namespaces = $xml->getNamespaces(true);
+                $ows = $xml->children($namespaces['ows']);
+                $exceptionText = (string) $ows->Exception->ExceptionText;
+                throw new \Exception('Petición invalida: '.$exceptionText);
+            } else if ($xml->getName() == 'WFS_Capabilities') {
+                return true;
+            }
+            
         } catch (\Exception $e) {
+            Log::error('Error al conectar con el geoservicio: ' . $e->getMessage());
             return false;
         }
     }
 
     public function getCapas()
-    {
-        $response = Http::get($this->url . 'ows', [
-            'service' => 'wfs',
-            'version' => '2.0.0',
+    {   
+        $response = Http::get($this->url, [
             'request' => 'GetCapabilities',
-            'section' => 'FeatureTypeList'
+            'section' => 'FeatureTypeList' //para algunos geoservicios no funciona el parametro section, resolver.
         ]);
 
         $xml = $response->body();
@@ -63,16 +86,24 @@ class Geoservicio extends Model
 
     public function getCapa($capa)
     {
-        $url = $this->url . 'ows?service=wfs&version=2.0.0&request=GetFeature&outputFormat=application/json&typeName=' . $capa;
-        $result = file_get_contents($url);
+        $response = Http::get($this->url, [
+            'request' => 'GetFeature',
+            'outputFormat' => 'application/json',
+            'typeName' => $capa
+        ]);
+        $result = $response->body();
         $datos = json_decode($result, true);
         return $datos;
     }
 
     public function getAtributos($capa)
     {
-        $url = $this->url . 'wfs?request=DescribeFeatureType&outputFormat=application/json&typeNames=' . $capa;
-        $result = file_get_contents($url);
+        $response = Http::get($this->url, [
+            'request' => 'DescribeFeatureType',
+            'outputFormat' => 'application/json',
+            'typeNames' => $capa
+        ]);
+        $result = $response->body();
         $datos = json_decode($result, true);
         return $datos;
     }
