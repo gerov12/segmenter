@@ -70,7 +70,7 @@
             @if (Route::has('login'))
                 <div class="top-right links">
                     @auth
-                        <a href="{{ url('/segmentador') }}">Segmentador</a>
+                        <a href="{{ url('/home') }}">Sistema de Integración Geográfica y Estadística</a>
                     @else
                         <a href="{{ route('login') }}">Ingresar</a>
 
