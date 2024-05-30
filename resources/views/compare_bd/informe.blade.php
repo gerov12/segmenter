@@ -153,14 +153,14 @@
                                         {{ $resultado['feature']['properties'][$nom] }}
                                         @if ($resultado['estado'] == 'Diferencia en el nombre')
                                             <br>
-                                            (UTF-8: {{ utf8_encode($resultado['feature']['properties'][$nom]) }})
+                                            (UTF-8: {{ mb_convert_encoding($resultado['feature']['properties'][$nom], 'UTF-8', 'ISO-8859-1') }})
                                         @endif
                                     </td>
                                     <td style="text-align: center; vertical-align: middle;">
                                         {{ $resultado['provincia'] ? $resultado['provincia']['nombre'] : '-' }}
                                         @if ($resultado['provincia'] and $resultado['estado'] == 'Diferencia en el nombre')
                                             <br>
-                                            (UTF-8: {{ utf8_encode($resultado['provincia']['nombre']) }})
+                                            (UTF-8: {{ mb_convert_encoding($resultado['provincia']['nombre'], 'UTF-8', 'ISO-8859-1') }})
                                         @endif
                                     </td>
                                     <td style="text-align: center; vertical-align: middle;">
@@ -201,14 +201,14 @@
                                         {{ $resultado->nom }}
                                         @if ($resultado->estado == 'Diferencia en el nombre')
                                             <br>
-                                            (UTF-8: {{ utf8_encode($resultado->nom) }})
+                                            (UTF-8: {{ mb_convert_encoding($resultado->nom, 'UTF-8', 'ISO-8859-1') }})
                                         @endif
                                     </td>
                                     <td style="text-align: center; vertical-align: middle;">
                                         {{ $resultado->provincia_id ? $resultado->provincia->nombre : '-' }}
                                         @if ($resultado->provincia_id and $resultado->estado == 'Diferencia en el nombre')
                                             <br>
-                                            (UTF-8: {{ utf8_encode($resultado->provincia->nombre) }})
+                                            (UTF-8: {{ mb_convert_encoding($resultado->provincia->nombre, 'UTF-8', 'ISO-8859-1') }})
                                         @endif
                                     </td>
                                     <td style="text-align: center; vertical-align: middle;">
