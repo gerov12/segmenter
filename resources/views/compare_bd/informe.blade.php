@@ -278,9 +278,9 @@
         }
     });
 
-    var showConfirmation = true;
     $(document).ready(function() {
-        $('.importar-btn').on('click', function() {
+        var showConfirmation = true;
+        $('#tabla-resultado').on('click', '.importar-btn', function() {
             var cod_provincia = $(this).data('cod-prov');
             var geomFeature = JSON.stringify($(this).data('geom-feature'));
             var $button = $(this);
