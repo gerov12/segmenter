@@ -162,18 +162,18 @@ class Archivo extends Model
             foreach ($extensiones as $extension) {
                 $n = $nombre . $extension;
                 if(Storage::exists($n)) {
-                    Log::info($nombre_original.$extension.' Storage ok!');
+                    //Log::info($nombre_original.$extension.' Storage ok!');
                 } else {
-                    Log::error($nombre_original.$extension.' Storage missing! ('.$n.')');
+                    //Log::error($nombre_original.$extension.' Storage missing! ('.$n.')');
                     $result = false;
                 }
             }
         } else {
             $n = $this->nombre;
             if (Storage::exists($n)){
-                Log::info($this->nombre_original.' Storage ok!');
+                //Log::info($this->nombre_original.' Storage ok!');
             } else {
-                Log::error($this->nombre_original.' Storage missing!('.$n.')');
+                //Log::error($this->nombre_original.' Storage missing!('.$n.')');
                 $result = false;
             }
         }
