@@ -16,8 +16,8 @@ class Geoservicio extends Model
         'id', //null para los geoservicios temporales (conexión rápida)
         'nombre', 
         'descripcion', 
-        'url', 
-        'tipo'];
+        'url'
+    ];
 
     public function informes()
     {
@@ -54,12 +54,12 @@ class Geoservicio extends Model
                 $exceptionText = (string) $ows->Exception->ExceptionText;
                 throw new \Exception('Petición invalida: '.$exceptionText);
             } else if ($xml->getName() == 'WFS_Capabilities') {
-                return true;
+                return ["status" => true];
             }
             
         } catch (\Exception $e) {
-            Log::error('Error al conectar con el geoservicio: ' . $e->getMessage());
-            return false;
+            Log::error('Error al conectar con el geoservicio. ' . $e->getMessage());
+            return ["status" => false, "message" => 'Error al conectar con el geoservicio. ' . $e->getMessage()];
         }
     }
 
@@ -67,7 +67,7 @@ class Geoservicio extends Model
     {   
         $response = Http::get($this->url, [
             'request' => 'GetCapabilities',
-            'section' => 'FeatureTypeList' //para algunos geoservicios no funciona el parametro section, resolver.
+            // 'section' => 'FeatureTypeList' //para algunos geoservicios no funciona el parametro section, se busca en toda la response y listo.
         ]);
 
         $xml = $response->body();

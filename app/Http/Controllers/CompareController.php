@@ -88,25 +88,24 @@ class CompareController extends Controller
             $request->validate([
                 'nombre' => 'required|string|max:255',
                 'descripcion' => 'nullable|string|max:255',
-                'url' => ['required', 'url'],
-                'tipo' => 'required|string',
+                'url' => ['required', 'url']
             ]);
     
             $geoservicio = new Geoservicio([ //distinto de Geoservicio::create, en este caso NO se almacena en la BD, es una conexión rápida
                 'nombre' => $request->nombre,
                 'descripcion' => $request->descripcion,
-                'url' => app(GeoservicioController::class)->assembleURL($request->url),
-                'tipo' => $request->tipo,
+                'url' => app(GeoservicioController::class)->assembleURL($request->url)
             ]);
             
         } else {
             $geoservicio = Geoservicio::find($request->input('geoservicio_id'));
         }
 
-        if ($geoservicio->testConnection()) {
+        $connection_status = $geoservicio->testConnection();
+        if ($connection_status['status']) {
             return redirect()->route('compare.capas', ['geoservicio' => json_encode($geoservicio)])->with('message', 'Conexión existosa con el Geoservicio!');
         } else {
-            flash('Error al conectar con el Geoservicio')->error();
+            flash($connection_status['message'])->error();
             $geoservicios = Geoservicio::all(); 
             return view('compare_bd.geoservicios')->with('geoservicios', $geoservicios);
         }

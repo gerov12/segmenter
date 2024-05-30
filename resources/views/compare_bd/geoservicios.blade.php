@@ -80,32 +80,33 @@
                         @endif
                     </div>
                     <div class="form-group">
-                        <label for="url">URL:</label>
+                    <i class="bi bi-info-circle" id="info-popover" type="button" data-container="body" data-toggle="popover" data-placement="right"></i>
+                    <label for="url">URL:</label>
                         <input type="url" class="form-control" id="url" name="url" required>
                         @if ($errors->has('url'))
                             <div class="text-danger">{{ $errors->first('url') }}</div>
                         @endif
                     </div>
-                    <div class="form-group">
-                        <label for="tipo">Tipo:</label>
-                        <select class="form-control" id="tipo" name="tipo" required>
+                    <!-- <div class="form-group">
+                        <label for="tipo-select">Tipo:</label>
+                        <select class="form-control" id="tipo-select" name="tipo" required>
                             <option value="wfs">WFS</option>
                         </select>
                         @if ($errors->has('tipo'))
                             <div class="text-danger">{{ $errors->first('tipo') }}</div>
                         @endif
-                    </div>
+                    </div> -->
                 </form>
             </div>
             <div class="modal-footer d-flex justify-content-center">
-                <button type="button" class="btn btn-success" onclick="submitForm('geoservicios/initialize')">Conexión rápida <i class="bi bi-lightning-charge"></i></button>
+                <button type="button" class="btn btn-success" onclick="submitForm('{{route('compare.initGeoservicio')}}')">Conexión rápida <i class="bi bi-lightning-charge"></i></button>
                 <div class="btn-group">
-                    <button type="button" class="btn btn-primary" onclick="submitForm('geoservicios/store-and-connect')">Guardar y seleccionar</button>
+                    <button type="button" class="btn btn-primary" onclick="submitForm('{{route('compare.storeGeoservicioAndConnect')}}')">Guardar y seleccionar</button>
                     <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="sr-only">Toggle Dropdown</span>
                     </button>
                     <div class="dropdown-menu">
-                        <button class="dropdown-item" type="button" onclick="submitForm('geoservicios/store')">Solo guardar</button>
+                        <button class="dropdown-item" type="button" onclick="submitForm('{{route('compare.storeGeoservicio')}}')">Solo guardar</button>
                     </div>
                 </div>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
@@ -116,6 +117,42 @@
 @endsection
 @section('footer_scripts')
 <script>
+    $(document).ready(function () {
+        $('#info-popover').popover({
+            html: true,
+            title: "URLs válidas",
+            content: `
+                <p>Ejemplos de formatos correctos</p>
+                <ul>
+                    <li>https://geoservicio.ejemplo/geoserver</li>
+                    <li>https://geoservicio.ejemplo/geoserver/</li>
+                    <li>https://geoservicio.ejemplo/geoserver/wfs</li>
+                    <li>https://geoservicio.ejemplo/geoserver/wfs?version=x.x.x</li>
+                    <li>https://geoservicio.ejemplo/geoserver/wfs?service=wfs</li>
+                </ul>
+                <p>Si no se especifica nada después de <code>geoserver/</code>, se añadirá <code>wfs</code> por defecto.</p>
+                <p>Los parámetros <code>service</code> y <code>version</code> tambien son aceptados al mismo tiempo. Cualquier otro parámetro será ignorado.</p>
+            `
+        });
+
+        $('[data-toggle="popover"]').popover();
+
+        // cerrar el popover cuando se hace clic fuera de él
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('#info-popover').length) {
+                $('#info-popover').popover('hide');
+            }
+        });
+
+        // evitar que el popover se cierre cuando se hace clic dentro de él
+        $('#info-popover').on('shown.bs.popover', function () {
+            $('.popover').on('click', function (e) {
+                e.stopPropagation();
+            });
+        });
+    });
+</script>
+<script>
     @if ($errors->any())
         $(document).ready(function() {
             $('#nuevoGeoservicioModal').modal('show');
@@ -123,6 +160,7 @@
     @endif
     function submitForm(action) {
         const form = document.getElementById('nuevoGeoservicioForm');
+        console.log(action);
         form.action = action;
         form.submit();
     }

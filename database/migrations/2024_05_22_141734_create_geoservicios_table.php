@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('nombre');
             $table->text('descripcion')->nullable();
             $table->string('url');
-            $table->string('tipo');
             $table->timestamps();
         });
     }
