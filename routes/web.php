@@ -243,6 +243,7 @@ Route::get('compare/geoservicios/', 'CompareController@listarGeoservicios')->nam
 Route::post('compare/geoservicios/store', 'GeoservicioController@store')->name('compare.storeGeoservicio');
 Route::post('compare/geoservicios/initialize', 'CompareController@inicializarGeoservicio')->name('compare.initGeoservicio');
 Route::post('compare/geoservicios/store-and-connect', 'GeoservicioController@storeAndConnect')->name('compare.storeGeoservicioAndConnect');
+Route::post('compare/geoservicios/delete', 'GeoservicioController@delete')->name('compare.deleteGeoservicio');
 Route::get('compare/capas/', 'CompareController@listarCapas')->name('compare.capas');
 Route::post('compare/atributos/', 'CompareController@listarAtributos')->name('compare.atributos');
 Route::post('compare/validar/{capa}', 'CompareController@validar')->name('compare.validar');

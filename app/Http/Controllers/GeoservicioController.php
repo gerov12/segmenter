@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use App\Model\Geoservicio;
 
 class GeoservicioController extends Controller
@@ -44,11 +45,11 @@ class GeoservicioController extends Controller
     }
 
     private function create(Request $request){
-        $request->validate([
+        Validator::make($request->all(), [
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string|max:255',
             'url' => ['required', 'url']
-        ]);
+        ])->validateWithBag('new');
 
         $geoservicio = Geoservicio::create([
             'nombre' => $request->nombre,
@@ -59,21 +60,60 @@ class GeoservicioController extends Controller
         return $geoservicio;
     }
 
+    private function update(Request $request){
+        $geoservicio = Geoservicio::findOrFail($request->input('geoservicio_id'));
+        session(['geoservicio' => $geoservicio]);
+        $validator = Validator::make($request->all(), [
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'nullable|string|max:255',
+            'url' => ['required', 'url']
+        ])->validateWithBag('edit');
+
+        $geoservicio->nombre = $request->nombre;
+        $geoservicio->descripcion = $request->descripcion;
+        $geoservicio->url = $this->assembleURL($request->url);
+        $geoservicio->save();
+
+        return $geoservicio;
+    }
+
     public function store(Request $request)
     {
-        $this::create($request);
-
-        flash("Geoservicio guardado!")->success();
+        $geoservicio_id = $request->input('geoservicio_id');
+        if ($geoservicio_id === null){ //si estoy creando
+            $this::create($request);
+            $message = "Geoservicio guardado!";
+        } else { //si estoy editando
+            $geoservicio = $this::update($request);
+            $message = "Geoservicio actualizado!";
+        }
+        
+        flash($message)->success();
         return redirect()->route('compare.geoservicios');
     }
 
     public function storeAndConnect(Request $request)
     {
-        $geoservicio = $this::create($request);
+        $geoservicio_id = $request->input('geoservicio_id');
+        if ($geoservicio_id === null){ //si estoy creando
+            $geoservicio = $this::create($request);
+        } else { //si estoy editando
+            $geoservicio = $this::update($request);
+        }
 
         $request = new Request();
         $request->merge(['geoservicio_id' => $geoservicio->id]);
 
         return app(CompareController::class)->inicializarGeoservicio($request);
+    }
+
+    public function delete(Request $request)
+    {
+        $geoservicio = Geoservicio::findOrFail($request->input('geoservicio_id'));
+        //si el geoservicio es utilizado en algun informe guardar su nombre y url
+        $geoservicio->delete();
+
+        flash("Geoservicio eliminado correctamente.")->success();
+        return redirect()->route('compare.geoservicios');
     }
 }

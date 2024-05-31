@@ -27,7 +27,7 @@
                                     <option value="" disabled selected>No hay geoservicios cargados</option>
                                 @else
                                     @foreach ($geoservicios as $geoservicio)
-                                        <option value="{{ $geoservicio->id }}">
+                                        <option value="{{ $geoservicio->id }}" data-geoservicio="{{ json_encode($geoservicio) }}">
                                             {{ $geoservicio->nombre }} 
                                             @if ($geoservicio->descripcion)
                                                 <i>({{ $geoservicio->descripcion }}) </i>
@@ -40,7 +40,7 @@
                             <br>
                             <div class="row justify-content-center">
                             <button type="submit" class="btn btn-primary mr-1">Seleccionar</button>
-                            <button type="button" disabled class="btn btn-info mr-1" style="color:white">Editar</button>
+                            <button type="button" id="editarGeoservicioButton" class="btn btn-primary mr-1" @if($geoservicios->isEmpty()) disabled @endif>Editar</button>
                             <button type="button" class="btn btn-success mr-1" data-toggle="modal" data-target="#nuevoGeoservicioModal">Nuevo Geoservicio</button>
                             <a type="button" href="{{route('compare.menu')}}" class="btn btn-secondary">Volver</a>
                             </div>
@@ -52,7 +52,7 @@
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Modal nuevo geoservicio -->
 <div class="modal fade" id="nuevoGeoservicioModal" tabindex="-1" role="dialog" aria-labelledby="nuevoGeoservicioModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -68,45 +68,91 @@
                     <div class="form-group">
                         <label for="nombre">Nombre:</label>
                         <input type="text" class="form-control" id="nombre" name="nombre" required>
-                        @if ($errors->has('nombre'))
-                            <div class="text-danger">{{ $errors->first('nombre') }}</div>
+                        @if ($errors->new->has('nombre'))
+                            <div class="text-danger">{{ $errors->new->first('nombre') }}</div>
                         @endif
                     </div>
                     <div class="form-group">
                         <label for="descripcion">Descripción (opcional):</label>
                         <input type="text" class="form-control" id="descripcion" name="descripcion">
-                        @if ($errors->has('descripcion'))
-                            <div class="text-danger">{{ $errors->first('descripcion') }}</div>
+                        @if ($errors->new->has('descripcion'))
+                            <div class="text-danger">{{ $errors->new->first('descripcion') }}</div>
                         @endif
                     </div>
                     <div class="form-group">
                     <i class="bi bi-info-circle" id="info-popover" type="button" data-container="body" data-toggle="popover" data-placement="right"></i>
                     <label for="url">URL:</label>
                         <input type="url" class="form-control" id="url" name="url" required>
-                        @if ($errors->has('url'))
-                            <div class="text-danger">{{ $errors->first('url') }}</div>
+                        @if ($errors->new->has('url'))
+                            <div class="text-danger">{{ $errors->new->first('url') }}</div>
                         @endif
                     </div>
-                    <!-- <div class="form-group">
-                        <label for="tipo-select">Tipo:</label>
-                        <select class="form-control" id="tipo-select" name="tipo" required>
-                            <option value="wfs">WFS</option>
-                        </select>
-                        @if ($errors->has('tipo'))
-                            <div class="text-danger">{{ $errors->first('tipo') }}</div>
-                        @endif
-                    </div> -->
                 </form>
             </div>
             <div class="modal-footer d-flex justify-content-center">
-                <button type="button" class="btn btn-success" onclick="submitForm('{{route('compare.initGeoservicio')}}')">Conexión rápida <i class="bi bi-lightning-charge"></i></button>
+                <button type="button" class="btn btn-success" onclick="submitForm('{{route('compare.initGeoservicio')}}','new')">Conexión rápida <i class="bi bi-lightning-charge"></i></button>
                 <div class="btn-group">
-                    <button type="button" class="btn btn-primary" onclick="submitForm('{{route('compare.storeGeoservicioAndConnect')}}')">Guardar y seleccionar</button>
+                    <button type="button" class="btn btn-primary" onclick="submitForm('{{route('compare.storeGeoservicioAndConnect')}}','new')">Guardar y seleccionar</button>
                     <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="sr-only">Toggle Dropdown</span>
                     </button>
                     <div class="dropdown-menu">
-                        <button class="dropdown-item" type="button" onclick="submitForm('{{route('compare.storeGeoservicio')}}')">Solo guardar</button>
+                        <button class="dropdown-item" type="button" onclick="submitForm('{{route('compare.storeGeoservicio')}}','new')">Solo guardar</button>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal editar geoservicio -->
+<div class="modal fade" id="editarGeoservicioModal" tabindex="-1" role="dialog" aria-labelledby="editarGeoservicioModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarGeoservicioModalLabel">Editar Geoservicio</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editarGeoservicioForm" method="POST">
+                    @csrf
+                    <input type="hidden" id="edit-geoservicio-id" name="geoservicio_id">
+                    <div class="form-group">
+                        <label for="edit-nombre">Nombre:</label>
+                        <input type="text" class="form-control" id="edit-nombre" name="nombre" required>
+                        @if ($errors->edit->has('nombre'))
+                            <div class="text-danger">{{ $errors->edit->first('nombre') }}</div>
+                        @endif
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-descripcion">Descripción (opcional):</label>
+                        <input type="text" class="form-control" id="edit-descripcion" name="descripcion">
+                        @if ($errors->edit->has('descripcion'))
+                            <div class="text-danger">{{ $errors->edit->first('descripcion') }}</div>
+                        @endif
+                    </div>
+                    <div class="form-group">
+                    <i class="bi bi-info-circle" id="info-popover" type="button" data-container="body" data-toggle="popover" data-placement="right"></i>
+                    <label for="edit-url">URL:</label>
+                        <input type="url" class="form-control" id="edit-url" name="url" required>
+                        @if ($errors->edit->has('url'))
+                            <div class="text-danger">{{ $errors->edit->first('url') }}</div>
+                        @endif
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer d-flex justify-content-center">
+                <button type="button" class="btn btn-danger" onclick="submitForm('{{route('compare.deleteGeoservicio')}}','delete')">Eliminar</button>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary" onclick="submitForm('{{route('compare.storeGeoservicio')}}','edit')">Guardar</button>
+                    <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="sr-only">Toggle Dropdown</span>
+                    </button>
+                    <div class="dropdown-menu">
+                        <button class="dropdown-item" type="button" onclick="submitForm('{{route('compare.storeGeoservicioAndConnect')}}','edit')">Guardar y seleccionar</button>
                     </div>
                 </div>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
@@ -131,7 +177,7 @@
                     <li>https://geoservicio.ejemplo/geoserver/wfs?service=wfs</li>
                 </ul>
                 <p>Si no se especifica nada después de <code>geoserver/</code>, se añadirá <code>wfs</code> por defecto.</p>
-                <p>Los parámetros <code>service</code> y <code>version</code> tambien son aceptados al mismo tiempo. Cualquier otro parámetro será ignorado.</p>
+                <p>Los parámetros <code>service</code> y <code>version</code> pueden declararse simultaneamente. Cualquier otro parámetro será ignorado.</p>
             `
         });
 
@@ -150,17 +196,52 @@
                 e.stopPropagation();
             });
         });
-    });
-</script>
-<script>
-    @if ($errors->any())
-        $(document).ready(function() {
-            $('#nuevoGeoservicioModal').modal('show');
+
+        function openEditModal(geoservicio) {
+            if (geoservicio) {
+                $('#edit-geoservicio-id').val(geoservicio.id);
+                $('#edit-nombre').val(geoservicio.nombre);
+                $('#edit-descripcion').val(geoservicio.descripcion);
+                $('#edit-url').val(geoservicio.url);
+                $('#editarGeoservicioModal').modal('show');
+            }
+        }
+
+        $('#editarGeoservicioButton').on('click', function() {
+            var selectedGeoservicio = $('#geoservicio_id').find('option:selected').data('geoservicio');
+            openEditModal(selectedGeoservicio);
         });
-    @endif
-    function submitForm(action) {
-        const form = document.getElementById('nuevoGeoservicioForm');
-        console.log(action);
+
+        @if ($errors->hasBag('edit'))
+            $(document).ready(function() {
+                var geoservicioFromSession = {!! json_encode(session('geoservicio')) !!};
+                if (geoservicioFromSession) {
+                    openEditModal(geoservicioFromSession);
+                } else {
+                    var selectedGeoservicio = $('#geoservicio_id').find('option:selected').data('geoservicio');
+                    openEditModal(selectedGeoservicio);
+                }
+            });
+        @elseif ($errors->hasBag('new'))
+            $('#nuevoGeoservicioModal').modal('show');
+        @endif
+    });
+
+    function submitForm(action, type) {
+        var form;
+        if (type === "new") {
+            form = document.getElementById('nuevoGeoservicioForm');
+        } else if (type === "edit" || type === "delete") {
+            form = document.getElementById('editarGeoservicioForm');
+        }
+
+        if (type === "delete") {
+            var confirmed = confirm("¿Estás seguro de que deseas eliminar este geoservicio?");
+            if (!confirmed) {
+                return; // no hago nada si no confirmo
+            }
+        }
+
         form.action = action;
         form.submit();
     }
