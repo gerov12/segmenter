@@ -236,7 +236,7 @@
         }
 
         if (type === "delete") {
-            var confirmed = confirm("¿Estás seguro de que deseas eliminar este geoservicio?");
+            var confirmed = confirm('¿Estás seguro de que deseas eliminar este geoservicio?. En caso de haber sido consultado para algun informe, pasará a figurar como "Conexión rápida"');
             if (!confirmed) {
                 return; // no hago nada si no confirmo
             }

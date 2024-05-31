@@ -110,7 +110,13 @@ class GeoservicioController extends Controller
     public function delete(Request $request)
     {
         $geoservicio = Geoservicio::findOrFail($request->input('geoservicio_id'));
+
         //si el geoservicio es utilizado en algun informe guardar su nombre y url
+        $geoservicio->informes->each(function ($informe) use ($geoservicio) {
+            $informe->geoservicio_nombre = $geoservicio->nombre;
+            $informe->geoservicio_url = $geoservicio->url;
+            $informe->save();
+        });      
         $geoservicio->delete();
 
         flash("Geoservicio eliminado correctamente.")->success();

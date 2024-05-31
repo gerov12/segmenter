@@ -166,7 +166,11 @@
                                     <td style="text-align: center; vertical-align: middle;">
                                         {{ $resultado['estado'] }}
                                     </td>
-                                    <td style="text-align: center; vertical-align: middle;" id="estado_geom_{{$resultado['provincia']['codigo']}}">
+                                    <td style="text-align: center; vertical-align: middle;" 
+                                    @if ($resultado['provincia'])
+                                        id="estado_geom_{{$resultado['provincia']['codigo']}}"
+                                    @endif
+                                    >
                                     @if ($resultado['estado_geom'] == 'No hay geometría cargada en el geoservicio')
                                         Base de Datos: <i style="color:green" class="bi bi-check"></i><br>
                                         Geoservicio: <i style="color:red" class="bi bi-x"></i>
