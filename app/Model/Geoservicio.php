@@ -65,46 +65,61 @@ class Geoservicio extends Model
 
     public function getCapas()
     {   
-        $response = Http::get($this->url, [
-            'request' => 'GetCapabilities',
-            // 'section' => 'FeatureTypeList' //para algunos geoservicios no funciona el parametro section, se busca en toda la response y listo.
-        ]);
+        try {
+            $response = Http::get($this->url, [
+                'request' => 'GetCapabilities',
+                // 'section' => 'FeatureTypeList' //para algunos geoservicios no funciona el parametro section, se busca en toda la response y listo.
+            ]);
 
-        $xml = $response->body();
+            $xml = $response->body();
 
-        // Parse XML
-        $xmlObject = new \SimpleXMLElement($xml);
+            // Parse XML
+            $xmlObject = new \SimpleXMLElement($xml);
 
-        // Convert SimpleXMLElement object to array
-        $array = json_decode(json_encode($xmlObject), true);
+            // Convert SimpleXMLElement object to array
+            $array = json_decode(json_encode($xmlObject), true);
 
-        // Get FeatureTypeList section
-        $featureTypeList = $array['FeatureTypeList']['FeatureType'];
+            // Get FeatureTypeList section
+            $featureTypeList = $array['FeatureTypeList']['FeatureType'];
 
-        return $featureTypeList;
+            return ["status" => true, "capas" => $featureTypeList];
+        } catch (\Exception $e) {
+            Log::error('Error al conectar con el geoservicio. ' . $e->getMessage());
+            return ["status" => false, "message" => 'Error al conectar con el geoservicio. ' . $e->getMessage()];
+        }
     }
 
     public function getCapa($capa)
     {
-        $response = Http::get($this->url, [
-            'request' => 'GetFeature',
-            'outputFormat' => 'application/json',
-            'typeName' => $capa
-        ]);
-        $result = $response->body();
-        $datos = json_decode($result, true);
-        return $datos;
+        try {
+            $response = Http::get($this->url, [
+                'request' => 'GetFeature',
+                'outputFormat' => 'application/json',
+                'typeName' => $capa
+            ]);
+            $result = $response->body();
+            $datos = json_decode($result, true);
+            return ["status" => true, "capa" => $datos];
+        } catch (\Exception $e) {
+            Log::error('Error al conectar con el geoservicio. ' . $e->getMessage());
+            return ["status" => false, "message" => 'Error al conectar con el geoservicio. ' . $e->getMessage()];
+        }
     }
 
     public function getAtributos($capa)
     {
-        $response = Http::get($this->url, [
-            'request' => 'DescribeFeatureType',
-            'outputFormat' => 'application/json',
-            'typeNames' => $capa
-        ]);
-        $result = $response->body();
-        $datos = json_decode($result, true);
-        return $datos;
+        try {
+            $response = Http::get($this->url, [
+                'request' => 'DescribeFeatureType',
+                'outputFormat' => 'application/json',
+                'typeNames' => $capa
+            ]);
+            $result = $response->body();
+            $datos = json_decode($result, true);
+            return ["status" => true, "atributos" => $datos];
+        } catch (\Exception $e) {
+            Log::error('Error al conectar con el geoservicio. ' . $e->getMessage());
+            return ["status" => false, "message" => 'Error al conectar con el geoservicio. ' . $e->getMessage()];
+        }
     }
 }

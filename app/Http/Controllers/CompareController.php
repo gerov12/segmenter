@@ -117,8 +117,12 @@ class CompareController extends Controller
         $geoservicioData = json_decode($geoservicioJson, true);
         if ($geoservicioData) {
             $geoservicio = new Geoservicio($geoservicioData);
-            $capas = $geoservicio->getCapas(); 
-            return view('compare_bd.layers', ['geoservicio' => $geoservicio])->with('capas', $capas);
+            $result = $geoservicio->getCapas(); 
+            if ($result['status']) {
+                return view('compare_bd.layers', ['geoservicio' => $geoservicio])->with('capas', $result['capas']);
+            } else {
+                return redirect()->route('compare.geoservicios')->with('error', $result['message']);
+            }
         } else {
             return redirect()->route('compare.geoservicios')->with('error', 'No hay Geoservicio seleccionado');
         }
@@ -131,12 +135,17 @@ class CompareController extends Controller
         if ($geoservicioData) {
             $geoservicio = new Geoservicio($geoservicioData);
             $capa = $request->input('capa');
-            $datos = $geoservicio->getAtributos($capa);
-            $atributos = [];
-            if(isset($datos['featureTypes'][0]['properties'])) {
-                $atributos = $datos['featureTypes'][0]['properties'];
-            }
-            return view('compare_bd.properties', ['geoservicio' => $geoservicio])->with(['capa' => $capa, 'atributos' => $atributos]);   
+            $result = $geoservicio->getAtributos($capa); 
+            if ($result['status']) {
+                $datos = $result['atributos'];
+                $atributos = [];
+                if(isset($datos['featureTypes'][0]['properties'])) {
+                    $atributos = $datos['featureTypes'][0]['properties'];
+                }
+                return view('compare_bd.properties', ['geoservicio' => $geoservicio])->with(['capa' => $capa, 'atributos' => $atributos]);
+            } else {
+                return redirect()->route('compare.geoservicios')->with('error', $result['message']);
+            } 
         } else {
             return redirect()->route('compare.geoservicios')->with('error', 'No hay Geoservicio seleccionado');
         }  
@@ -197,72 +206,77 @@ class CompareController extends Controller
     private function compararProvincias(Geoservicio $geoservicio, $codigo, $nombre, $capa)
     {   
         if ($geoservicio) {
-            $datos = $geoservicio->getCapa($capa);
-            $provincias = Provincia::all();
+            $result = $geoservicio->getCapa($capa); 
+            if ($result['status']) {
+                $datos = $result['capa'];
+                $provincias = Provincia::all();
 
-            $resultados = [];
-            $elementos_erroneos = 0;
-            $total_errores = 0;
+                $resultados = [];
+                $elementos_erroneos = 0;
+                $total_errores = 0;
 
-            foreach ($datos['features'] as $feature) {
-                $provinciaCoincidente = null;
-                $existe_cod = $existe_nom = false;
-                $errores = 0;
+                foreach ($datos['features'] as $feature) {
+                    $provinciaCoincidente = null;
+                    $existe_cod = $existe_nom = false;
+                    $errores = 0;
 
-                $provinciasCoincidentes = $provincias->filter(function ($provincia) use ($feature, $codigo) {
-                    return trim(strval($provincia->codigo)) == trim(strval($feature['properties'][$codigo]));
-                });
-        
-                if (!$provinciasCoincidentes->isEmpty()) {
-                    $existe_cod = true;
-                    $provinciaCoincidente = $provinciasCoincidentes->first();
-                }
-
-                $provinciasCoincidentes = $provincias->filter(function ($provincia) use ($feature, $nombre) {
-                    return trim(strval($provincia->nombre)) == trim(strval($feature['properties'][$nombre]));
-                });
-                if (!$provinciasCoincidentes->isEmpty()) {
-                    $existe_nom = true;
-                    if ($existe_cod == false) {
+                    $provinciasCoincidentes = $provincias->filter(function ($provincia) use ($feature, $codigo) {
+                        return trim(strval($provincia->codigo)) == trim(strval($feature['properties'][$codigo]));
+                    });
+            
+                    if (!$provinciasCoincidentes->isEmpty()) {
+                        $existe_cod = true;
                         $provinciaCoincidente = $provinciasCoincidentes->first();
                     }
-                }
 
-                $estado_geom = "-";
-                if ($existe_cod) {
-                    if ($existe_nom) {
-                        $estado = "OK";
-                        $estado_geom = $this::chequearEstadoGeometrias($provinciaCoincidente, $feature);
+                    $provinciasCoincidentes = $provincias->filter(function ($provincia) use ($feature, $nombre) {
+                        return trim(strval($provincia->nombre)) == trim(strval($feature['properties'][$nombre]));
+                    });
+                    if (!$provinciasCoincidentes->isEmpty()) {
+                        $existe_nom = true;
+                        if ($existe_cod == false) {
+                            $provinciaCoincidente = $provinciasCoincidentes->first();
+                        }
+                    }
+
+                    $estado_geom = "-";
+                    if ($existe_cod) {
+                        if ($existe_nom) {
+                            $estado = "OK";
+                            $estado_geom = $this::chequearEstadoGeometrias($provinciaCoincidente, $feature);
+                        } else {
+                            $estado = "Diferencia en el nombre";
+                            $elementos_erroneos++;
+                            $errores++;
+                        }
                     } else {
-                        $estado = "Diferencia en el nombre";
                         $elementos_erroneos++;
                         $errores++;
+                        if ($existe_nom) {
+                            $estado = "Diferencia en el código";
+                        } else {
+                            $estado = "No hay coincidencias";
+                            $errores++;
+                        }
                     }
-                } else {
-                    $elementos_erroneos++;
-                    $errores++;
-                    if ($existe_nom) {
-                        $estado = "Diferencia en el código";
-                    } else {
-                        $estado = "No hay coincidencias";
-                        $errores++;
-                    }
+
+                    $total_errores += $errores;
+
+                    $resultados[] = [
+                        'feature' => $feature,
+                        'provincia' => $provinciaCoincidente,
+                        'existe_cod' => $existe_cod,
+                        'existe_nom' => $existe_nom,
+                        'estado' => $estado,
+                        'estado_geom' => $estado_geom,
+                        'errores' => $errores
+                    ];
                 }
-
-                $total_errores += $errores;
-
-                $resultados[] = [
-                    'feature' => $feature,
-                    'provincia' => $provinciaCoincidente,
-                    'existe_cod' => $existe_cod,
-                    'existe_nom' => $existe_nom,
-                    'estado' => $estado,
-                    'estado_geom' => $estado_geom,
-                    'errores' => $errores
-                ];
+                
+                return ['resultados' => $resultados, 'elementos_erroneos' => $elementos_erroneos, 'total_errores' => $total_errores];
+            } else {
+                return redirect()->route('compare.geoservicios')->with('error', $result['message']);
             }
-            
-            return ['resultados' => $resultados, 'elementos_erroneos' => $elementos_erroneos, 'total_errores' => $total_errores];
         } else {
             return redirect()->route('compare.geoservicios')->with('error', 'No hay Geoservicio seleccionado');
         }
