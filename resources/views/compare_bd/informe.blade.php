@@ -65,14 +65,17 @@
     </div>
     <div class="row justify-content-center"> 
         <div class="card" style="width: 120%">
-            <div class="card-header">
-                Resultado de la comparación de la capa <b>{{explode(':', $capa)[1] }}</b> de 
+            <div class="card-header d-flex justify-content-between align-items-center">
+                Resultado de la comparación de la capa <b class="ml-1 mr-1">{{explode(':', $capa)[1] }}</b> del geoservicio 
                 @if ($geoservicio)
-                    <b>{{ $geoservicio->nombre }}</b>  
+                    "<b>{{ $geoservicio->nombre }}</b>" 
                 @else
-                    <b>-</b> 
+                    "<b>-</b>" 
                 @endif 
-                con la tabla de <b>{{ $tabla }}s</b>
+                con la tabla de <b class="ml-1 mr-1">{{ $tabla }}s</b>
+                @if (!$geoservicio->id)
+                <span title="Conexión rápida" class="badge badge-pill badge-success ml-auto"><i class="bi bi-lightning-charge"></i></span><br>
+                @endif
             </div>
             <div class="card-body">
                 <div class="top-container">

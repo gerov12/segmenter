@@ -13,8 +13,11 @@
     <br>
     <div class="row justify-content-center">
         <div class="card" style="width: 50rem;">
-            <div class="card-header">
-                Seleccionar campos a comparar para la capa <b>{{explode(':', $capa)[1] }}</b>
+            <div class="card-header  d-flex justify-content-between align-items-center">
+                Seleccionar campos a comparar para la capa <b class="ml-1">{{explode(':', $capa)[1] }}</b>
+                @if (!$geoservicio->id)
+                <span title="Conexión rápida" class="badge badge-pill badge-success ml-auto"><i class="bi bi-lightning-charge"></i></span><br>
+                @endif
             </div>
             <div class="card-body">
                 <form action="{{ route('compare.validar', ['geoservicio' => json_encode($geoservicio), 'capa' => $capa]) }}" method="POST">

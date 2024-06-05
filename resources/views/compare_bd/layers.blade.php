@@ -19,8 +19,11 @@
     <br>
     <div class="row justify-content-center">
         <div class="card" style="width: 30rem;">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 Seleccionar capa para la comparación
+                @if (!$geoservicio->id)
+                <span title="Conexión rápida" class="badge badge-pill badge-success ml-auto"><i class="bi bi-lightning-charge"></i></span><br>
+                @endif
             </div>
             <div class="card-body">
                 <form action="{{ route('compare.atributos', ['geoservicio' => json_encode($geoservicio)]) }}" method="POST">
