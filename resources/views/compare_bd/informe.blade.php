@@ -17,6 +17,9 @@
     .highlight {
         background-color: #d4edda !important; /* verde claro */
     }
+    .highlight-error {
+        background-color: #ef5350 !important; /* rojo */
+    }
     tr {
       transition: background-color 1s;
     }
@@ -101,12 +104,18 @@
                             <span id="btn-text">Guardar informe</span>
                             <i class="bi bi-floppy ml-2"></i>
                         </button>
+                        @can('Ver Informes')
                         <a type="button" href="{{ route('compare.informes') }}" class="btn btn-success mr-2">Ver informes</a>
+                        @endcan
                         @elseif ($tipo_informe == "informe")
                         <a type="button" href="{{ route('compare.informes') }}" class="btn btn-success mr-2">Volver a informes</a>
+                        @can('Generar Informes')
                         <a type="button" href="{{ route('compare.repetirInforme',$informe_id) }}" class="btn btn-success mr-2">Repetir informe</a>
+                        @endcan
                         @endif
+                        @can('Generar Informes')
                         <a type="button" href="{{ route('compare.geoservicios') }}" class="btn btn-info mr-2" style="color:white">Nueva comparación</a>
+                        @endcan
                     </div>
                 </div>
                 <br>
@@ -178,7 +187,9 @@
                                     @elseif ($resultado['estado_geom'] == 'No hay geometría cargada en la BD')
                                         Base de Datos: <i style="color:red" class="bi bi-x"></i><br>
                                         Geoservicio: <i style="color:green" class="bi bi-check"></i><br>
+                                        @can('Importar Geometrias')
                                         <button type="button" class="btn btn-success btn-sm importar-btn" data-cod-prov="{{$resultado['provincia']['codigo']}}" data-geom-feature="{{json_encode($geometrias[$resultado['feature']['id']])}}">Importar</button>
+                                        @endcan
                                     @elseif ($resultado['estado_geom'] == 'No hay geometrías cargadas')
                                         Base de Datos: <i style="color:red" class="bi bi-x"></i><br>
                                         Geoservicio: <i style="color:red" class="bi bi-x"></i>
@@ -319,6 +330,12 @@
                             $row.addClass('highlight');
                             setTimeout(function() {
                                 $row.removeClass('highlight');
+                            }, 2000);
+                        } else if (response.statusCode == 403) {
+                            // resalto la fila
+                            $row.addClass('highlight-error');
+                            setTimeout(function() {
+                                $row.removeClass('highlight-error');
                             }, 2000);
                         }
                     },

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Model\Geoservicio;
+use Auth;
 
 class GeoservicioController extends Controller
 {   
@@ -45,82 +46,127 @@ class GeoservicioController extends Controller
     }
 
     private function create(Request $request){
-        Validator::make($request->all(), [
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string|max:255',
-            'url' => ['required', 'url']
-        ])->validateWithBag('new');
+        try {
+            if (Auth::user()->can('Administrar Geoservicios')) {    
+                Validator::make($request->all(), [
+                    'nombre' => 'required|string|max:255',
+                    'descripcion' => 'nullable|string|max:255',
+                    'url' => ['required', 'url']
+                ])->validateWithBag('new');
 
-        $geoservicio = Geoservicio::create([
-            'nombre' => $request->nombre,
-            'descripcion' => $request->descripcion,
-            'url' => $this->assembleURL($request->url)
-        ]);
+                $geoservicio = Geoservicio::create([
+                    'nombre' => $request->nombre,
+                    'descripcion' => $request->descripcion,
+                    'url' => $this->assembleURL($request->url)
+                ]);
 
-        return $geoservicio;
+                return $geoservicio;
+            } else {
+                flash("No tienes permiso para hacer eso.")->error();
+                return back();
+            }
+        } catch (PermissionDoesNotExist $e) {
+            flash('message', 'No existe el permiso "Administrar Geoservicios"')->error();
+        }
     }
 
     private function update(Request $request){
-        $geoservicio = Geoservicio::findOrFail($request->input('geoservicio_id'));
-        session(['geoservicio' => $geoservicio]);
-        $validator = Validator::make($request->all(), [
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string|max:255',
-            'url' => ['required', 'url']
-        ])->validateWithBag('edit');
+        try {
+            if (Auth::user()->can('Administrar Geoservicios')) {
+                $geoservicio = Geoservicio::findOrFail($request->input('geoservicio_id'));
+                session(['geoservicio' => $geoservicio]);
+                $validator = Validator::make($request->all(), [
+                    'nombre' => 'required|string|max:255',
+                    'descripcion' => 'nullable|string|max:255',
+                    'url' => ['required', 'url']
+                ])->validateWithBag('edit');
 
-        $geoservicio->nombre = $request->nombre;
-        $geoservicio->descripcion = $request->descripcion;
-        $geoservicio->url = $this->assembleURL($request->url);
-        $geoservicio->save();
+                $geoservicio->nombre = $request->nombre;
+                $geoservicio->descripcion = $request->descripcion;
+                $geoservicio->url = $this->assembleURL($request->url);
+                $geoservicio->save();
 
-        return $geoservicio;
+                return $geoservicio;
+            } else {
+                flash("No tienes permiso para hacer eso.")->error();
+                return back();
+            }
+        } catch (PermissionDoesNotExist $e) {
+            flash('message', 'No existe el permiso "Administrar Geoservicios"')->error();
+        }
     }
 
     public function store(Request $request)
     {
-        $geoservicio_id = $request->input('geoservicio_id');
-        if ($geoservicio_id === null){ //si estoy creando
-            $this::create($request);
-            $message = "Geoservicio guardado!";
-        } else { //si estoy editando
-            $geoservicio = $this::update($request);
-            $message = "Geoservicio actualizado!";
+        try {
+            if (Auth::user()->can('Administrar Geoservicios')) {
+                $geoservicio_id = $request->input('geoservicio_id');
+                if ($geoservicio_id === null){ //si estoy creando
+                    $this::create($request);
+                    $message = "Geoservicio guardado!";
+                } else { //si estoy editando
+                    $geoservicio = $this::update($request);
+                    $message = "Geoservicio actualizado!";
+                }
+                
+                flash($message)->success();
+                return redirect()->route('compare.geoservicios');
+            } else {
+                flash("No tienes permiso para hacer eso.")->error();
+                return back();
+            }
+        } catch (PermissionDoesNotExist $e) {
+            flash('message', 'No existe el permiso "Administrar Geoservicios"')->error();
         }
-        
-        flash($message)->success();
-        return redirect()->route('compare.geoservicios');
     }
 
     public function storeAndConnect(Request $request)
     {
-        $geoservicio_id = $request->input('geoservicio_id');
-        if ($geoservicio_id === null){ //si estoy creando
-            $geoservicio = $this::create($request);
-        } else { //si estoy editando
-            $geoservicio = $this::update($request);
+        try {
+            if (Auth::user()->can('Administrar Geoservicios')) {
+                $geoservicio_id = $request->input('geoservicio_id');
+                if ($geoservicio_id === null){ //si estoy creando
+                    $geoservicio = $this::create($request);
+                } else { //si estoy editando
+                    $geoservicio = $this::update($request);
+                }
+
+                $request = new Request();
+                $request->merge(['geoservicio_id' => $geoservicio->id]);
+
+                return app(CompareController::class)->inicializarGeoservicio($request);
+            } else {
+                flash("No tienes permiso para hacer eso.")->error();
+                return back();
+            }
+        } catch (PermissionDoesNotExist $e) {
+            flash('message', 'No existe el permiso "Administrar Geoservicios"')->error();
         }
-
-        $request = new Request();
-        $request->merge(['geoservicio_id' => $geoservicio->id]);
-
-        return app(CompareController::class)->inicializarGeoservicio($request);
     }
 
     public function delete(Request $request)
     {
-        $geoservicio = Geoservicio::findOrFail($request->input('geoservicio_id'));
+        try {
+            if (Auth::user()->can('Administrar Geoservicios')) {
+                $geoservicio = Geoservicio::findOrFail($request->input('geoservicio_id'));
 
-        //si el geoservicio es utilizado en algun informe guardar su nombre, url y descripción
-        $geoservicio->informes->each(function ($informe) use ($geoservicio) {
-            $informe->geoservicio_nombre = $geoservicio->nombre;
-            $informe->geoservicio_url = $geoservicio->url;
-            $informe->geoservicio_descripcion = $geoservicio->descripcion;
-            $informe->save();
-        });      
-        $geoservicio->delete();
+                //si el geoservicio es utilizado en algun informe guardar su nombre, url y descripción
+                $geoservicio->informes->each(function ($informe) use ($geoservicio) {
+                    $informe->geoservicio_nombre = $geoservicio->nombre;
+                    $informe->geoservicio_url = $geoservicio->url;
+                    $informe->geoservicio_descripcion = $geoservicio->descripcion;
+                    $informe->save();
+                });      
+                $geoservicio->delete();
 
-        flash("Geoservicio eliminado correctamente.")->success();
-        return redirect()->route('compare.geoservicios');
+                flash("Geoservicio eliminado correctamente.")->success();
+                return redirect()->route('compare.geoservicios');
+            } else {
+                flash("No tienes permiso para hacer eso.")->error();
+                return back();
+            }
+        } catch (PermissionDoesNotExist $e) {
+            flash('message', 'No existe el permiso "Administrar Geoservicios"')->error();
+        }
     }
 }

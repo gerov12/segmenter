@@ -57,7 +57,9 @@
                         <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/entidades') }}"> Entidades </a> </li>
                         <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/segmentador') }}"> Cargar </a> </li>
                         <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/archivos') }}"> Archivos </a> </li>
+                        @if(auth()->user()->can('Generar Informes') || auth()->user()->can('Ver Informes'))
                         <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ route('compare.menu') }}"> Validar BD </a> </li>
+                        @endif
                         <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{
                         url('https://github.com/bichav/salidagrafica-atlas/archive/master.zip')
                         }}"> Descargar plugin </a> </li>

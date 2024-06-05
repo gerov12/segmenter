@@ -40,8 +40,10 @@
                             <br>
                             <div class="row justify-content-center">
                             <button type="submit" class="btn btn-primary mr-1">Seleccionar</button>
+                            @can('Administrar Geoservicios')
                             <button type="button" id="editarGeoservicioButton" class="btn btn-primary mr-1" @if($geoservicios->isEmpty()) disabled @endif>Editar</button>
                             <button type="button" class="btn btn-success mr-1" data-toggle="modal" data-target="#nuevoGeoservicioModal">Nuevo Geoservicio</button>
+                            @endcan
                             <a type="button" href="{{route('compare.menu')}}" class="btn btn-secondary">Volver</a>
                             </div>
                         </div>  

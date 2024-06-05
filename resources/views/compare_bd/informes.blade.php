@@ -68,7 +68,9 @@
                                 <th>
                                 <div id="botones" class="flex-container">
                                     <a type="button" href="{{ route('compare.verInforme',$informe->id) }}" class="btn-sm btn-primary">Ver</a>
+                                    @can('Generar Informes')
                                     <a type="button" href="{{ route('compare.repetirInforme',$informe->id) }}" class="btn-sm btn-success">Repetir</a>
+                                    @endcan
                                 </div>  
                                 </th>
                             </tr>
