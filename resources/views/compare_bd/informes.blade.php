@@ -1,7 +1,18 @@
 @extends('layouts.app')
 
 @section('content_main')
-<div style="width:60%; margin: 0 auto;">
+<style>
+    .flex-container {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .flex-container a {
+        margin: 0;
+    }
+</style>
+<div style="width:85%; margin: 0 auto;">
     <div style="display: flex; align-items: center; justify-content: center;">
         <div style="width: 90rem; display: flex; align-items: center;"> 
         <h4><a href="{{route('compare.menu')}}" class="badge badge-pill badge-primary">← Volver</a></h4>
@@ -34,9 +45,15 @@
                                 <td>
                                 @if ($informe->geoservicio_id)
                                     {{ $informe->geoservicio->nombre }}<br>
+                                    @if ($informe->geoservicio->descripcion)
+                                        ({{ $informe->geoservicio->descripcion }})<br>
+                                    @endif
                                     <i>{{ $informe->geoservicio->url }}</i>
                                 @else
                                     {{ $informe->geoservicio_nombre }} <span title="Conexión rápida" class="badge badge-pill badge-success"><i class="bi bi-lightning-charge"></i></span><br>
+                                    @if ($informe->geoservicio_descripcion)
+                                        ({{ $informe->geoservicio_descripcion }})<br>
+                                    @endif
                                     <i>{{ $informe->geoservicio_url }}</i>
                                 @endif
                                 </td>
@@ -48,7 +65,12 @@
                                 <td>{{$informe->total_errores}}</td>
                                 <td>{{$informe->user->name}}</td>
                                 <td>{{$informe->datetime->format('d-m-Y H:i:s')}}</td>
-                                <th><a type="button" href="{{ route('compare.verInforme',$informe->id) }}" class="btn btn-primary">Ver</a></th>
+                                <th>
+                                <div id="botones" class="flex-container">
+                                    <a type="button" href="{{ route('compare.verInforme',$informe->id) }}" class="btn-sm btn-primary">Ver</a>
+                                    <a type="button" href="{{ route('compare.repetirInforme',$informe->id) }}" class="btn-sm btn-success">Repetir</a>
+                                </div>  
+                                </th>
                             </tr>
                         @endforeach
                     </tbody>

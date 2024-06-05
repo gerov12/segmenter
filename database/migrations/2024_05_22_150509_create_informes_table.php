@@ -27,6 +27,7 @@ return new class extends Migration
             $table->unsignedBigInteger('geoservicio_id')->nullable();
             $table->string('geoservicio_url')->nullable();
             $table->string('geoservicio_nombre')->nullable();
+            $table->string('geoservicio_descripcion')->nullable();
             $table->timestamps();
 
             $table->foreign('operativo_id')->references('id')->on('operativo');

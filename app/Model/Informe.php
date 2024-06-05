@@ -25,7 +25,8 @@ class Informe extends Model
         'user_id',
         'geoservicio_id', //null para los geoservicios temporales (conexión rápida)
         'geoservicio_url', //solo para las conexiones rapidas ya que no hay id de geoservicio
-        'geoservicio_nombre' //solo para las conexiones rapidas ya que no hay id de geoservicio
+        'geoservicio_nombre', //solo para las conexiones rapidas ya que no hay id de geoservicio
+        'geoservicio_descripcion' //solo para las conexiones rapidas ya que no hay id de geoservicio
     ];
 
     public function operativo()

@@ -111,10 +111,11 @@ class GeoservicioController extends Controller
     {
         $geoservicio = Geoservicio::findOrFail($request->input('geoservicio_id'));
 
-        //si el geoservicio es utilizado en algun informe guardar su nombre y url
+        //si el geoservicio es utilizado en algun informe guardar su nombre, url y descripción
         $geoservicio->informes->each(function ($informe) use ($geoservicio) {
             $informe->geoservicio_nombre = $geoservicio->nombre;
             $informe->geoservicio_url = $geoservicio->url;
+            $informe->geoservicio_descripcion = $geoservicio->descripcion;
             $informe->save();
         });      
         $geoservicio->delete();

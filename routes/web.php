@@ -239,6 +239,7 @@ Route::middleware(['auth'])->group(function () {
 Route::get('compare/menu/', 'CompareController@verMenu')->name('compare.menu');
 Route::get('compare/informes/', 'CompareController@listarInformes')->name('compare.informes');
 Route::get('compare/informes/{informe}', 'CompareController@verInforme')->name('compare.verInforme');
+Route::get('compare/informes/rerun/{informe}', 'CompareController@repetirInforme')->name('compare.repetirInforme');
 Route::get('compare/geoservicios/', 'CompareController@listarGeoservicios')->name('compare.geoservicios');
 Route::post('compare/geoservicios/store', 'GeoservicioController@store')->name('compare.storeGeoservicio');
 Route::post('compare/geoservicios/initialize', 'CompareController@inicializarGeoservicio')->name('compare.initGeoservicio');

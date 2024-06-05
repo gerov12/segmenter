@@ -104,6 +104,7 @@
                         <a type="button" href="{{ route('compare.informes') }}" class="btn btn-success mr-2">Ver informes</a>
                         @elseif ($tipo_informe == "informe")
                         <a type="button" href="{{ route('compare.informes') }}" class="btn btn-success mr-2">Volver a informes</a>
+                        <a type="button" href="{{ route('compare.repetirInforme',$informe_id) }}" class="btn btn-success mr-2">Repetir informe</a>
                         @endif
                         <a type="button" href="{{ route('compare.geoservicios') }}" class="btn btn-info mr-2" style="color:white">Nueva comparación</a>
                     </div>

@@ -47,7 +47,7 @@ class CompareController extends Controller
 
     public function listarInformes()
     {  
-        $informes = Informe::all(); 
+        $informes = Informe::with('user')->get(); 
         foreach ($informes as $informe) {
             $informe->datetime = Carbon::parse($informe->datetime);
         }
@@ -71,7 +71,8 @@ class CompareController extends Controller
             'datetime' => Carbon::parse($informe->datetime),
             'usuario' => $informe->user,
             'geoservicio' => $informe->geoservicio,
-            'tipo_informe' => "informe"
+            'tipo_informe' => "informe",
+            'informe_id' => $informe->id
         ]); 
     }
 
@@ -161,7 +162,7 @@ class CompareController extends Controller
             $geoservicioData = json_decode($geoservicioJson, true);
             if ($geoservicioData) {
                 $geoservicio = new Geoservicio($geoservicioData);
-                $comparacion = $this::compararProvincias($geoservicio,$codigo, $nombre, $capa); //
+                $comparacion = $this::compararProvincias($geoservicio, $codigo, $nombre, $capa); //
                 $resultados_sin_geom = [];
                 $geometrias = [];
 
@@ -288,6 +289,7 @@ class CompareController extends Controller
         $geoservicio_id = $geoservicio['id'] ?? null;
         $geoservicio_url = $geoservicio_id ? null : $geoservicio['url']; //solo para las conexiones rapidas guardo la url ya que no hay id
         $geoservicio_nombre = $geoservicio_id ? null : $geoservicio['nombre']; //solo para las conexiones rapidas guardo el nombre ya que no hay id
+        $geoservicio_descripcion = $geoservicio_id ? null : $geoservicio['descripcion']; //solo para las conexiones rapidas guardo la url ya que no hay id
         $informe = Informe::create([
             'capa' => $request->input('capa'),
             'tabla' => $request->input('tabla'),
@@ -300,7 +302,8 @@ class CompareController extends Controller
             'user_id' => $request->input('user_id'),
             'geoservicio_id' => $geoservicio_id,
             'geoservicio_url' => $geoservicio_url,
-            'geoservicio_nombre' => $geoservicio_nombre 
+            'geoservicio_nombre' => $geoservicio_nombre,
+            'geoservicio_descripcion' => $geoservicio_descripcion
         ]);
         
         //guardo los resultados del informe (por el momento solo para provincias)
@@ -333,5 +336,52 @@ class CompareController extends Controller
         } else {
             return response()->json(['statusCode'=> 500, 'message' => "Error al importar la geometría."]);
         }
+    }
+
+    public function repetirInforme($informe)
+    {
+        $informe = Informe::findOrFail($informe);
+        $geoservicio = $informe->geoservicio;
+        if ($geoservicio == null) {
+            $geoservicio = new Geoservicio([ //distinto de Geoservicio::create, en este caso NO se almacena en la BD, es una conexión rápida
+                'nombre' => $informe->geoservicio_nombre,
+                'descripcion' => $informe->geoservicio_descripcion,
+                'url' => $informe->geoservicio_url
+            ]);
+        }
+        
+        $comparacion = $this::compararProvincias($geoservicio, $informe->cod, $informe->nom, $informe->capa); //
+        $resultados_sin_geom = [];
+        $geometrias = [];
+
+        foreach ($comparacion['resultados'] as $resultado) {
+            $feature = $resultado['feature'];
+            $id = $feature['id'];
+            
+            // modifico el campo feature del resultado para que solo tenga id y properties
+            $resultado['feature'] = [
+                'id' => $id,
+                'properties' => $feature['properties']
+            ];
+            $resultados_sin_geom[] = $resultado;
+            
+            // guardo la geometría del feature del resultado por separado
+            $geometrias[$id] = $feature['geometry'];
+        }
+        return view('compare_bd.informe')->with([
+            'capa' => $informe->capa, 
+            'tabla' => "Provincia", //esto junto a la función que se llama para comparar dependerá de la capa
+            'resultados' => $resultados_sin_geom, 
+            'geometrias' => $geometrias,
+            'elementos_erroneos' => $comparacion['elementos_erroneos'], 
+            'total_errores' => $comparacion['total_errores'], 
+            'cod' => $informe->cod, 
+            'nom' => $informe->nom,
+            'operativo' => "-", //TO-DO
+            'datetime' => Carbon::now(),
+            'usuario' => Auth::user(),
+            'geoservicio' => $geoservicio,
+            'tipo_informe' => "resultado"
+        ]); 
     }
 }
