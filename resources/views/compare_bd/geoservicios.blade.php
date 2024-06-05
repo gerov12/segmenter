@@ -11,7 +11,7 @@
       @endif
     </div>
     <div class="row justify-content-center">   
-        <h3>Seleccione el Geoservicio a utilizar para la validación</h3>
+        <h4>Seleccione el Geoservicio a utilizar para la validación</h4>
     </div>
     <br>
     <div class="row justify-content-center">

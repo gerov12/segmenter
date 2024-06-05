@@ -3,7 +3,7 @@
 @section('content_main')
 <div class="container justify-content-center" style="width: 40%">
     <div class="row justify-content-center">   
-        <h3>Validación de Base de Datos con capas de Geoservicios</h3>
+        <h4>Validación de Base de Datos con capas de Geoservicios</h4>
     </div>
     <br>
     <div class="row justify-content-center">

@@ -3,8 +3,7 @@
 @section('content_main')
 <div class="container justify-content-center" style="width: 40%">
     <div id="alert-container">
-        <div class="alert alert-warning justify-content-center" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <div class="alert alert-warning justify-content-center alert-dismissable" role="alert">
             <b>ATENCIÓN:</b> Función en desarrollo. La comparación de la capa se realizará contra la tabla Provincia.
         </div>
         @if(Session::has('message'))
@@ -15,7 +14,7 @@
         @endif
     </div>
     <div class="row justify-content-center">   
-        <h3>Validación de Base de Datos con capas de {{$geoservicio->nombre}}</h3>
+        <h4>Validación de Base de Datos con capas de {{$geoservicio->nombre}}</h4>
     </div>
     <br>
     <div class="row justify-content-center">
