@@ -236,20 +236,22 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // ---------- COMPARACIONES BD-GEOSERVICIOS ---------- //
-Route::get('compare/menu/', 'CompareController@verMenu')->name('compare.menu');
-Route::get('compare/informes/', 'CompareController@listarInformes')->name('compare.informes');
-Route::get('compare/informes/{informe}', 'CompareController@verInforme')->name('compare.verInforme');
-Route::get('compare/informes/rerun/{informe}', 'CompareController@repetirInforme')->name('compare.repetirInforme');
-Route::get('compare/geoservicios/', 'CompareController@listarGeoservicios')->name('compare.geoservicios');
-Route::post('compare/geoservicios/store', 'GeoservicioController@store')->name('compare.storeGeoservicio');
-Route::post('compare/geoservicios/initialize', 'CompareController@inicializarGeoservicio')->name('compare.initGeoservicio');
-Route::post('compare/geoservicios/store-and-connect', 'GeoservicioController@storeAndConnect')->name('compare.storeGeoservicioAndConnect');
-Route::post('compare/geoservicios/delete', 'GeoservicioController@delete')->name('compare.deleteGeoservicio');
-Route::get('compare/capas/', 'CompareController@listarCapas')->name('compare.capas');
-Route::post('compare/atributos/', 'CompareController@listarAtributos')->name('compare.atributos');
-Route::post('compare/validar/{capa}', 'CompareController@validar')->name('compare.validar');
-Route::post('compare/geom_import', 'CompareController@importarGeometria')->name('compare.importarGeom');
-Route::post('compare/store_informe', 'CompareController@storeInforme')->name('compare.storeInforme');
+Route::middleware(['auth'])->group(function () {
+    Route::get('compare/menu/', 'CompareController@verMenu')->name('compare.menu');
+    Route::get('compare/informes/', 'CompareController@listarInformes')->name('compare.informes');
+    Route::get('compare/informes/{informe}', 'CompareController@verInforme')->name('compare.verInforme');
+    Route::get('compare/informes/rerun/{informe}', 'CompareController@repetirInforme')->name('compare.repetirInforme');
+    Route::get('compare/geoservicios/', 'CompareController@listarGeoservicios')->name('compare.geoservicios');
+    Route::post('compare/geoservicios/store', 'GeoservicioController@store')->name('compare.storeGeoservicio');
+    Route::post('compare/geoservicios/initialize', 'CompareController@inicializarGeoservicio')->name('compare.initGeoservicio');
+    Route::post('compare/geoservicios/store-and-connect', 'GeoservicioController@storeAndConnect')->name('compare.storeGeoservicioAndConnect');
+    Route::post('compare/geoservicios/delete', 'GeoservicioController@delete')->name('compare.deleteGeoservicio');
+    Route::get('compare/capas/', 'CompareController@listarCapas')->name('compare.capas');
+    Route::post('compare/atributos/', 'CompareController@listarAtributos')->name('compare.atributos');
+    Route::post('compare/validar/{capa}', 'CompareController@validar')->name('compare.validar');
+    Route::post('compare/geom_import', 'CompareController@importarGeometria')->name('compare.importarGeom');
+    Route::post('compare/store_informe', 'CompareController@storeInforme')->name('compare.storeInforme');
+});
 
 // ---------- PROVINCIAS --------
 Route::get('provs-list', 'ProvinciaController@provsList');
