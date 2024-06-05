@@ -4,7 +4,7 @@
 <div class="container">
 <div id="alert-container"></div>
 <h2>Listado de archivos con checksums no calculados con el nuevo método</h2>
-  @if(count($checksums_no_calculados) > 0)
+  @if(count($checksums_no_calculados) > 0 && $owned > 0)
     <h4><button id="bulk-button" onclick="return confirmarCalculoBulk()" class="btn btn-success"> Recalcular ({{$owned}})</button></h4>
   @endif
   <br>

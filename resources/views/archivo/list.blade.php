@@ -266,7 +266,8 @@
                   { data: 'viewers_count', name: 'viewers_count' },
                   { data: 'status', name: 'status' },
                   { data: 'action', name: 'action', orderable: false}
-        ]
+        ],
+        columnDefs: [{ type: 'date', targets: 8 }] //indico que la columna created_at es de tipo date
       });
 
   // funcion abrir info archivo al clickear fila
