@@ -3,7 +3,7 @@
 @section('content_main')
 <div class="container justify-content-center" style="width: 40%">
     <div id="alert-container">
-        <div class="alert alert-warning justify-content-center alert-dismissable" role="alert">
+        <div class="alert alert-warning alert-important justify-content-center">
             <b>ATENCIÓN:</b> Función en desarrollo. La comparación de la capa se realizará contra la tabla Provincia.
         </div>
         @if(Session::has('message'))
