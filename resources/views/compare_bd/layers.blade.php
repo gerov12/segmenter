@@ -22,7 +22,7 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 Seleccionar capa para la comparación
                 @if (!$geoservicio->id)
-                <span title="Conexión rápida" class="badge badge-pill badge-success ml-auto"><i class="bi bi-lightning-charge"></i></span><br>
+                <span title="Conexión rápida" class="badge badge-pill badge-success ml-auto"><i class="bi bi-lightning-charge"></i></span>
                 @endif
             </div>
             <div class="card-body">

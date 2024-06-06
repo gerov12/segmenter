@@ -11,20 +11,22 @@
     .flex-container a {
         margin: 0;
     }
+
+    table.table {
+        display: table;
+    }
 </style>
 <div style="width:85%; margin: 0 auto;">
-    <div style="display: flex; align-items: center; justify-content: center;">
-        <div style="width: 90rem; display: flex; align-items: center;"> 
+    <div>
         <h4><a href="{{route('compare.menu')}}" class="badge badge-pill badge-primary">← Volver</a></h4>
-        </div>
     </div>
-    <div class="row justify-content-center"> 
-        <div class="card">
+    <div class="row justify-content-center">  
+        <div class="card w-100">
             <div class="card-header">
                 Listado de informes de validación de la Base de Datos contra Geoservicios
             </div>
             <div class="card-body">
-                <table class="table table-responsive table-bordered" id="tabla-informes">
+                <table class="table table-responsive table-bordered w-100" id="tabla-informes">
                     <thead>
                         <tr>
                             <th>Geoservicio</th>
