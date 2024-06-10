@@ -39,7 +39,7 @@ class Geometria extends Model
           $escalar = false;
           $perimeter = 2400;
           $stroke = 2;
-          $extent = DB::select("SELECT box2d(st_collect(poligono)) box FROM
+          $extent = DB::select("SELECT box2d(st_collect(multipoligono)) box FROM
           ".$this->table."
           WHERE id='".$this->id."' ");
           $extent = $extent[0]->box;
@@ -97,7 +97,7 @@ class Geometria extends Model
            */
           $svg = DB::select("
 WITH shapes (geom, attribute, tipo) AS
-  ( SELECT st_buffer(st_collect(poligono),1,'endcap=flat join=round') wkb_geometry, ".$this->id." as attribute, 'A'::text as tipo FROM
+  ( SELECT st_buffer(st_collect(multipoligono),1,'endcap=flat join=round') wkb_geometry, ".$this->id." as attribute, 'A'::text as tipo FROM
   ".$this->table."
   WHERE id='".$this->id."'
   ),
