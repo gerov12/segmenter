@@ -75,7 +75,7 @@ class Provincia extends Model
     }
 
     /**
-     * Get the json geoservicios de la provincia.
+     * Get the geojson de geoservicios de la provincia.
      */
     public function geojson()
     {
@@ -101,7 +101,7 @@ class Provincia extends Model
 
 
     /**
-     * Get the json geoservicios de la provincia.
+     * Get the svg de geoservicios de la provincia.
      */
     public function svg()
     {
@@ -150,5 +150,5 @@ class Provincia extends Model
           ->using(InformeProvincia::class)
           ->withPivot('existe_cod', 'existe_nom', 'estado', 'estado_geom', 'errores', 'cod', 'nom')
           ->withTimestamps();
-  }  
+  }
 }
