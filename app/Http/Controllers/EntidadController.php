@@ -21,17 +21,18 @@ class EntidadController extends Controller
     {
       $oEntidad =  Entidad::findOrNew($entidad);
       $oProvincia = $oEntidad->localidad->departamentos->first()->provincia;
+      $oGeometria = $oEntidad->geometria()->first();
       if ($request->ajax()) {
         return view('entidad.info', [
             'entidad' => $oEntidad
             ,'provincia' => $oProvincia ?? new Provincia (['nombre'=>'No province','id'=>0,'codigo'=>0])
-            ,'svg' => $oEntidad->geometria()->first()->getSVG(400,400) ?? (new Geometria([]))->getSVG()
+            ,'svg' => $oGeometria != null ? $oGeometria->getSVG(400,400) : null
         ]);
       }else{
         return view('entidad.view', [
           'entidad' => $oEntidad
           ,'provincia' => $oProvincia ?? new Provincia (['nombre'=>'No province','id'=>0,'codigo'=>0])
-          ,'svg' => $oEntidad->geometria()->first()->getSVG() ?? (new Geometria([]))->getSVG()
+          ,'svg' => $oGeometria != null ? $oGeometria->getSVG() : null
       ]);
       }
     }

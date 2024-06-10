@@ -10,7 +10,7 @@ class Geometria extends Model
     //
     protected $table='geometrias';
     protected $primaryKey = 'id';
-    protected $fillable = ['poligono', 'punto', 'topogeometria'];
+    protected $fillable = ['multipoligono', 'multilinea', 'multipunto', 'topogeometria'];
 
 
     /**
@@ -22,6 +22,16 @@ class Geometria extends Model
     {
         return $this->hasMany('App\Model\Entidad');
     }
+
+    /**
+     * Relación con Provincia.
+     *
+     */
+
+     public function provincia()
+     {
+         return $this->hasMany('App\Model\Provincia');
+     }
 
       // return SVG Geometria poligono
     public function getSVG( $width = 600, $height = 400) {
