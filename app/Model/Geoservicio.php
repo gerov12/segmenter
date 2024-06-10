@@ -14,8 +14,8 @@ class Geoservicio extends Model
 
     protected $fillable = [
         'id', //null para los geoservicios temporales (conexión rápida)
-        'nombre', 
-        'descripcion', 
+        'nombre',
+        'descripcion',
         'url'
     ];
 
@@ -27,14 +27,15 @@ class Geoservicio extends Model
     public function testConnection()
     {
         try {
-            $response = Http::get($this->url, [
-                'request' => 'GetCapabilities'
+            $response = Http::withoutVerifying()->get($this->url, [
+              'service' => 'wfs',
+              'request' => 'GetCapabilities',
             ]);
 
             if (!$response->successful()) {
                 throw new \Exception('Error en la solicitud HTTP: ' . $response->status());
             }
-    
+
             // verifico que el contenido sea XML
             $contentType = $response->header('Content-Type');
             if (strpos($contentType, 'application/xml') === false && strpos($contentType, 'text/xml') === false) {
@@ -56,18 +57,19 @@ class Geoservicio extends Model
             } else if ($xml->getName() == 'WFS_Capabilities') {
                 return ["status" => true];
             }
-            
+
         } catch (\Exception $e) {
-            Log::error('Error al conectar con el geoservicio. ' . $e->getMessage());
+            Log::error('Testeando: Error al conectar con el geoservicio. ' . $e->getMessage(),[$e]);
             return ["status" => false, "message" => 'Error al conectar con el geoservicio. ' . $e->getMessage()];
         }
     }
 
     public function getCapas()
-    {   
+    {
         try {
-            $response = Http::get($this->url, [
-                'request' => 'GetCapabilities',
+            $response = Http::withoutVerifying()->get($this->url, [
+              'service' => 'wfs',
+              'request' => 'GetCapabilities',
                 // 'section' => 'FeatureTypeList' //para algunos geoservicios no funciona el parametro section, se busca en toda la response y listo.
             ]);
 
@@ -84,7 +86,7 @@ class Geoservicio extends Model
 
             return ["status" => true, "capas" => $featureTypeList];
         } catch (\Exception $e) {
-            Log::error('Error al conectar con el geoservicio. ' . $e->getMessage());
+            Log::error('getCapas: Error al conectar con el geoservicio. ' . $e->getMessage());
             return ["status" => false, "message" => 'Error al conectar con el geoservicio. ' . $e->getMessage()];
         }
     }
@@ -92,8 +94,9 @@ class Geoservicio extends Model
     public function getCapa($capa)
     {
         try {
-            $response = Http::get($this->url, [
-                'request' => 'GetFeature',
+            $response = Http::withoutVerifying()->get($this->url, [
+              'service' => 'wfs',
+              'request' => 'GetFeature',
                 'outputFormat' => 'application/json',
                 'typeName' => $capa
             ]);
@@ -109,8 +112,9 @@ class Geoservicio extends Model
     public function getAtributos($capa)
     {
         try {
-            $response = Http::get($this->url, [
-                'request' => 'DescribeFeatureType',
+            $response = Http::withoutVerifying()->get($this->url, [
+              'service' => 'wfs',
+              'request' => 'DescribeFeatureType',
                 'outputFormat' => 'application/json',
                 'typeNames' => $capa
             ]);
