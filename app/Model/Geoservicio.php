@@ -98,6 +98,7 @@ class Geoservicio extends Model
               'service' => 'wfs',
               'request' => 'GetFeature',
                 'outputFormat' => 'application/json',
+                'srs' => 'EPSG:4326',
                 'typeName' => $capa
             ]);
             $result = $response->body();
