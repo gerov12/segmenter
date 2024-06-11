@@ -63,8 +63,8 @@
                             <a class="nav-link dropdown-item" href="{{ url('/localidades') }}"> Localidades </a>
                             <a class="nav-link dropdown-item" href="{{ url('/entidades') }}"> Entidades </a>
                             <div class="dropdown-divider"></div>
-                            <a class="nav-link dropdown-item" href="{{ url('/gobiernos_locales') }}"> Gobiernos Locales </a>
-                            <a class="nav-link dropdown-item" href="{{ url('/parajes') }}"> Parajes </a>
+                            <a class="nav-link dropdown-item disabled" href="{{ url('/gobiernos_locales') }}"> Gobiernos Locales </a>
+                            <a class="nav-link dropdown-item disabled" href="{{ url('/parajes') }}"> Parajes </a>
                         </div>
                         </li>
                         <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link " href="{{ url('/segmentador') }}"> Cargar </a> </li>
