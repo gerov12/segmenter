@@ -51,19 +51,42 @@
                     <ul class="navbar-nav mr-auto btn">
                     @auth
                         <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/home') }}"> Inicio </a> </li>
-                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/provs') }}"> Provincias </a> </li>
-                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/aglos') }}"> Aglomerados </a> </li>
-                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/localidades') }}"> Localidades </a> </li>
-                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/entidades') }}"> Entidades </a> </li>
-                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/segmentador') }}"> Cargar </a> </li>
+                        <li class="nav-item dropdown" style="display: flex; align-items: center;">
+                          <a id="navbarDropdownUgs" class="nav-link dropdown-toggle" href="#ugs" role="button"
+                          aria-controls=ugs
+                          data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre> Unidades Geográficas <span class="caret"></span>
+                          </a>
+                        <div id=ugs class="dropdown-menu" aria-labelledby="navbarDropdownUgs">
+                          <!-- DropDown Of Navbar -->
+                            <a class="nav-link dropdown-item" href="{{ url('/provs') }}"> Provincias </a>
+                            <a class="nav-link dropdown-item" href="{{ url('/aglos') }}"> Aglomerados </a>
+                            <a class="nav-link dropdown-item" href="{{ url('/localidades') }}"> Localidades </a>
+                            <a class="nav-link dropdown-item" href="{{ url('/entidades') }}"> Entidades </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="nav-link dropdown-item" href="{{ url('/gobiernos_locales') }}"> Gobiernos Locales </a>
+                            <a class="nav-link dropdown-item" href="{{ url('/parajes') }}"> Parajes </a>
+                        </div>
+                        </li>
+                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link " href="{{ url('/segmentador') }}"> Cargar </a> </li>
                         <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/archivos') }}"> Archivos </a> </li>
                         @if(auth()->user()->can('Generar Informes') || auth()->user()->can('Ver Informes'))
                         <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ route('compare.menu') }}"> Validar BD </a> </li>
                         @endif
-                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{
+                        <li class="nav-item dropdown" style="display: flex; align-items: center;">
+                          <a id="navbarDropdownOtros" class="nav-link
+                          dropdown-toggle" href="#Otros" role="button"
+                          aria-controls=otros
+                          data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre> Otros <span class="caret"></span>
+                          </a>
+                          <div id=otros class="dropdown-menu dropdown-menu-right collapse"
+                          aria-labelledby="navbarDropdownOtros">
+                          <!-- DropDown Of Navbar -->
+                        <a class="nav-link dropdown-item" href="{{
                         url('https://github.com/bichav/salidagrafica-atlas/archive/master.zip')
-                        }}"> Descargar plugin </a> </li>
-                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/guia') }}"> Guia </a> </li>
+                        }}"> Descargar plugin </a>
+                        <a class="nav-link dropdown-item" href="{{ url('/guia') }}"> Guia </a>
+                        </div>
+                        </li>
                     @endauth
                     </ul>
 
@@ -81,8 +104,8 @@
                             @endif
                         @else
                             <li class="nav-item btn mr-4">
-                                    <a class="nav-link" alt="Ver/Ocultar mensajes"
-                                    title="Ver/Ocultar Menaajes flash"
+                                    <a class="nav-link button" alt="Ver/Ocultar mensajes"
+                                    title="Ver/Ocultar Menasajes flash"
                                     onclick="$('div.alert').toggle();">
                                     Mensajes</a>
                             </li>
@@ -97,30 +120,19 @@
                                 <div id=logout class="dropdown-menu dropdown-menu-right collapse"
                                 aria-labelledby="navbarDropdownLogin">
                                 <!-- DropDown Of Side Navbar -->
-                                <ul class="navbar-nav ml-auto">
-                                <li class="nav-item dropdown">
                                   <a class="dropdown-item" href="{{ route('perfil') }}">{{ __('Perfil') }}</a>
-                                </li>
-                                <li class="nav-item dropdown">
-                                    <a class="dropdown-item" href="{{ route('logout') }}"
+                                  <a class="dropdown-item" href="{{ route('archivos') }}">{{ __('Archivos') }}</a>
+                                  @if (Auth::user()->hasRole('Super Admin'))
+                                  <a class="dropdown-item" href="{{ route('admin.listarUsuarios') }}">{{ __('Usuarios') }}</a>
+                                  @endif
+                                  <a class="dropdown-item" href="{{ route('logout') }}"
                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
                                         {{ __('Logout') }}
-                                    </a>
-
+                                  </a>
                                     <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                                         @csrf
                                     </form>
-                                </li>
-                                <li class="nav-item dropdown">
-                                  <a class="dropdown-item" href="{{ route('archivos') }}">{{ __('Archivos') }}</a>
-                                </li>
-                                @if (Auth::user()->hasRole('Super Admin'))
-                                <li class="nav-item dropdown">
-                                  <a class="dropdown-item" href="{{ route('admin.listarUsuarios') }}">{{ __('Usuarios') }}</a>
-                                </li>
-                                @endif
-                              </ul>
                              </div>
 
                             </li>
