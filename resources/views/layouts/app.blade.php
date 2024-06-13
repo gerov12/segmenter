@@ -80,7 +80,7 @@
                             <a class="nav-link dropdown-item" href="{{ route('admin.listarUsuarios') }}">{{ __('Usuarios') }}</a>
                             <div class="dropdown-divider"></div>
                             <a class="nav-link dropdown-item" href="{{ route('admin.listarFiltros') }}">Filtros</a>
-                            <a class="nav-link dropdown-item" href="{{ route('admin.listarFiltros') }}">Roles</a>
+                            <a class="nav-link dropdown-item" href="{{ route('admin.listarRoles') }}">Roles</a>
                         </div>
                         </li>
                         @endif
@@ -96,6 +96,7 @@
                           <div id=otros class="dropdown-menu dropdown-menu-right collapse"
                           aria-labelledby="navbarDropdownOtros">
                           <!-- DropDown Of Navbar -->
+                          <a class="nav-link dropdown-item" href="{{ url('/operativos') }}"> Operativos </a>
                         <a class="nav-link dropdown-item" href="{{
                         url('https://github.com/bichav/salidagrafica-atlas/archive/master.zip')
                         }}"> Descargar plugin </a>
