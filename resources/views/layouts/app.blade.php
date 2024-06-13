@@ -69,6 +69,21 @@
                         </li>
                         <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link " href="{{ url('/segmentador') }}"> Cargar </a> </li>
                         <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ url('/archivos') }}"> Archivos </a> </li>
+                        @if (Auth::user()->hasRole('Super Admin'))
+                        <li class="nav-item dropdown" style="display: flex; align-items: center;">
+                          <a id="navbarDropdownPFR" class="nav-link dropdown-toggle" href="#PFR" role="button"
+                          aria-controls=PFR
+                          data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre> Usuarios <span class="caret"></span>
+                          </a>
+                        <div id=PFR class="dropdown-menu" aria-labelledby="navbarDropdownPFR">
+                            <!-- DropDown Of Navbar -->
+                            <a class="nav-link dropdown-item" href="{{ route('admin.listarUsuarios') }}">{{ __('Usuarios') }}</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="nav-link dropdown-item" href="{{ route('admin.listarFiltros') }}">Filtros</a>
+                            <a class="nav-link dropdown-item" href="{{ route('admin.listarFiltros') }}">Roles</a>
+                        </div>
+                        </li>
+                        @endif
                         @if(auth()->user()->can('Generar Informes') || auth()->user()->can('Ver Informes'))
                         <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ route('compare.menu') }}"> Validar BD </a> </li>
                         @endif
@@ -122,9 +137,6 @@
                                 <!-- DropDown Of Side Navbar -->
                                   <a class="dropdown-item" href="{{ route('perfil') }}">{{ __('Perfil') }}</a>
                                   <a class="dropdown-item" href="{{ route('archivos') }}">{{ __('Archivos') }}</a>
-                                  @if (Auth::user()->hasRole('Super Admin'))
-                                  <a class="dropdown-item" href="{{ route('admin.listarUsuarios') }}">{{ __('Usuarios') }}</a>
-                                  @endif
                                   <a class="dropdown-item" href="{{ route('logout') }}"
                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
