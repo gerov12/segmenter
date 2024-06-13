@@ -11,10 +11,6 @@
     .flex-container a {
         margin: 0;
     }
-
-    table.table {
-        display: table;
-    }
 </style>
 <div style="width:85%; margin: 0 auto;">
     <div>
@@ -26,7 +22,7 @@
                 Listado de informes de validación de la Base de Datos contra Geoservicios
             </div>
             <div class="card-body">
-                <table class="table table-responsive table-bordered w-100" id="tabla-informes">
+                <table class="table table-responsive table-bordered" id="tabla-informes">
                     <thead>
                         <tr>
                             <th>Geoservicio</th>
@@ -116,5 +112,18 @@
         }
         }
     });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        var table = document.getElementById('tabla-informes');
+        var tbody = table.querySelector('tbody');
+        var rows = tbody.getElementsByTagName('tr');
+        
+        if (rows.length === 1 && rows[0].textContent.trim() === "Ningún dato disponible en esta tabla =(") {
+            table.style.display = 'table';
+        } else {
+            table.style.display = 'block';
+        }
+    });
+
 </script>
 @endsection
