@@ -39,6 +39,8 @@
         </h3>
       </li>
     </a>
+    <br />
+    {{ $segmento->toJson(JSON_PRETTY_PRINT) }}
     @endif
     </ol>
     @if (isset($svg))

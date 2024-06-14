@@ -38,6 +38,8 @@
                             <th>Id</th>
                             <th>Código</th>
                             <th>Provincia</th>
+                            <th>Data</th>
+                            <th>Vivs</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -107,6 +109,13 @@
                             {
                                 data: 'provincia',
                                 name: 'provincia'
+                            },
+                            {
+                                data: 'data',
+                                name: 'data'
+                            },                            {
+                                data: 'vivs',
+                                name: 'vivs'
                             },
                             {
                                 visible: true,

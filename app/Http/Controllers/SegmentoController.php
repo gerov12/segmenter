@@ -51,7 +51,9 @@ class SegmentoController extends Controller
       foreach ($qSegs as $seg){
         $aSegs[$seg->id]=['id' => $seg->id,
                           'provincia' => $seg->provincia->nombre,
-                          'codprov' => $seg->provincia->codigo
+                          'codprov' => $seg->provincia->codigo,
+                          'data' => $seg->toJson(JSON_PRETTY_PRINT),
+                          'vivs' => $seg->vivs
                           ];
       }
     return datatables()->of($aSegs)
