@@ -385,6 +385,7 @@ Route::get('informe/avances','TableroController@GraficoAvances');
 Route::post('informe/avances','TableroController@GraficoAvances');
 Route::get('informe/avance','TableroController@GraficoAvance');
 Route::post('informe/avance','TableroController@GraficoAvance');
+Route::get('informe/bd','TableroController@EstadisticasBD')->name('database.statistics');
 
 //Route::get('mail', 'MailCsvController@index');
 
