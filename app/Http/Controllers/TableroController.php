@@ -86,8 +86,8 @@ class TableroController extends Controller
       flash('Cantidad de Usuarios: '.User::count())->important();
 
       if (session('operativo')) {
-        $operativo_actual = Operativo::hydrate( session('operativo') );
-        flash('Operativo seleccionado: '.$operativo_actual->first()->nombre)->warning()->important();
+        $operativo_actual = Operativo::hydrate( session('operativo') )->first();
+        flash('Operativo seleccionado: '.$operativo_actual->nombre)->warning()->important();
       }
 
       if ($request->isMethod('post')) {

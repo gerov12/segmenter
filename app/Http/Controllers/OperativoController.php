@@ -56,7 +56,10 @@ class OperativoController extends Controller
 
     public function operativosList()
     {
-           // Opes, Opas inclusivo :D
+      if (session('operativo')) {
+        $operativo_actual = Operativo::hydrate( session('operativo') )->first();
+      } else { $operativo_actual = Operativo::new(); }
+          // Opes, Opas inclusivo :D
            $aOpes=[];
            $opesQuery = Operativo::query();
            $codigo = (!empty($_GET["codigo"])) ? ($_GET["codigo"]) : ('');
@@ -69,13 +72,18 @@ class OperativoController extends Controller
         foreach ($qOpes as $op){
           $aOpes[$op->id]=['id' => $op->id,
                            'nombre' => $op->nombre,
-                           'observacion' => $op->observacion
+                           'observacion' => $op->observacion,
+                           'seleccionado' => $op->id == $operativo_actual->id
                           ];
         }
       return datatables()->of($aOpes)
                           ->addColumn('action', function($data){
                             // botón de seleccionar Operativo
+                            if($data['seleccionado']==false) {
                             $button = '<button type="button" class="btn_seleccionar btn-sm btn-primary" > Seleccionar </button> ';
+                            } else {
+                              $button = '<b>Seleccionado</b>';
+                            }
                             return $button;
                         })
             ->make(true);
