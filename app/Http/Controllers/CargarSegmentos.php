@@ -24,7 +24,7 @@ class CargarSegmentos extends Controller
         //Procesar solo si está logueado y tiene permiso
         if (!Auth::check()){
                flash('Debe estar logueado para realizar esta acción')->error() ->important();
-               return  redirect('/');
+               return  redirect('/login');
         }
 
         // Verificar si el archivo se ha subido
@@ -91,7 +91,7 @@ class CargarSegmentos extends Controller
 
             $archivo = Excel::toArray(new SegmentosImport, $nombreArchivo);
 
-             $codprovincia = $archivo[0][1]['prov'];
+             $codprovincia = $archivo[0][1]['prov'] ?? $archivo[0][1]['codprov'] ?? $archivo[0][1]['cod_prov'];
 
              $oProvincia= Provincia::where('codigo', $codprovincia)->first();
 
