@@ -147,13 +147,6 @@ Route::resource('/listado', 'ListadoController',['only' => [
    'index', 'show', 'save'
 ]]);
 
-
-/**
- * Segmentos
- */
-Route::resource('/segmentos', 'SegmentoController',['only' => [
-   'index', 'show', 'save'
-]]);
 Route::post('/domicilio/guardar/','DomicilioController@save');
 /**
  * Segmenter
@@ -177,9 +170,23 @@ Route::post('csv_file/import', 'CsvFile@csv_import')->name('import');
 Route::get('search_provincia', 'AutoCompleteProvinciaController@index');
 Route::get('autocomplete_provincia', 'AutoCompleteProvinciaController@search');
 Route::get('provincia','ProvinciaController@index');
+
 /**
- * Segmentos con viviendas
+ * Segmentos
  */
+Route::resource('/segmentos', 'SegmentoController',['only' => [
+  'index', 'show', 'save',
+]]);
+Route::get('segs-list', 'SegmentoController@segsList');
+Route::get('segs','SegmentoController@index');
+
+Route::get('segmento/{segmento}','SegmentoController@show');
+Route::post('segmento/{segmento}','SegmentoController@show');
+
+
+/**
+* Segmentos con viviendas
+*/
 Route::get('cargarSegmentos', 'CargarSegmentos@index');
 Route::post('cargarSegmentos', 'CargarSegmentos@procesar');
 
@@ -209,10 +216,10 @@ Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $requ
     $request->fulfill();
     return redirect('perfil')->with('message', 'Se ha verificado el email correctamente!');
 })->middleware(['auth','signed'])->name('verification.verify');
-use Illuminate\Http\Request; 
+use Illuminate\Http\Request;
 Route::post('/email/verification-notification', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
- 
+
     return back()->with('message', 'Se ha enviado un mail de verificación!');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
@@ -378,6 +385,7 @@ Route::get('informe/avances','TableroController@GraficoAvances');
 Route::post('informe/avances','TableroController@GraficoAvances');
 Route::get('informe/avance','TableroController@GraficoAvance');
 Route::post('informe/avance','TableroController@GraficoAvance');
+Route::get('informe/bd','TableroController@EstadisticasBD')->name('database.statistics');
 
 //Route::get('mail', 'MailCsvController@index');
 

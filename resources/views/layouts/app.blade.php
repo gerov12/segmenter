@@ -65,6 +65,9 @@
                             <div class="dropdown-divider"></div>
                             <a class="nav-link dropdown-item disabled" href="{{ url('/gobiernos_locales') }}"> Gobiernos Locales </a>
                             <a class="nav-link dropdown-item disabled" href="{{ url('/parajes') }}"> Parajes </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="nav-link dropdown-item" href="{{ url('/segmentos') }}"> Segmentos </a>
+
                         </div>
                         </li>
                         <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link " href="{{ url('/segmentador') }}"> Cargar </a> </li>
@@ -84,9 +87,20 @@
                         </div>
                         </li>
                         @endif
-                        @if(auth()->user()->can('Generar Informes') || auth()->user()->can('Ver Informes'))
-                        <li class="nav-item" style="display: flex; align-items: center;"><a class="nav-link" href="{{ route('compare.menu') }}"> Validar BD </a> </li>
-                        @endif
+                        <li class="nav-item dropdown" style="display: flex; align-items: center;">
+                          <a id="navbarDropdownBD" class="nav-link
+                          dropdown-toggle" href="#BD" role="button"
+                          aria-controls=bd
+                          data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre> Base de Datos <span class="caret"></span>
+                          </a>
+                          <div id=bd class="dropdown-menu dropdown-menu-right collapse"
+                          aria-labelledby="navbarDropdownOtros">
+                          <!-- DropDown Of Navbar -->
+                          <a class="nav-link" href="{{ route('database.statistics') }}"> Estadísticas de base de datos </a>
+                            @if(auth()->user()->can('Generar Informes') || auth()->user()->can('Ver Informes'))
+                            <a class="nav-link" href="{{ route('compare.menu') }}"> Comparar BD con Geoservicio </a>
+                            @endif
+                        </li>
                         <li class="nav-item dropdown" style="display: flex; align-items: center;">
                           <a id="navbarDropdownOtros" class="nav-link
                           dropdown-toggle" href="#Otros" role="button"
