@@ -73,6 +73,11 @@ class OperativoController extends Controller
                           ];
         }
       return datatables()->of($aOpes)
+                          ->addColumn('action', function($data){
+                            // botón de seleccionar Operativo
+                            $button = '<button type="button" class="btn_seleccionar btn-sm btn-primary" > Seleccionar </button> ';
+                            return $button;
+                        })
             ->make(true);
     }
 

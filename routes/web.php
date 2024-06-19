@@ -209,10 +209,10 @@ Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $requ
     $request->fulfill();
     return redirect('perfil')->with('message', 'Se ha verificado el email correctamente!');
 })->middleware(['auth','signed'])->name('verification.verify');
-use Illuminate\Http\Request; 
+use Illuminate\Http\Request;
 Route::post('/email/verification-notification', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
- 
+
     return back()->with('message', 'Se ha enviado un mail de verificación!');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
@@ -315,7 +315,7 @@ Route::get('operativos', 'OperativoController@index')->name('operativos');
 Route::get('operativo/{operativo}','OperativoController@show');
 Route::get('operativos-list', 'OperativoController@operativosList');
 Route::post('operativo/{operativo}','OperativoController@show');
-Route::get('operativo/seleccionar/{operativo}','OperativoController@seleccionar');
+Route::get('operativo/seleccionar/{operativo}','OperativoController@seleccionar')->name('operativo.seleccionar');
 
 
 // --------- SEGMENTACION X AGLOMERADO ---------

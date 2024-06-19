@@ -35,6 +35,7 @@
                             <th>Id</th>
                             <th>Nombre</th>
                             <th>Observación</th>
+                            <th>*</th>
                         </tr>
                     </thead>
                 </table>
@@ -104,6 +105,10 @@
                                 data: 'observacion',
                                 name: 'observacion'
                             },
+                            {
+                                data: 'action',
+                                name: 'action'
+                            },
                         ]
                     });
 
@@ -130,13 +135,13 @@
                         }
                     });
 
-                    // Función de botón Ver 2.
-                    table.on('click', '.btn_ent', function() {
+                    // Función de botón Seleccionar
+                    table.on('click', '.btn_seleccionar', function() {
                         var row = $(this).closest('tr');
                         var data = table.row(row).data();
-                        console.log('Ver operativo: ' + data.codigo);
+                        console.log('Seleccionar operativo: ' + data.codigo);
                         if (typeof data !== 'undefined') {
-                            url = "{{ url('operativo') }}" + "/" + data.id;
+                            url = "{{ url('operativo/seleccionar') }}" + "/" + data.id;
                             $(location).attr('href', url);
                         };
                     });
