@@ -58,7 +58,7 @@ class OperativoController extends Controller
     {
       if (session('operativo')) {
         $operativo_actual = Operativo::hydrate( session('operativo') )->first();
-      } else { $operativo_actual = Operativo::new(); }
+      } else { $operativo_actual = new Operativo; }
           // Opes, Opas inclusivo :D
            $aOpes=[];
            $opesQuery = Operativo::query();
