@@ -1,7 +1,16 @@
 @extends('layouts.app')
 
 @section('content_main')
-    <!-- Modal -->
+    <style>
+        .action-column {
+            white-space: nowrap;
+            text-align: center;
+            justify-content: center;
+            max-width: 150px;
+        }
+    </style>
+
+    <!-- Modal info-->
     <div class="modal fade" id="empModal" role="dialog">
         <div class="modal-dialog">
 
@@ -11,12 +20,79 @@
                     <h4 class="modal-title">Info de operativo</h4>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body info-modal-body">
 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal nuevo-->
+    <div class="modal fade" id="newOperativoModal" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Nuevo operativo</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <form action="{{ route('operativo.crear') }}" method="POST" id="form-create-operativo">
+                    @csrf
+                    <div class="modal-body">
+                        <label for="nameInput">Nombre</label>
+                        <input type="text" class="form-control" id="nameInput" name="nombre">
+                        @if ($errors->new->has('nombre'))
+                            <div class="text-danger">{{ $errors->new->first('nombre') }}</div>
+                        @endif
+                        <label for="observationInput">Observación</label>
+                        <input type="text" class="form-control" id="observationInput" name="observacion">
+                        @if ($errors->new->has('observacion'))
+                            <div class="text-danger">{{ $errors->new->first('observacion') }}</div>
+                        @endif
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <input type="submit" name="btn" class="btn btn-primary btn-submit-create-operativo" value="Confirmar" onclick="return confirmarCreacion()">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal editar-->
+    <div class="modal fade" id="editOperativoModal" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Editar operativo</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <form action="{{ route('operativo.editar') }}" method="POST" id="form-edit-operativo">
+                    @csrf
+                    <div class="modal-body">
+                        <input type="hidden" id="operativoId" name="operativo_id">
+                        <label for="editNameInput">Nombre</label>
+                        <input type="text" class="form-control" id="editNameInput" name="nombre">
+                        @if ($errors->edit->has('nombre'))
+                            <div class="text-danger">{{ $errors->edit->first('nombre') }}</div>
+                        @endif
+                        <label for="editObservationInput">Observación</label>
+                        <input type="text" class="form-control" id="editObservationInput" name="observacion">
+                        @if ($errors->edit->has('observacion'))
+                            <div class="text-danger">{{ $errors->edit->first('observacion') }}</div>
+                        @endif
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <input type="submit" name="btn" class="btn btn-primary btn-submit-create-operativo" value="Confirmar" onclick="return confirmarEdicion()">
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -24,7 +100,11 @@
     <div class="container">
       <div class="row">
       </div>
-        <h4>Listado de operativos</h4>
+        <h4>Listado de operativos
+            @can('Administrar Operativos')
+                <button class="badge badge-pill badge-primary ml-2" data-toggle="modal" id="btn-trigger-modal-nuevo-operativo" data-target="#newOperativoModal">+ Nuevo</button>
+            @endcan
+        </h4>
         <div class="row">
             <div class="col-lg-12">
                 <table
@@ -46,7 +126,6 @@
 @section('footer_scripts')
     <script>
         $(document).ready(function() {
-                    var propagacion = false;
                     $.ajaxSetup({
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -107,31 +186,34 @@
                             },
                             {
                                 data: 'action',
-                                name: 'action'
+                                name: 'action',
+                                className: 'action-column',
                             },
                         ]
                     });
 
-                    table.on('click', 'tr', function() {
-                        var data = table.row(this).data();
-                        if ((data != null) && (propagacion == false)) {
-                            // AJAX request
-                            $.ajax({
-                                url: "{{ url('operativo') }}" + "/" + data.id,
-                                type: 'post',
-                                data: {
-                                    id: data.id,
-                                    format: 'html'
-                                },
-                                success: function(response) {
-                                    // Add response in Modal body
-                                    $('.modal-body').html(response);
+                    table.on('click', 'tr', function(e) {
+                        if ($(e.target).closest('button').length === 0) {
+                            var data = table.row(this).data();
+                            if ((data != null)) {
+                                // AJAX request
+                                $.ajax({
+                                    url: "{{ url('operativo') }}" + "/info/" + data.id,
+                                    type: 'post',
+                                    data: {
+                                        id: data.id,
+                                        format: 'html'
+                                    },
+                                    success: function(response) {
+                                        // Add response in Modal body
+                                        $('.info-modal-body').html(response);
 
-                                    // Display Modal
-                                    $('#empModal').modal('show');
-                                }
-                            });
-                            console.log('You clicked on ' + data.id + '\'s row');
+                                        // Display Modal
+                                        $('#empModal').modal('show');
+                                    }
+                                });
+                                console.log('You clicked on ' + data.id + '\'s row');
+                            }
                         }
                     });
 
@@ -152,8 +234,8 @@
 
                     // Función de botón Borrar.
                     table.on('click', '.btn_op_delete', function() {
-                        propagacion = true;
                         var $ele = $(this).parent().parent();
+                        console.log($ele);
                         var row = $(this).closest('tr');
                         var data = table.row(row).data();
                         if ((typeof data !== 'undefined') &&
@@ -183,12 +265,45 @@
                                                 alert("Mensaje del Servidor: " + response.message);
                                             }
                                             console.log(response);
-                                            propagacion = false;
                                         }
                                     });
                                 };
                             });
 
                     });
+
+                    function confirmarCreacion(){
+                        return confirm("¿Estás seguro de que deseas crear el nuevo operativo \"" + document.getElementById('nameInput').value +"\" ?");
+                    };
+                    function confirmarEdicion(){
+                        return confirm("¿Estás seguro de que deseas editar el operativo \"" + document.getElementById('editNameInput').value +"\" ?");
+                    };
+
+                    function openEditModal(operativo) {
+                        if (operativo) {
+                            $('#operativoId').val(operativo.id);
+                            $('#editNameInput').val(operativo.nombre);
+                            $('#editObservationInput').val(operativo.observacion);
+                            $('#editOperativoModal').modal('show');
+                        }
+                    }
+
+                    $(document).on('click', '.editButton', function(){
+                        var selectedOperativo = $(this).data('operativo');
+                        console.log(selectedOperativo);
+                        openEditModal(selectedOperativo);
+                    });
+                    
+
+                    @if ($errors->hasBag('edit'))
+                        $(document).ready(function() {
+                            var operativoFromSession = {!! json_encode(session('operativo_en_edicion')) !!};
+                            if (operativoFromSession) {
+                                openEditModal(operativoFromSession);
+                            }
+                        });
+                    @elseif ($errors->hasBag('new'))
+                        $('#newOperativoModal').modal('show');
+                    @endif
     </script>
 @endsection

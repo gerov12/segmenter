@@ -319,9 +319,11 @@ Route::middleware(['auth'])->group(function () {
 
 // ---------- OPERATIVOS ----------
 Route::get('operativos', 'OperativoController@index')->name('operativos');
-Route::get('operativo/{operativo}','OperativoController@show');
+Route::post('operativo/info/{operativo}','OperativoController@show');
+Route::get('operativo/info/{operativo}','OperativoController@show');
 Route::get('operativos-list', 'OperativoController@operativosList');
-Route::post('operativo/{operativo}','OperativoController@show');
+Route::post('operativo/new','OperativoController@store')->name('operativo.crear');
+Route::post('operativo/edit','OperativoController@update')->name('operativo.editar');
 Route::get('operativo/seleccionar/{operativo}','OperativoController@seleccionar')->name('operativo.seleccionar');
 
 

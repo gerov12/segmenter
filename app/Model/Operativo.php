@@ -10,6 +10,13 @@ class Operativo extends Model
     //
     protected $table='operativo';
 
+    protected $fillable = [
+        'nombre',
+        'observacion'
+    ];
+
+    public $timestamps = false; //ya que la tabla no tiene timestamps y el create da error
+
     /**
      * Relación con Operativo.
      *

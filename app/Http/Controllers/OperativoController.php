@@ -10,6 +10,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 
 class OperativoController extends Controller
 {
@@ -41,16 +42,53 @@ class OperativoController extends Controller
 
     public function store(Request $request)
     {
-      if (! Auth::check()) {
-          $mensaje = 'No tiene permiso para cargar Operativos o no esta logueado';
-          flash($mensaje)->error()->important();
-          return $mensaje;
+      try {
+        if (Auth::user()->can('Administrar Operativos')) {    
+            Validator::make($request->all(), [
+                'nombre' => 'required|string|max:255|unique:operativo',
+                'observacion' => 'nullable|string|max:255'
+            ])->validateWithBag('new');
+
+            $operativo = Operativo::create([
+                'nombre' => $request->nombre,
+                'observacion' => $request->observacion
+            ]);
+
+            flash("Operativo creado!")->success();
+            return redirect()->route('operativos');
+        } else {
+            flash("No tienes permiso para hacer eso.")->error();
+            return back();
+        }
+      } catch (PermissionDoesNotExist $e) {
+          flash('message', 'No existe el permiso "Administrar Geoservicios"')->error();
       }
+    }
 
-      $AppUser = Auth::user();
-      flash('TODO: Funcion en desarrollo')->warning()->important();
+    public function update(Request $request)
+    {
+      try {
+        if (Auth::user()->can('Administrar Operativos')) {    
+          $operativo = Operativo::findOrFail($request->input('operativo_id'));
+          session(['operativo_en_edicion' => $operativo]);
+            Validator::make($request->all(), [
+                'nombre' => 'required|string|max:255|unique:operativo',
+                'observacion' => 'nullable|string|max:255'
+            ])->validateWithBag('edit');
 
-      return view('operativo.list');
+            $operativo->nombre = $request->nombre;
+            $operativo->observacion = $request->observacion;
+            $operativo->save();
+
+            flash("Operativo actualizado!")->success();
+            return redirect()->route('operativos');
+        } else {
+            flash("No tienes permiso para hacer eso.")->error();
+            return back();
+        }
+      } catch (PermissionDoesNotExist $e) {
+          flash('message', 'No existe el permiso "Administrar Geoservicios"')->error();
+      }
     }
 
 
@@ -78,11 +116,16 @@ class OperativoController extends Controller
         }
       return datatables()->of($aOpes)
                           ->addColumn('action', function($data){
+                            $dataJson = htmlspecialchars(json_encode($data), ENT_QUOTES, 'UTF-8');
                             // botón de seleccionar Operativo
                             if($data['seleccionado']==false) {
-                            $button = '<button type="button" class="btn_seleccionar btn-sm btn-primary" > Seleccionar </button> ';
+                              $button = '<button type="button" class="btn_seleccionar btn-sm btn-primary" > Seleccionar </button> ';
                             } else {
                               $button = '<b>Seleccionado</b>';
+                            }
+                            if (Auth::user()->can('Administrar Operativos')) { 
+                              $button .= '<button type="button" class="btn_arch btn-sm btn-warning editButton" data-operativo="'.$dataJson.'"> Editar </button> ';
+                              $button .= '<button type="button" class="btn_arch btn-sm btn-danger btn_op_delete" > Eliminar </button>';
                             }
                             return $button;
                         })
