@@ -61,7 +61,7 @@ class OperativoController extends Controller
             return back();
         }
       } catch (PermissionDoesNotExist $e) {
-          flash('message', 'No existe el permiso "Administrar Geoservicios"')->error();
+          flash('message', 'No existe el permiso "Administrar Operativos"')->error();
       }
     }
 
@@ -87,7 +87,22 @@ class OperativoController extends Controller
             return back();
         }
       } catch (PermissionDoesNotExist $e) {
-          flash('message', 'No existe el permiso "Administrar Geoservicios"')->error();
+          flash('message', 'No existe el permiso "Administrar Operativos"')->error();
+      }
+    }
+
+    public function destroy(Request $request)
+    {
+      try {
+        if (Auth::user()->can('Administrar Operativos')) {
+          $operativo = Operativo::findOrFail($request->input('id'));
+          $operativo->delete();
+          return response()->json(['statusCode' => 200, 'message' => "Operativo eliminado! Motivo: " . $request->input('motivo')]);
+        } else {
+            return response()->json(['statusCode' => 405, 'message' => "No tienes permiso para hacer eso."]);
+        }
+      } catch (PermissionDoesNotExist $e) {
+          flash('message', 'No existe el permiso "Administrar Operativos"')->error();
       }
     }
 

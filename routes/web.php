@@ -319,6 +319,7 @@ Route::middleware(['auth'])->group(function () {
 
 // ---------- OPERATIVOS ----------
 Route::get('operativos', 'OperativoController@index')->name('operativos');
+Route::delete('operativo/{operativo}','OperativoController@destroy')->name('operativo.borrar');
 Route::post('operativo/info/{operativo}','OperativoController@show');
 Route::get('operativo/info/{operativo}','OperativoController@show');
 Route::get('operativos-list', 'OperativoController@operativosList');

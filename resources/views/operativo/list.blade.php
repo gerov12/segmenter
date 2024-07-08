@@ -70,7 +70,7 @@
             <!-- Modal content-->
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Editar operativo</h4>
+                    <h4 class="modal-title" id="name-operativo-edit"></h4>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
                 <form action="{{ route('operativo.editar') }}" method="POST" id="form-edit-operativo">
@@ -97,7 +97,46 @@
         </div>
     </div>
 
+    <!-- Modal de confirmación -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">Confirmar</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="mensaje-confirm">
+                    <!-- acá va el mensaje de confirmación correspondiente -->
+                    </div>
+
+                    <select class="form-control" id="motivoBorrado" onchange="showInput()">
+                        <option value="Error de ingreso">Error de ingreso</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                    <input type="text" class="form-control mt-2" id="otroMotivo" placeholder="Escriba el motivo" style="display: none;" required>
+                </div>
+                <div class="modal-footer">
+                    <div>
+                        <button type="button" class="btn btn-primary" id="confirmButton">Aceptar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
+    <div id="alert-container">
+        @if(Session::has('message'))
+            <div class="alert alert-danger alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            {{Session::get('message')}}
+            </div>
+        @endif
+    </div>
       <div class="row">
       </div>
         <h4>Listado de operativos
@@ -235,58 +274,25 @@
                     // Función de botón Borrar.
                     table.on('click', '.btn_op_delete', function() {
                         var $ele = $(this).parent().parent();
-                        console.log($ele);
                         var row = $(this).closest('tr');
                         var data = table.row(row).data();
-                        if ((typeof data !== 'undefined') &&
-                            (confirm('El elemento “' + data.id +
-                                    '” va a ser borrado de la tabla operativos, ¿es correcto? \n'+
-                                    'Selecccionar el motivo por el cual se borra el elemento( '+
-                                    'en este caso “Error de Ingreso”)' +
-                                    ''))) {
-                                    $.ajax({
-                                        url: "{{ url('operativo') }}" + "\\" + data.id,
-                                        type: "DELETE",
-                                        data: {
-                                            id: data.id,
-                                            _token: '{{ csrf_token() }}'
-                                        },
-                                        success: function(response) {
-                                            // Add response in Modal body
-                                            if (response.statusCode == 200) {
-                                                row.fadeOut().remove();
-                                                alert("Se eliminó el registro de la operativo");
-                                                $('.modal-body').html(response.message);
-                                            } else if (response.statusCode == 405) {
-                                                alert("Error al intentar borrar");
-                                            } else if (response.statusCode == 500) {
-                                                alert("Error al intentar borrar. En el servidor");
-                                            } else {
-                                                alert("Mensaje del Servidor: " + response.message);
-                                            }
-                                            console.log(response);
-                                        }
-                                    });
-                                };
-                            });
+                        
+                        $('#mensaje-confirm').html('El elemento <b>“' + data.nombre +
+                                    '”</b> va a ser borrado de la tabla operativos, ¿es correcto? <br><br>'+
+                                    'Selecccionar el motivo por el cual se borra el elemento: ');
+                        $('#confirmationModal').modal('show');
 
+                        $('#confirmButton').on('click', function() {
+                            var select = document.getElementById("motivoBorrado");
+                            var input = document.getElementById("otroMotivo");
+                            if (select.value === "Otro" && input.value.trim() === "") {
+                                alert("Por favor, escriba el motivo de borrado.");
+                            } else {
+                                borrarOperativo(row, data, table);
+                                $('#confirmationModal').modal('hide');
+                            }
+                        });
                     });
-
-                    function confirmarCreacion(){
-                        return confirm("¿Estás seguro de que deseas crear el nuevo operativo \"" + document.getElementById('nameInput').value +"\" ?");
-                    };
-                    function confirmarEdicion(){
-                        return confirm("¿Estás seguro de que deseas editar el operativo \"" + document.getElementById('editNameInput').value +"\" ?");
-                    };
-
-                    function openEditModal(operativo) {
-                        if (operativo) {
-                            $('#operativoId').val(operativo.id);
-                            $('#editNameInput').val(operativo.nombre);
-                            $('#editObservationInput').val(operativo.observacion);
-                            $('#editOperativoModal').modal('show');
-                        }
-                    }
 
                     $(document).on('click', '.editButton', function(){
                         var selectedOperativo = $(this).data('operativo');
@@ -305,5 +311,67 @@
                     @elseif ($errors->hasBag('new'))
                         $('#newOperativoModal').modal('show');
                     @endif
+        });
+
+        function confirmarCreacion(){
+            return confirm("¿Estás seguro de que deseas crear el nuevo operativo \"" + document.getElementById('nameInput').value +"\" ?");
+        };
+
+        function confirmarEdicion(){
+            return confirm("¿Estás seguro de que deseas editar el operativo?");
+        };
+
+        function openEditModal(operativo) {
+            if (operativo) {
+                $('#name-operativo-edit').text('Editar operativo ' + operativo.nombre);
+                $('#operativoId').val(operativo.id);
+                $('#editNameInput').val(operativo.nombre);
+                $('#editObservationInput').val(operativo.observacion);
+                $('#editOperativoModal').modal('show');
+            }
+        }
+
+        function borrarOperativo(row, data, table) {
+            if ((typeof data !== 'undefined')) {
+                var motivoBorrado = document.getElementById("motivoBorrado").value;
+                var otroMotivo = document.getElementById("otroMotivo").value;
+                var motivo = motivoBorrado === "Otro" ? otroMotivo : motivoBorrado;
+                $.ajax({
+                    url: "{{ route('operativo.borrar', '') }}/" + data.id,
+                    type: "DELETE",
+                    data: {
+                        id: data.id,
+                        motivo: motivo,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
+                        var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible" role="alert">' +
+                                            '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                                            response.message +
+                                        '</div>';
+                        $('#alert-container').html(alertHtml);
+                        if (response.statusCode == 200) {
+                            row.fadeOut().remove();
+                            table.ajax.reload();
+                        }
+                        console.log(response);
+                    }
+                });
+            };
+        };
+
+        // mostrar input de motivo de borrado
+        function showInput() {
+            var select = document.getElementById("motivoBorrado");
+            var input = document.getElementById("otroMotivo");
+            if (select.value === "Otro") {
+                input.style.display = "block";
+                input.setAttribute("required", "required");
+            } else {
+                input.style.display = "none";
+                input.removeAttribute("required");
+            }
+        }
     </script>
 @endsection
