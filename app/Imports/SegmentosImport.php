@@ -32,9 +32,9 @@ public function model(array $row)
     try {
         // Map missing or incorrect fields to expected names
         $data = [
-            'prov' => $row['prov'],
+            'prov' => $row['prov'] ?? $row['codprov'] ?? $row['cod_prov'] ,
             'nom_prov' => $row['nom_prov'] ?? $row['nomprov'] ?? null,
-            'dpto' => $row['dpto'] ?? $row['depto'] ,
+            'dpto' => $row['dpto'] ?? $row['depto'] ?? $row['coddpto'] ?? $row['coddepto'] ,
             'nom_dpto' => $row['nom_dpto'] ?? $row['nomdepto'] ?? null,
             'codloc' => $row['codloc'] ?? null,
             'nom_loc' => $row['nom_loc'] ?? $row['nomloc'] ?? null,

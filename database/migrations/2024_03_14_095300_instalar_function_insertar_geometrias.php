@@ -27,7 +27,9 @@ class InstalarFunctionInsertarGeometrias extends Migration
     {
         //
         DB::statement('drop function if exists indec.insertar_geometrias(poligono geometry, punto geometry)');
+        DB::statement('drop function if exists indec.insertar_geometrias(multipoligono geometry, multilinea geometry, multipunto geometry)');
     }
+
 }
 
 
