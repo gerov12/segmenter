@@ -390,12 +390,27 @@ class CompareController extends Controller
                     'geoservicio_nombre' => $geoservicio_nombre,
                     'geoservicio_descripcion' => $geoservicio_descripcion
                 ]);
+
+                return response()->json(['success' => true, 'informe_id' => $informe->id, 'cod' => $informe->cod, 'nom' => $informe->nom]);
+            } else {
+                return response()->json(['error' => 'No tienes permiso para hacer eso.'], 403);
+            }
+        } catch (PermissionDoesNotExist $e) {
+            return response()->json(['error' => 'No existe el permiso "Generar Informes"'], 403);
+        }
+    }
+
+    public function storeResultados(Request $request)
+    {
+        try {
+            if (Auth::user()->can('Generar Informes')) { 
+                $informe_id = $request->input('informe_id');
                 
                 //guardo los resultados del informe (por el momento solo para provincias)
                 foreach ($request->input('resultados') as $resultado) {
                     $provincia_id = isset($resultado['provincia']) ? intval($resultado['provincia']['id']) : null; //null si no existe en la bd
                     $informe_provincia = new InformeProvincia([
-                        'informe_id' => $informe->id,
+                        'informe_id' => $informe_id,
                         'provincia_id' => $provincia_id,
                         'existe_cod' => $resultado['existe_cod'],
                         'existe_nom' => $resultado['existe_nom'],
@@ -407,12 +422,12 @@ class CompareController extends Controller
                     ]);
                     $informe_provincia->save();
                 }
+                return response()->json(['success' => true]);
             } else {
-                flash("No tienes permiso para hacer eso.")->error();
-                return back();
+                return response()->json(['error' => 'No tienes permiso para hacer eso.'], 403);
             }
         } catch (PermissionDoesNotExist $e) {
-            flash('message', 'No existe el permiso "Generar Informes"')->error();
+            return response()->json(['error' => 'No existe el permiso "Generar Informes"'], 403);
         }
     }
 
