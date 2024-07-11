@@ -372,42 +372,80 @@
             var button = $(this);
             var spinner = $('#spinner');
             var btnText = $('#btn-text');
+            button.prop('disabled', true);
             spinner.show();
             btnText.hide();
 
-            var data = {
-                _token: '{{ csrf_token() }}',
-                capa: button.data('capa'),
-                tabla: button.data('tabla'),
-                elementos_erroneos: button.data('elementos_erroneos'),
-                total_errores: button.data('total_errores'),
-                cod: button.data('cod'),
-                nom: button.data('nom'),
-                //operativo_id: button.data('operativo'),
-                datetime: button.data('datetime'),
-                user_id: button.data('user-id'),
-                geoservicio: button.data('geoservicio'),
-                resultados: button.data('resultados')
-            };
+            var resultados = button.data('resultados');
+            var chunkSize = 30; // ajustar el tamaño segun la capacidad del servidor
 
+            // Primera solicitud: crear el informe
             $.ajax({
                 url: '{{ route("compare.storeInforme") }}',
                 method: 'POST',
-                data: data,
-                success: function(response) {
-                    button.prop('disabled', true);
-                    spinner.hide();
-                    btnText.text('Guardado');
-                    btnText.show();
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    capa: button.data('capa'),
+                    tabla: button.data('tabla'),
+                    elementos_erroneos: button.data('elementos_erroneos'),
+                    total_errores: button.data('total_errores'),
+                    cod: button.data('cod'),
+                    nom: button.data('nom'),
+                    datetime: button.data('datetime'),
+                    user_id: button.data('user-id'),
+                    geoservicio: button.data('geoservicio')
+                },
+                success: function(response) { // Si se crea el informe, se envían los resultados
+                    var informeId = response.informe_id;
+                    var cod = response.cod;
+                    var nom = response.nom;
+
+                    // Función para enviar los resultados en chunks
+                    function sendChunk(chunk, chunkIndex) {
+                        console.log('Enviando chunk ' + chunkIndex + ' con ' + chunk.length + ' elementos');
+                        $.ajax({
+                            url: '{{ route("compare.storeResultados") }}',
+                            method: 'POST',
+                            data: {
+                                _token: '{{ csrf_token() }}',
+                                informe_id: informeId,
+                                cod: cod,
+                                nom: nom,
+                                resultados: chunk,
+                                chunkIndex: chunkIndex
+                            },
+                            success: function(response) {
+                                // Deja de enviar chunks si finalizó de enviar todos los resultados
+                                if (chunkIndex + 1 < Math.ceil(resultados.length / chunkSize)) {
+                                    sendChunk(resultados.slice((chunkIndex + 1) * chunkSize, (chunkIndex + 2) * chunkSize), chunkIndex + 1);
+                                } else {
+                                    spinner.hide();
+                                    btnText.text('Guardado');
+                                    btnText.show();
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error(error);
+                                alert('Error al guardar los resultados del informe.');
+                                spinner.hide();
+                                btnText.show();
+                                button.prop('disabled', false);
+                            }
+                        });
+                    }
+
+                    // Enviar el primer fragmento
+                    sendChunk(resultados.slice(0, chunkSize), 0);
                 },
                 error: function(xhr, status, error) {
                     console.error(error);
-                    alert('Error al guardar el informe.');
+                    alert('Error al crear el informe.');
                     spinner.hide();
                     btnText.show();
                 }
             });
         });
     });
+
 </script>
 @endsection
