@@ -258,6 +258,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('compare/validar/{capa}', 'CompareController@validar')->name('compare.validar');
     Route::post('compare/geom_import', 'CompareController@importarGeometria')->name('compare.importarGeom');
     Route::post('compare/store_informe', 'CompareController@storeInforme')->name('compare.storeInforme');
+    Route::post('compare/store_resultados', 'CompareController@storeResultados')->name('compare.storeResultados');
 });
 
 // ---------- PROVINCIAS --------
