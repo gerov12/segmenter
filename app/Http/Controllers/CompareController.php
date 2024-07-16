@@ -16,6 +16,9 @@ use SimpleXMLElement;
 class CompareController extends Controller
 {   
     protected $geoservicio;
+    private $tempInforme;
+    private $tempResultados = [];
+    private $tempGeometrias = [];
 
     private function chequearEstadoGeometrias($provinciaCoincidente, $feature=null, $feature_geometry=null)
     {   
@@ -83,7 +86,6 @@ class CompareController extends Controller
                     'capa' => $informe->capa, 
                     'tabla' => $informe->tabla,
                     'resultados' => $resultados, 
-                    'geometrias' => null,
                     'elementos_erroneos' => $informe->elementos_erroneos, 
                     'total_errores' => $informe->total_errores, 
                     'cod' => $informe->cod, 
@@ -229,39 +231,7 @@ class CompareController extends Controller
                     $geoservicioData = json_decode($geoservicioJson, true);
                     if ($geoservicioData) {
                         $geoservicio = new Geoservicio($geoservicioData);
-                        $comparacion = $this::compararProvincias($geoservicio, $codigo, $nombre, $capa); //
-                        $resultados_sin_geom = [];
-                        $geometrias = [];
-
-                        foreach ($comparacion['resultados'] as $resultado) {
-                            $feature = $resultado['feature'];
-                            $id = $feature['id'];
-                            
-                            // modifico el campo feature del resultado para que solo tenga id y properties
-                            $resultado['feature'] = [
-                                'id' => $id,
-                                'properties' => $feature['properties']
-                            ];
-                            $resultados_sin_geom[] = $resultado;
-                            
-                            // guardo la geometría del feature del resultado por separado
-                            $geometrias[$id] = $feature['geometry'];
-                        }
-                        return view('compare_bd.informe')->with([
-                            'capa' => $capa, 
-                            'tabla' => "Provincia", //esto junto a la función que se llama para comparar dependerá de la capa
-                            'resultados' => $resultados_sin_geom, 
-                            'geometrias' => $geometrias,
-                            'elementos_erroneos' => $comparacion['elementos_erroneos'], 
-                            'total_errores' => $comparacion['total_errores'], 
-                            'cod' => $codigo, 
-                            'nom' => $nombre,
-                            'operativo' => "-", //TO-DO
-                            'datetime' => Carbon::now(),
-                            'usuario' => Auth::user(),
-                            'geoservicio' => $geoservicio,
-                            'tipo_informe' => "resultado"
-                        ]);   
+                        return $this->obtenerResultados($geoservicio, $codigo, $nombre, $capa);
                     } else {
                         return redirect()->route('compare.geoservicios')->with('error', 'No hay Geoservicio seleccionado');
                     }
@@ -276,6 +246,64 @@ class CompareController extends Controller
         } catch (PermissionDoesNotExist $e) {
             flash('message', 'No existe el permiso "Generar Informes"')->error();
         }
+    }
+
+    private function obtenerResultados($geoservicio, $codigo, $nombre, $capa)
+    {
+        $comparacion = $this::compararProvincias($geoservicio, $codigo, $nombre, $capa); //
+
+        foreach ($comparacion['resultados'] as $resultado) {
+            $feature = $resultado['feature'];
+            $provincia = $resultado['provincia'];
+            
+            // modifico el campo feature del resultado para que solo tenga id y properties
+            $resultado['feature'] = [
+                'id' => $feature['id'],
+                'properties' => $feature['properties']
+            ];
+            $this->tempResultados[] = $resultado;
+            
+            // guardo la geometría del feature del resultado por separado
+            $this->tempGeometrias[$provincia['codigo']] = $feature['geometry'];
+        }
+
+        // creo el objeto temporal Informe en caso de que se quiera guardar
+        $geoservicio_id = $geoservicio['id'] ?? null;
+        $geoservicio_url = $geoservicio_id ? null : $geoservicio['url']; //solo para las conexiones rapidas guardo la url ya que no hay id
+        $geoservicio_nombre = $geoservicio_id ? null : $geoservicio['nombre']; //solo para las conexiones rapidas guardo el nombre ya que no hay id
+        $geoservicio_descripcion = $geoservicio_id ? null : $geoservicio['descripcion']; //solo para las conexiones rapidas guardo la url ya que no hay id
+        $this->tempInforme = new Informe([
+            'capa' => $capa,
+            'tabla' => "Provincia", //esto junto a la función que se llama para comparar dependerá de la capa
+            'elementos_erroneos' => $comparacion['elementos_erroneos'], 
+            'total_errores' => $comparacion['total_errores'], 
+            'cod' => $codigo, 
+            'nom' => $nombre,
+            'operativo_id' => null,
+            'datetime' => Carbon::now(),
+            'user_id' => Auth::user()->id,
+            'geoservicio_id' => $geoservicio_id,
+            'geoservicio_url' => $geoservicio_url,
+            'geoservicio_nombre' => $geoservicio_nombre,
+            'geoservicio_descripcion' => $geoservicio_descripcion
+        ]);
+
+        // Guardo los objetos en la sesión ya que no persisten (for each request, a new instance of your controller is created)
+        session(['tempInforme' => $this->tempInforme, 'tempResultados' => $this->tempResultados, 'tempGeometrias' => $this->tempGeometrias]);
+        return view('compare_bd.informe')->with([
+            'capa' => $capa, 
+            'tabla' => $this->tempInforme->tabla,
+            'resultados' => $this->tempResultados, 
+            'elementos_erroneos' => $this->tempInforme->elementos_erroneos, 
+            'total_errores' => $this->tempInforme->total_errores, 
+            'cod' => $this->tempInforme->cod, 
+            'nom' => $this->tempInforme->nom,
+            'operativo' => "-", //TO-DO
+            'datetime' => $this->tempInforme->datetime,
+            'usuario' => Auth::user(),
+            'geoservicio' => $geoservicio,
+            'tipo_informe' => "resultado"
+        ]);  
     }
 
     private function compararProvincias(Geoservicio $geoservicio, $codigo, $nombre, $capa)
@@ -366,59 +394,29 @@ class CompareController extends Controller
         }
     }
 
-    public function storeInforme(Request $request)
+    public function storeInforme()
     {   
         try {
             if (Auth::user()->can('Generar Informes')) {
-                $geoservicio = $request->input('geoservicio');
-                $geoservicio_id = $geoservicio['id'] ?? null;
-                $geoservicio_url = $geoservicio_id ? null : $geoservicio['url']; //solo para las conexiones rapidas guardo la url ya que no hay id
-                $geoservicio_nombre = $geoservicio_id ? null : $geoservicio['nombre']; //solo para las conexiones rapidas guardo el nombre ya que no hay id
-                $geoservicio_descripcion = $geoservicio_id ? null : $geoservicio['descripcion']; //solo para las conexiones rapidas guardo la url ya que no hay id
-                $informe = Informe::create([
-                    'capa' => $request->input('capa'),
-                    'tabla' => $request->input('tabla'),
-                    'elementos_erroneos' => $request->input('elementos_erroneos'),
-                    'total_errores' => $request->input('total_errores'),
-                    'cod' => $request->input('cod'),
-                    'nom' => $request->input('nom'),
-                    'operativo_id' => null,
-                    'datetime' => $request->input('datetime'),
-                    'user_id' => $request->input('user_id'),
-                    'geoservicio_id' => $geoservicio_id,
-                    'geoservicio_url' => $geoservicio_url,
-                    'geoservicio_nombre' => $geoservicio_nombre,
-                    'geoservicio_descripcion' => $geoservicio_descripcion
-                ]);
+                $this->tempInforme = session('tempInforme');
+                $this->tempResultados = session('tempResultados');
 
-                return response()->json(['success' => true, 'informe_id' => $informe->id, 'cod' => $informe->cod, 'nom' => $informe->nom]);
-            } else {
-                return response()->json(['error' => 'No tienes permiso para hacer eso.'], 403);
-            }
-        } catch (PermissionDoesNotExist $e) {
-            return response()->json(['error' => 'No existe el permiso "Generar Informes"'], 403);
-        }
-    }
+                //guardo el informe
+                $this->tempInforme->save();
 
-    public function storeResultados(Request $request)
-    {
-        try {
-            if (Auth::user()->can('Generar Informes')) { 
-                $informe_id = $request->input('informe_id');
-                
                 //guardo los resultados del informe (por el momento solo para provincias)
-                foreach ($request->input('resultados') as $resultado) {
+                foreach ($this->tempResultados as $resultado) {
                     $provincia_id = isset($resultado['provincia']) ? intval($resultado['provincia']['id']) : null; //null si no existe en la bd
                     $informe_provincia = new InformeProvincia([
-                        'informe_id' => $informe_id,
+                        'informe_id' => $this->tempInforme->id,
                         'provincia_id' => $provincia_id,
                         'existe_cod' => $resultado['existe_cod'],
                         'existe_nom' => $resultado['existe_nom'],
                         'estado' => $resultado['estado'],
                         'estado_geom' => $resultado['estado_geom'],
                         'errores' => $resultado['errores'],
-                        'cod' => $resultado['feature']['properties'][$request->input('cod')],
-                        'nom' => $resultado['feature']['properties'][$request->input('nom')]
+                        'cod' => $resultado['feature']['properties'][$this->tempInforme->cod],
+                        'nom' => $resultado['feature']['properties'][$this->tempInforme->nom]
                     ]);
                     $informe_provincia->save();
                 }
@@ -436,8 +434,10 @@ class CompareController extends Controller
         try {
             if (Auth::user()->can('Importar Geometrias')) {
                 $cod_provincia = $request->input('cod_provincia');
+                $this->tempGeometrias = session('tempGeometrias');
+
                 $provincia = Provincia::where('codigo', $cod_provincia)->first();
-                $geomFeature = $request->input('geom_feature');
+                $geomFeature = json_encode($this->tempGeometrias[$cod_provincia]);
                 $id_new_geom = $provincia->setGeometriaAttribute($geomFeature);
                 if ($id_new_geom !== null) {
                     $nuevo_estado = $this::chequearEstadoGeometrias($provincia, null, $geomFeature);
@@ -465,41 +465,8 @@ class CompareController extends Controller
                         'descripcion' => $informe->geoservicio_descripcion,
                         'url' => $informe->geoservicio_url
                     ]);
-                }
-                
-                $comparacion = $this::compararProvincias($geoservicio, $informe->cod, $informe->nom, $informe->capa); //
-                $resultados_sin_geom = [];
-                $geometrias = [];
-
-                foreach ($comparacion['resultados'] as $resultado) {
-                    $feature = $resultado['feature'];
-                    $id = $feature['id'];
-                    
-                    // modifico el campo feature del resultado para que solo tenga id y properties
-                    $resultado['feature'] = [
-                        'id' => $id,
-                        'properties' => $feature['properties']
-                    ];
-                    $resultados_sin_geom[] = $resultado;
-                    
-                    // guardo la geometría del feature del resultado por separado
-                    $geometrias[$id] = $feature['geometry'];
-                }
-                return view('compare_bd.informe')->with([
-                    'capa' => $informe->capa, 
-                    'tabla' => "Provincia", //esto junto a la función que se llama para comparar dependerá de la capa
-                    'resultados' => $resultados_sin_geom, 
-                    'geometrias' => $geometrias,
-                    'elementos_erroneos' => $comparacion['elementos_erroneos'], 
-                    'total_errores' => $comparacion['total_errores'], 
-                    'cod' => $informe->cod, 
-                    'nom' => $informe->nom,
-                    'operativo' => "-", //TO-DO
-                    'datetime' => Carbon::now(),
-                    'usuario' => Auth::user(),
-                    'geoservicio' => $geoservicio,
-                    'tipo_informe' => "resultado"
-                ]);
+                } 
+                return $this->obtenerResultados($geoservicio, $informe->cod, $informe->nom, $informe->capa);
             } else {
                 flash("No tienes permiso para hacer eso.")->error();
                 return back();

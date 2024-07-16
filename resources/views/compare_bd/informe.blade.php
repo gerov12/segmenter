@@ -89,18 +89,7 @@
                     </div>
                     <div id="store">
                         @if ($tipo_informe == "resultado")
-                        <button type="button" id="btn-guardar" class="btn btn-primary mr-2"
-                            data-capa="{{ $capa }}" 
-                            data-tabla="{{ $tabla }}" 
-                            data-elementos_erroneos="{{ $elementos_erroneos }}" 
-                            data-total_errores="{{ $total_errores }}" 
-                            data-cod="{{ $cod }}" 
-                            data-nom="{{ $nom }}" 
-                            data-operativo-id="-" 
-                            data-datetime="{{ $datetime }}" 
-                            data-user-id="{{ $usuario->id }}" 
-                            data-geoservicio="{{ $geoservicio }}"
-                            data-resultados="{{ json_encode($resultados) }}">
+                        <button type="button" id="btn-guardar" class="btn btn-primary mr-2">
                             <span id="spinner" style="display: none;">
                                 <div class="spinner-border spinner-border-sm" role="status">
                                     <span class="sr-only">Cargando...</span>
@@ -193,7 +182,7 @@
                                         Base de Datos: <i style="color:red" class="bi bi-x"></i><br>
                                         Geoservicio: <i style="color:green" class="bi bi-check"></i><br>
                                         @can('Importar Geometrias')
-                                        <button type="button" class="btn btn-success btn-sm importar-btn" data-cod-prov="{{$resultado['provincia']['codigo']}}" data-geom-feature="{{json_encode($geometrias[$resultado['feature']['id']])}}">Importar</button>
+                                        <button type="button" class="btn btn-success btn-sm importar-btn" data-cod-prov="{{$resultado['provincia']['codigo']}}">Importar</button>
                                         @endcan
                                     @elseif ($resultado['estado_geom'] == 'No hay geometrías cargadas')
                                         Base de Datos: <i style="color:red" class="bi bi-x"></i><br>
@@ -303,9 +292,7 @@
         var showConfirmation = true;
         $('#tabla-resultado').on('click', '.importar-btn', function() {
             var cod_provincia = $(this).data('cod-prov');
-            var geomFeature = JSON.stringify($(this).data('geom-feature'));
-            var $button = $(this);
-            var $row = $button.closest('tr');
+            var $rows = $('button[data-cod-prov="' + cod_provincia + '"]').closest('tr'); //no funciona para las filas paginadas pero no importa
 
             function importaGeometriaAjax() {
                 $.ajax({
@@ -314,7 +301,6 @@
                     data: {
                         _token: '{{ csrf_token() }}',
                         cod_provincia: cod_provincia,
-                        geom_feature: geomFeature
                     },
                     success: function(response) {
                         var alertClass = (response.statusCode == 200) ? 'alert-success' : 'alert-danger';
@@ -324,24 +310,31 @@
                                         '</div>';
                         $('#alert-container').html(alertHtml);
                         if (response.statusCode == 200){
-                            $button.hide();
-                            var tdId = '#estado_geom_' + cod_provincia;
-                            $(tdId).html(
-                                'Base de Datos: <i style="color:green" class="bi bi-check"></i><br>' +
-                                'Geoservicio: <i style="color:green" class="bi bi-check"></i><br>' +
-                                'Diferencia: <i>' + response.estado_geom + '</i>'
-                            );
-                            // resalto la fila
-                            $row.addClass('highlight');
-                            setTimeout(function() {
-                                $row.removeClass('highlight');
-                            }, 2000);
+                            $rows.each(function() {
+                                var $row = $(this);
+                                $row.find('.importar-btn').hide();
+                                var cod_provincia = $row.data('cod-prov');
+                                var tdId = '#estado_geom_' + cod_provincia;
+                                $(tdId).html(
+                                    'Base de Datos: <i style="color:green" class="bi bi-check"></i><br>' +
+                                    'Geoservicio: <i style="color:green" class="bi bi-check"></i><br>' +
+                                    'Diferencia: <i>' + response.estado_geom + '</i>'
+                                );
+                                // resalto la fila
+                                $row.addClass('highlight');
+                                setTimeout(function() {
+                                    $row.removeClass('highlight');
+                                }, 2000);
+                            });
                         } else if (response.statusCode == 403) {
-                            // resalto la fila
-                            $row.addClass('highlight-error');
-                            setTimeout(function() {
-                                $row.removeClass('highlight-error');
-                            }, 2000);
+                            $rows.each(function() {
+                                var $row = $(this);
+                                // resalto la fila
+                                $row.addClass('highlight-error');
+                                setTimeout(function() {
+                                    $row.removeClass('highlight-error');
+                                }, 2000);
+                            });
                         }
                     },
                     error: function(xhr, status, error) {
@@ -376,72 +369,23 @@
             spinner.show();
             btnText.hide();
 
-            var resultados = button.data('resultados');
-            var chunkSize = 30; // ajustar el tamaño segun la capacidad del servidor
-
-            // Primera solicitud: crear el informe
             $.ajax({
                 url: '{{ route("compare.storeInforme") }}',
                 method: 'POST',
                 data: {
                     _token: '{{ csrf_token() }}',
-                    capa: button.data('capa'),
-                    tabla: button.data('tabla'),
-                    elementos_erroneos: button.data('elementos_erroneos'),
-                    total_errores: button.data('total_errores'),
-                    cod: button.data('cod'),
-                    nom: button.data('nom'),
-                    datetime: button.data('datetime'),
-                    user_id: button.data('user-id'),
-                    geoservicio: button.data('geoservicio')
                 },
-                success: function(response) { // Si se crea el informe, se envían los resultados
-                    var informeId = response.informe_id;
-                    var cod = response.cod;
-                    var nom = response.nom;
-
-                    // Función para enviar los resultados en chunks
-                    function sendChunk(chunk, chunkIndex) {
-                        console.log('Enviando chunk ' + chunkIndex + ' con ' + chunk.length + ' elementos');
-                        $.ajax({
-                            url: '{{ route("compare.storeResultados") }}',
-                            method: 'POST',
-                            data: {
-                                _token: '{{ csrf_token() }}',
-                                informe_id: informeId,
-                                cod: cod,
-                                nom: nom,
-                                resultados: chunk,
-                                chunkIndex: chunkIndex
-                            },
-                            success: function(response) {
-                                // Deja de enviar chunks si finalizó de enviar todos los resultados
-                                if (chunkIndex + 1 < Math.ceil(resultados.length / chunkSize)) {
-                                    sendChunk(resultados.slice((chunkIndex + 1) * chunkSize, (chunkIndex + 2) * chunkSize), chunkIndex + 1);
-                                } else {
-                                    spinner.hide();
-                                    btnText.text('Guardado');
-                                    btnText.show();
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                console.error(error);
-                                alert('Error al guardar los resultados del informe.');
-                                spinner.hide();
-                                btnText.show();
-                                button.prop('disabled', false);
-                            }
-                        });
-                    }
-
-                    // Enviar el primer fragmento
-                    sendChunk(resultados.slice(0, chunkSize), 0);
+                success: function(response) {
+                    spinner.hide();
+                    btnText.text('Guardado');
+                    btnText.show();
                 },
                 error: function(xhr, status, error) {
                     console.error(error);
                     alert('Error al crear el informe.');
                     spinner.hide();
                     btnText.show();
+                    button.prop('disabled', false);
                 }
             });
         });
