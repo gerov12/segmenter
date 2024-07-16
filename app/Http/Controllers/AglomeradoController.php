@@ -88,12 +88,12 @@ use Illuminate\Support\Facades\Log;
                             'radios'=>$radios,
                             'svg'=>$svg]);*/
             }else{
-                $aglomerado->load('localidades');
+                $aglomerado->load('localidades')->with('provincia');
                 return view('aglo.localidades_view',[
                             'aglomerado'=>$aglomerado]);
             }
         }
-        
+
         public function show_post(Aglomerado $aglomerado)
         {
             //
@@ -120,14 +120,14 @@ use Illuminate\Support\Facades\Log;
         {
             if($request->optalgoritmo=='listado'){
                 // Segmentacion x listado
-                return $this->run_segmentar_equilibrado($request,$aglomerado); 
+                return $this->run_segmentar_equilibrado($request,$aglomerado);
             }elseif($request->optalgoritmo=='lados'){
                 // Segmentacion x lado completo. Esto se realiza x radio o puedo hacerse para los radios del request.
-                return $this->run_segmentar_x_lado($request,$aglomerado); 
+                return $this->run_segmentar_x_lado($request,$aglomerado);
                 }else{
                     $radio=null;
                     $result =
-                    $this->run_segmentar_x_lado($request,$aglomerado,$radio,true); 
+                    $this->run_segmentar_x_lado($request,$aglomerado,$radio,true);
                     Log::debug("Segmentacion lucky: ".$radio);
                     $excedidos =
                     MyDB::segmentos_excedidos('e'.$aglomerado->codigo,$request['vivs_max'],$radio);
@@ -143,23 +143,23 @@ use Illuminate\Support\Facades\Log;
                         $radio->resultado.= '
     '.$mensajes_excedidos;
                         }
-//                        $this->run_segmentar_x_lucky($request,$aglomerado,$radio,true); 
+//                        $this->run_segmentar_x_lucky($request,$aglomerado,$radio,true);
 //                        $radio->segmentarLucky($request['vivs_max'],$request['vivs_deseadas']);
-                        return app('App\Http\Controllers\SegmentacionController')->ver_grafo($aglomerado,$radio);        
+                        return app('App\Http\Controllers\SegmentacionController')->ver_grafo($aglomerado,$radio);
                     }
                 //dd($aglomerado);
               return
-              app('App\Http\Controllers\SegmentacionController')->index($aglomerado);        
+              app('App\Http\Controllers\SegmentacionController')->index($aglomerado);
             }
 
     }
     public function run_segmentar_equilibrado(Request $request, Aglomerado $aglomerado)
     {
         if(MyDB::segmentar_equilibrado($aglomerado->codigo,$request['vivs_deseadas'])) {
-           flash('Segmentado ('.$aglomerado->codigo.') '.$aglomerado->nombre.'!'); 
+           flash('Segmentado ('.$aglomerado->codigo.') '.$aglomerado->nombre.'!');
            return redirect()->route('ver-segmentacion', [$aglomerado]); //$this->ver_segmentacion($aglomerado);
         };
-        
+
     }
 
     public function ver_segmentacion(Aglomerado $aglomerado)
@@ -236,12 +236,12 @@ use Illuminate\Support\Facades\Log;
                                           $request['vivs_min'],
                                           $request['mzas_indivisibles']);
                                           }
-            return  app('App\Http\Controllers\SegmentacionController')->ver_grafo($aglomerado,$radio);        
+            return  app('App\Http\Controllers\SegmentacionController')->ver_grafo($aglomerado,$radio);
         }else{
-           flash('No selecciono ningún radio valido!'); 
+           flash('No selecciono ningún radio valido!');
            dd($request);
         }
-        
+
     }
 
     public function ver_pxseg(Aglomerado $aglomerado)

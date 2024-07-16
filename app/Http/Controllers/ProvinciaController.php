@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Model\Provincia;
 use App\Model\Departamento;
+use App\Model\Operativo;
 use Illuminate\Http\Request;
 use Redirect,Response,DB,Config;
 use Datatables;
@@ -39,6 +40,16 @@ class ProvinciaController extends Controller
            if ($codigo!='') {
               $provsQuery->where('codigo', '=', $codigo);
            }
+
+           // Si existe seleccionado un operativo usar filtro.
+           if (session('operativo')) {
+            $operativo_actual = Operativo::hydrate( session('operativo') )->first();
+            flash('Operativo seleccionado: '.$operativo_actual->nombre)->success()->important();
+            // $provsQuery = Provincia::scopeOperativo( $provsQuery, $operativo_actual);
+            $provsQuery = $operativo_actual->Provincias();
+          }
+
+
     	  $provs = $provsQuery->select('*')
                 ->withCount(['departamentos','fracciones'])
                 ->with('departamentos')

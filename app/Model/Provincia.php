@@ -128,10 +128,9 @@ class Provincia extends Model
     /**
      * Scope to filter provincia by a given operativo.
      */
-    public function scopeOperativo($query, $operativo) {
-      return $query->where(['operativo' => function ($q) {
-          $q == $operativo;
-      }]);
+    public static function scopeOperativo($query, $operativo) {
+      //$operativo = 1;
+      return $query->where(['operativo' => $operativo->id]);
     }
 
     public function geometria()
@@ -145,10 +144,14 @@ class Provincia extends Model
       return $this->geometria_id;
     }
 
-    public function informes() {
-      return $this->belongsToMany(Informe::class, 'informe_provincia')
-          ->using(InformeProvincia::class)
-          ->withPivot('existe_cod', 'existe_nom', 'estado', 'estado_geom', 'errores', 'cod', 'nom')
-          ->withTimestamps();
+  // Relación de provincia con informes de comparación contra geoservicios
+  public function informes() {
+    return $this->belongsToMany(Informe::class, 'informe_provincia')
+        ->using(InformeProvincia::class)
+        ->withPivot('existe_cod', 'existe_nom', 'estado', 'estado_geom', 'errores', 'cod', 'nom')
+        ->withTimestamps();
   }
+
+
+
 }
