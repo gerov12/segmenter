@@ -263,8 +263,10 @@ class CompareController extends Controller
             ];
             $this->tempResultados[] = $resultado;
             
-            // guardo la geometría del feature del resultado por separado
-            $this->tempGeometrias[$provincia['codigo']] = $feature['geometry'];
+            // si la provincia existe en la BD guardo la geometría del feature correspondiente del resultado por separado
+            if ($provincia) {
+                $this->tempGeometrias[$provincia['codigo']] = $feature['geometry'];
+            }
         }
 
         // creo el objeto temporal Informe en caso de que se quiera guardar
